@@ -571,4 +571,50 @@ public static class yubihsm
         /// <summary>The response byte returned from the device if the command resulted in an error</summary>
         YHC_ERROR = 0x7f,
     }
+
+    /// <summary>
+    /// Object types
+    /// </summary>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html"/>
+    public enum yh_object_type
+    {
+        /// <summary>Opaque Object is an unchecked kind of Object, normally used to store
+        /// raw data in the device</summary>
+        YH_OPAQUE = 0x01,
+
+        /// <summary>Authentication Key is used to establish Sessions with a device</summary>
+        YH_AUTHENTICATION_KEY = 0x02,
+
+        /// <summary>Asymmetric Key is the private key of an asymmetric key-pair</summary>
+        YH_ASYMMETRIC_KEY = 0x03,
+
+        /// <summary>Wrap Key is a secret key used to wrap and unwrap Objects during the
+        /// export and import process</summary>
+        YH_WRAP_KEY = 0x04,
+
+        /// <summary>HMAC Key is a secret key used when computing and verifying HMAC signatures</summary>
+        YH_HMAC_KEY = 0x05,
+
+        /// <summary>Template is a binary object used for example to validate SSH certificate
+        /// requests</summary>
+        YH_TEMPLATE = 0x06,
+
+        /// <summary>OTP AEAD Key is a secret key used to decrypt Yubico OTP values</summary>
+        YH_OTP_AEAD_KEY = 0x07,
+
+        /// <summary>Symmetric Key is a secret key used for encryption and decryption.</summary>
+        YH_SYMMETRIC_KEY = 0x08,
+
+        /// <summary>Public Wrap Key is a public key used to wrap Objects during the
+        /// export process</summary>
+        YH_PUBLIC_WRAP_KEY = 0x09,
+
+        /// <summary>Public Key is the public key of an asymmetric key-pair. The public key
+        /// never exists in device and is mostly here for PKCS#11.</summary>
+        YH_PUBLIC_KEY = YH_ASYMMETRIC_KEY | 0x80,
+
+        /// <summary>Wrap Key public is the public key of an asymmetric wrap key. The public key
+        /// never exists in device and is mostly here for PKCS#11.</summary>
+        YH_WRAP_KEY_PUBLIC = YH_WRAP_KEY | 0x80,
+    }
 }
