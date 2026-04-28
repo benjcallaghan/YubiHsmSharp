@@ -310,4 +310,265 @@ public static class yubihsm
         /// <summary>Returned value when an algorithm is disabled</summary>
         YHR_DEVICE_ALGORITHM_DISABLED = -31,
     }
+
+    /// <summary>
+    /// Command definitions
+    /// </summary>
+    public enum yh_cmd
+    {
+        /// <summary>Echo data back from the device.</summary>
+        YHC_ECHO = 0x01,
+        YHC_ECHO_R = 0x01 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Create a session with the device.</summary>
+        YHC_CREATE_SESSION = 0x03,
+        YHC_CREATE_SESSION_R = 0x03 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Authenticate the session to the device</summary>
+        YHC_AUTHENTICATE_SESSION = 0x04,
+        YHC_AUTHENTICATE_SESSION_R = 0x04 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Send a command over an established session</summary>
+        YHC_SESSION_MESSAGE = 0x05,
+        YHC_SESSION_MESSAGE_R = 0x05 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Get device metadata</summary>
+        YHC_GET_DEVICE_INFO = 0x06,
+        YHC_GET_DEVICE_INFO_R = 0x06 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Factory reset a device</summary>
+        YHC_RESET_DEVICE = 0x08,
+        YHC_RESET_DEVICE_R = 0x08 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Get the device pubkey for asym auth</summary>
+        YHC_GET_DEVICE_PUBKEY = 0x0a,
+        YHC_GET_DEVICE_PUBKEY_R = 0x0a | YH_CMD_RESP_FLAG,
+
+        /// <summary>Close session</summary>
+        YHC_CLOSE_SESSION = 0x40,
+        YHC_CLOSE_SESSION_R = 0x40 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Get storage information</summary>
+        YHC_GET_STORAGE_INFO = 0x041,
+        YHC_GET_STORAGE_INFO_R = 0x041 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Import an Opaque Object into the device</summary>
+        YHC_PUT_OPAQUE = 0x42,
+        YHC_PUT_OPAQUE_R = 0x42 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Get an Opaque Object from device</summary>
+        YHC_GET_OPAQUE = 0x43,
+        YHC_GET_OPAQUE_R = 0x43 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Import an Authentication Key into the device</summary>
+        YHC_PUT_AUTHENTICATION_KEY = 0x44,
+        YHC_PUT_AUTHENTICATION_KEY_R = 0x44 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Import an Asymmetric Key into the device</summary>
+        YHC_PUT_ASYMMETRIC_KEY = 0x45,
+        YHC_PUT_ASYMMETRIC_KEY_R = 0x45 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Generate an Asymmetric Key in the device</summary>
+        YHC_GENERATE_ASYMMETRIC_KEY = 0x46,
+        YHC_GENERATE_ASYMMETRIC_KEY_R = 0x46 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Sign data using RSA-PKCS#1v1.5</summary>
+        YHC_SIGN_PKCS1 = 0x47,
+        YHC_SIGN_PKCS1_R = 0x47 | YH_CMD_RESP_FLAG,
+
+        /// <summary>List objects in the device</summary>
+        YHC_LIST_OBJECTS = 0x48,
+        YHC_LIST_OBJECTS_R = 0x48 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Decrypt data that was encrypted using RSA-PKCS#1v1.5</summary>
+        YHC_DECRYPT_PKCS1 = 0x49,
+        YHC_DECRYPT_PKCS1_R = 0x49 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Get an Object under wrap from the device.</summary>
+        YHC_EXPORT_WRAPPED = 0x4a,
+        YHC_EXPORT_WRAPPED_R = 0x4a | YH_CMD_RESP_FLAG,
+
+        /// <summary>Import a wrapped Object into the device</summary>
+        YHC_IMPORT_WRAPPED = 0x4b,
+        YHC_IMPORT_WRAPPED_R = 0x4b | YH_CMD_RESP_FLAG,
+
+        /// <summary>Import a Wrap Key into the device</summary>
+        YHC_PUT_WRAP_KEY = 0x4c,
+        YHC_PUT_WRAP_KEY_R = 0x4c | YH_CMD_RESP_FLAG,
+
+        /// <summary>Get all current audit log entries from the device Log Store</summary>
+        YHC_GET_LOG_ENTRIES = 0x4d,
+        YHC_GET_LOG_ENTRIES_R = 0x4d | YH_CMD_RESP_FLAG,
+
+        /// <summary>Get all metadata about an Object</summary>
+        YHC_GET_OBJECT_INFO = 0x4e,
+        YHC_GET_OBJECT_INFO_R = 0x4e | YH_CMD_RESP_FLAG,
+
+        /// <summary>Set a device-global options that affect general behavior</summary>
+        YHC_SET_OPTION = 0x4f,
+        YHC_SET_OPTION_R = 0x4f | YH_CMD_RESP_FLAG,
+
+        /// <summary>Get a device-global option</summary>
+        YHC_GET_OPTION = 0x50,
+        YHC_GET_OPTION_R = 0x50 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Get a fixed number of pseudo-random bytes from the device</summary>
+        YHC_GET_PSEUDO_RANDOM = 0x51,
+        YHC_GET_PSEUDO_RANDOM_R = 0x51 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Import a HMAC key into the device</summary>
+        YHC_PUT_HMAC_KEY = 0x52,
+        YHC_PUT_HMAC_KEY_R = 0x52 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Perform an HMAC operation in the device</summary>
+        YHC_SIGN_HMAC = 0x53,
+        YHC_SIGN_HMAC_R = 0x53 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Get the public key of an Asymmetric Key in the device</summary>
+        YHC_GET_PUBLIC_KEY = 0x54,
+        YHC_GET_PUBLIC_KEY_R = 0x54 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Sign data using RSA-PSS</summary>
+        YHC_SIGN_PSS = 0x55,
+        YHC_SIGN_PSS_R = 0x55 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Sign data using ECDSA</summary>
+        YHC_SIGN_ECDSA = 0x56,
+        YHC_SIGN_ECDSA_R = 0x56 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Perform an ECDH key exchange operation with a private key in the device</summary>
+        YHC_DERIVE_ECDH = 0x57,
+        YHC_DERIVE_ECDH_R = 0x57 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Delete object in the device</summary>
+        YHC_DELETE_OBJECT = 0x58,
+        YHC_DELETE_OBJECT_R = 0x58 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Decrypt data using RSA-OAEP</summary>
+        YHC_DECRYPT_OAEP = 0x59,
+        YHC_DECRYPT_OAEP_R = 0x59 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Generate an HMAC Key in the device</summary>
+        YHC_GENERATE_HMAC_KEY = 0x5a,
+        YHC_GENERATE_HMAC_KEY_R = 0x5a | YH_CMD_RESP_FLAG,
+
+        /// <summary>Generate a Wrap Key in the device</summary>
+        YHC_GENERATE_WRAP_KEY = 0x5b,
+        YHC_GENERATE_WRAP_KEY_R = 0x5b | YH_CMD_RESP_FLAG,
+
+        /// <summary>Verify a generated HMAC</summary>
+        YHC_VERIFY_HMAC = 0x5c,
+        YHC_VERIFY_HMAC_R = 0x5c | YH_CMD_RESP_FLAG,
+
+        /// <summary>Sign SSH certificate request</summary>
+        YHC_SIGN_SSH_CERTIFICATE = 0x5d,
+        YHC_SIGN_SSH_CERTIFICATE_R = 0x5d | YH_CMD_RESP_FLAG,
+
+        /// <summary>Import a template into the device</summary>
+        YHC_PUT_TEMPLATE = 0x5e,
+        YHC_PUT_TEMPLATE_R = 0x5e | YH_CMD_RESP_FLAG,
+
+        /// <summary>Get a template from the device</summary>
+        YHC_GET_TEMPLATE = 0x5f,
+        YHC_GET_TEMPLATE_R = 0x5f | YH_CMD_RESP_FLAG,
+
+        /// <summary>Decrypt a Yubico OTP</summary>
+        YHC_DECRYPT_OTP = 0x60,
+        YHC_DECRYPT_OTP_R = 0x60 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Create a Yubico OTP AEAD</summary>
+        YHC_CREATE_OTP_AEAD = 0x61,
+        YHC_CREATE_OTP_AEAD_R = 0x61 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Generate an OTP AEAD from random data</summary>
+        YHC_RANDOMIZE_OTP_AEAD = 0x62,
+        YHC_RANDOMIZE_OTP_AEAD_R = 0x62 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Re-encrypt a Yubico OTP AEAD from one OTP AEAD Key to another OTP AEAD Key</summary>
+        YHC_REWRAP_OTP_AEAD = 0x63,
+        YHC_REWRAP_OTP_AEAD_R = 0x63 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Get attestation of an Asymmetric Key</summary>
+        YHC_SIGN_ATTESTATION_CERTIFICATE = 0x64,
+        YHC_SIGN_ATTESTATION_CERTIFICATE_R = 0x64 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Import an OTP AEAD Key into the device</summary>
+        YHC_PUT_OTP_AEAD_KEY = 0x65,
+        YHC_PUT_OTP_AEAD_KEY_R = 0x65 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Generate an OTP AEAD Key in the device</summary>
+        YHC_GENERATE_OTP_AEAD_KEY = 0x66,
+        YHC_GENERATE_OTP_AEAD_KEY_R = 0x66 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Set the last extracted audit log entry</summary>
+        YHC_SET_LOG_INDEX = 0x67,
+        YHC_SET_LOG_INDEX_R = 0x67 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Encrypt (wrap) data using a Wrap Key</summary>
+        YHC_WRAP_DATA = 0x68,
+        YHC_WRAP_DATA_R = 0x68 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Decrypt (unwrap) data using a Wrap Key</summary>
+        YHC_UNWRAP_DATA = 0x69,
+        YHC_UNWRAP_DATA_R = 0x69 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Sign data using EdDSA</summary>
+        YHC_SIGN_EDDSA = 0x6a,
+        YHC_SIGN_EDDSA_R = 0x6a | YH_CMD_RESP_FLAG,
+
+        /// <summary>Blink the LED of the device</summary>
+        YHC_BLINK_DEVICE = 0x6b,
+        YHC_BLINK_DEVICE_R = 0x6b | YH_CMD_RESP_FLAG,
+
+        /// <summary>Replace the Authentication Key used to establish the current Session</summary>
+        YHC_CHANGE_AUTHENTICATION_KEY = 0x6c,
+        YHC_CHANGE_AUTHENTICATION_KEY_R = 0x6c | YH_CMD_RESP_FLAG,
+
+        /// <summary>Import a Symmetric Key into the device</summary>
+        YHC_PUT_SYMMETRIC_KEY = 0x6d,
+        YHC_PUT_SYMMETRIC_KEY_R = 0x6d | YH_CMD_RESP_FLAG,
+
+        /// <summary>Generate a Symmetric Key in the device</summary>
+        YHC_GENERATE_SYMMETRIC_KEY = 0x6e,
+        YHC_GENERATE_SYMMETRIC_KEY_R = 0x6e | YH_CMD_RESP_FLAG,
+
+        /// <summary>Decrypt data using a Symmetric Key with ECB</summary>
+        YHC_DECRYPT_ECB = 0x6f,
+        YHC_DECRYPT_ECB_R = 0x6f | YH_CMD_RESP_FLAG,
+
+        /// <summary>Encrypt data using a Symmetric Key with ECB</summary>
+        YHC_ENCRYPT_ECB = 0x70,
+        YHC_ENCRYPT_ECB_R = 0x70 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Decrypt data using a Symmetric Key with CBC</summary>
+        YHC_DECRYPT_CBC = 0x71,
+        YHC_DECRYPT_CBC_R = 0x71 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Encrypt data using a Symmetric Key with CBC</summary>
+        YHC_ENCRYPT_CBC = 0x72,
+        YHC_ENCRYPT_CBC_R = 0x72 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Import public RSA key as a Public Wrap Key</summary>
+        YHC_PUT_PUBLIC_WRAPKEY = 0x73,
+        YHC_PUT_PUBLIC_WRAPKEY_R = 0x73 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Export (a)symmetric key using a Public Wrap Key</summary>
+        YHC_GET_RSA_WRAPPED_KEY = 0x74,
+        YHC_GET_RSA_WRAPPED_KEY_R = 0x74 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Import (a)symmetric key after unwrapping in using and RSA wrap key</summary>
+        YHC_PUT_RSA_WRAPPED_KEY = 0x75,
+        YHC_PUT_RSA_WRAPPED_KEY_R = 0x75 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Wrap an object using an RSA Wrap Key</summary>
+        YHC_EXPORT_RSA_WRAPPED = 0x76,
+        YHC_EXPORT_RSA_WRAPPED_R = 0x76 | YH_CMD_RESP_FLAG,
+
+        /// <summary>Import an object after unwrapping in using and RSA Wrap Key</summary>
+        YHC_IMPORT_RSA_WRAPPED = 0x77,
+        YHC_IMPORT_RSA_WRAPPED_R = 0x77 | YH_CMD_RESP_FLAG,
+
+        /// <summary>The response byte returned from the device if the command resulted in an error</summary>
+        YHC_ERROR = 0x7f,
+    }
 }
