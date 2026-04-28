@@ -31,16 +31,16 @@
 ///   byte[] data = new byte[128];
 ///   int dataLen = data.Length;
 /// 
-///   Debug.Assert(yh_init() == YHR_SUCCESS);
-///   Debug.Assert(yh_init_connector("http://localhost:12345", out SafeConnectorHandle connector) == YHR_SUCCESS);
-///   Debug.Assert(yh_connect(connector, 0) == YHR_SUCCESS);
+///   Debug.Assert(yh_init() == yh_rc.YHR_SUCCESS);
+///   Debug.Assert(yh_init_connector("http://localhost:12345", out SafeConnectorHandle connector) == yh_rc.YHR_SUCCESS);
+///   Debug.Assert(yh_connect(connector, 0) == yh_rc.YHR_SUCCESS);
 ///   Debug.Assert(yh_create_session_derived(connector, 1, YH_DEFAULT_PASSWORD, YH_DEFAULT_PASSWORD.Length,
-///     false, out SafeSessionHandle session) == YHR_SUCCESS);
-///   Debug.Assert(yh_util_get_pseudo_random(session, dataLen, data, out dataLen) == YHR_SUCCESS);
+///     false, out SafeSessionHandle session) == yh_rc.YHR_SUCCESS);
+///   Debug.Assert(yh_util_get_pseudo_random(session, dataLen, data, out dataLen) == yh_rc.YHR_SUCCESS);
 ///   Debug.Assert(dataLen == data.Length);
-///   Debug.Assert(yh_util_close_session(session) == YHR_SUCCESS);
-///   Debug.Assert(yh_destroy_session(ref session) == YHR_SUCCESS);
-///   Debug.Assert(yh_disconnect(connector) == YHR_SUCCESS);
+///   Debug.Assert(yh_util_close_session(session) == yh_rc.YHR_SUCCESS);
+///   Debug.Assert(yh_destroy_session(ref session) == yh_rc.YHR_SUCCESS);
+///   Debug.Assert(yh_disconnect(connector) == yh_rc.YHR_SUCCESS);
 /// }
 /// </code>
 /// </example>
@@ -206,4 +206,108 @@ public static class yubihsm
 
     public const int YH_EC_P256_PRIVKEY_LEN = 32;
     public const int YH_EC_256_PUBKEY_LEN = 65;
+
+    /// <summary>
+    /// Return codes.
+    /// </summary>
+    public enum yh_rc
+    {
+        /// <summary>Returned value when function was successful</summary>
+        YHR_SUCCESS = 0,
+
+        /// <summary>Returned value when unable to allocate memory</summary>
+        YHR_MEMORY_ERROR = -1,
+
+        /// <summary>Returned value when failing to initialize libyubihsm</summary>
+        YHR_INIT_ERROR = -2,
+
+        /// <summary>Returned value when a connection error was encountered</summary>
+        YHR_CONNECTION_ERROR = -3,
+
+        /// <summary>Returned value when failing to find a suitable connector</summary>
+        YHR_CONNECTOR_NOT_FOUND = -4,
+
+        /// <summary>Returned value when an argument to a function is invalid</summary>
+        YHR_INVALID_PARAMETERS = -5,
+
+        /// <summary>Returned value when there is a mismatch between expected and received
+        /// length of an argument to a function</summary>
+        YHR_WRONG_LENGTH = -6,
+
+        /// <summary>Returned value when there is not enough space to store data</summary>
+        YHR_BUFFER_TOO_SMALL = -7,
+
+        /// <summary>Returned value when failing to verify cryptogram</summary>
+        YHR_CRYPTOGRAM_MISMATCH = -8,
+
+        /// <summary>Returned value when failing to authenticate the session</summary>
+        YHR_SESSION_AUTHENTICATION_FAILED = -9,
+
+        /// <summary>Returned value when failing to verify MAC</summary>
+        YHR_MAC_MISMATCH = -10,
+
+        /// <summary>Returned value when the device returned no error</summary>
+        YHR_DEVICE_OK = -11,
+
+        /// <summary>Returned value when the device receives and invalid command</summary>
+        YHR_DEVICE_INVALID_COMMAND = -12,
+
+        /// <summary>Returned value when the device receives a malformed command invalid data</summary>
+        YHR_DEVICE_INVALID_DATA = -13,
+
+        /// <summary>Returned value when the device session is invalid</summary>
+        YHR_DEVICE_INVALID_SESSION = -14,
+
+        /// <summary>Returned value when the device fails to encrypt or verify the message</summary>
+        YHR_DEVICE_AUTHENTICATION_FAILED = -15,
+
+        /// <summary>Returned value when no more sessions can be opened on the device</summary>
+        YHR_DEVICE_SESSIONS_FULL = -16,
+
+        /// <summary>Returned value when failing to create a device session</summary>
+        YHR_DEVICE_SESSION_FAILED = -17,
+
+        /// <summary>Returned value when encountering a storage failure on the device</summary>
+        YHR_DEVICE_STORAGE_FAILED = -18,
+
+        /// <summary>Returned value when there is a mismatch between expected and received
+        /// length of an argument to a function on the device</summary>
+        YHR_DEVICE_WRONG_LENGTH = -19,
+
+        /// <summary>Returned value when the permissions to perform the operation are wrong</summary>
+        YHR_DEVICE_INSUFFICIENT_PERMISSIONS = -20,
+
+        /// <summary>Returned value when the log buffer is full and forced audit is set</summary>
+        YHR_DEVICE_LOG_FULL = -21,
+
+        /// <summary>Returned value when the object not found on the device</summary>
+        YHR_DEVICE_OBJECT_NOT_FOUND = -22,
+
+        /// <summary>Returned value when an invalid Object ID is used</summary>
+        YHR_DEVICE_INVALID_ID = -23,
+
+        /// <summary>Returned value when an invalid OTP is submitted</summary>
+        YHR_DEVICE_INVALID_OTP = -24,
+
+        /// <summary>Returned value when the device is in demo mode and has to be power cycled</summary>
+        YHR_DEVICE_DEMO_MODE = -25,
+
+        /// <summary>Returned value when the command execution has not terminated</summary>
+        YHR_DEVICE_COMMAND_UNEXECUTED = -26,
+
+        /// <summary>Returned value when encountering an unknown error</summary>
+        YHR_GENERIC_ERROR = -27,
+
+        /// <summary>Returned value when trying to add an object with an ID that already exists</summary>
+        YHR_DEVICE_OBJECT_EXISTS = -28,
+
+        /// <summary>Returned value when connector operation failed</summary>
+        YHR_CONNECTOR_ERROR = -29,
+
+        /// <summary>Returned value when encountering SSH CA constraint violation</summary>
+        YHR_DEVICE_SSH_CA_CONSTRAINT_VIOLATION = -30,
+
+        /// <summary>Returned value when an algorithm is disabled</summary>
+        YHR_DEVICE_ALGORITHM_DISABLED = -31,
+    }
 }
