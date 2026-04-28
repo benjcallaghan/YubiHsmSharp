@@ -209,6 +209,26 @@ public static class yubihsm
     public const int YH_EC_P256_PRIVKEY_LEN = 32;
     public const int YH_EC_256_PUBKEY_LEN = 65;
 
+    /// Reference to a connector
+    // typedef struct yh_connector yh_connector;
+    // Opaque struct replaced with SafeConnectorHandle
+
+    /// Reference to a session
+    // typedef struct yh_session yh_session;
+    // Opaque struct replaced with SafeSessionHandle
+
+    /// <summary>
+    /// Capabilities representation
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct yh_capabilities
+    {
+        /// <summary>
+        /// Capabilities is represented as an 8 byte byte array.
+        /// </summary>
+        fixed byte capabilities[YH_CAPABILITIES_LEN];
+    }
+
     /// <summary>
     /// Return codes.
     /// </summary>
@@ -901,5 +921,119 @@ public static class yubihsm
         /// Number of algorithms supported by the device
         /// </summary>
         nuint n_algorithms;
+    }
+
+    /// <summary>
+    /// Logging struct as returned by device
+    /// </summary>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Logs.html"/> 
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public unsafe struct yh_log_entry
+    {
+        /// <summary>
+        /// Monotonically increasing index
+        /// </summary>
+        ushort number;
+
+        /// <summary>
+        /// What command was executed
+        /// </summary>
+        /// <seealso cref="yh_cmd"/> 
+        byte command;
+
+        /// <summary>
+        /// Length of in-data
+        /// </summary>
+        ushort length;
+
+        /// <summary>
+        /// ID of Authentication Key used
+        /// </summary>
+        ushort session_key;
+
+        /// <summary>
+        /// ID of first Object used
+        /// </summary>
+        ushort target_key;
+
+        /// <summary>
+        /// ID of second Object used
+        /// </summary>
+        ushort second_key;
+
+        /// <summary>
+        /// Command result
+        /// </summary>
+        /// <seealso cref="yh_cmd"/> 
+        byte result;
+
+        /// <summary>
+        /// Systick at time of execution
+        /// </summary>
+        uint systick;
+
+        /// <summary>
+        /// Truncated sha256 digest of this last digest + this entry
+        /// </summary>
+        fixed byte digest[YH_LOG_DIGEST_SIZE];
+    }
+
+    /// <summary>
+    /// Object descriptor
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public unsafe struct yh_object_descriptor
+    {
+        /// <summary>
+        /// Object capabilities
+        /// </summary>
+        /// <seealso cref="yh_capabilities"/> 
+        yh_capabilities capabilities;
+
+        /// <summary>
+        /// Object ID
+        /// </summary>
+        ushort id;
+
+        /// <summary>
+        /// Object length
+        /// </summary>
+        ushort len;
+
+        /// <summary>
+        /// Object domains
+        /// </summary>
+        ushort domains;
+
+        /// <summary>
+        /// Object type
+        /// </summary>
+        yh_object_type type;
+
+        /// <summary>
+        /// Object algorithm
+        /// </summary>
+        yh_algorithm algorithm;
+
+        /// <summary>
+        /// Object sequence
+        /// </summary>
+        byte sequence;
+
+        /// <summary>
+        /// Object origin
+        /// </summary>
+        byte origin;
+
+        /// <summary>
+        /// Object label. The label consists of raw bytes and is not restricted to
+        /// printable characters or valid UTF-8 glyphs.
+        /// </summary>
+        fixed byte label[YH_OBJ_LABEL_LEN + 1];
+
+        /// <summary>
+        /// Object delegated capabilities.
+        /// </summary>
+        yh_capabilities delegated_capabilities;
     }
 }
