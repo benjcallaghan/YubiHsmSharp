@@ -1454,4 +1454,1473 @@ internal static unsafe partial class libyubihsm
     public static partial yh_rc yh_finish_create_session(SafeSessionHandle session,
         ReadOnlySpan<byte> key_senc, nuint key_senc_len, ReadOnlySpan<byte> key_smac, nuint key_smac_len,
         ReadOnlySpan<byte> key_srmac, nuint key_srmac_len, Span<byte> card_cryptogram, nuint card_cryptogram_len);
+
+    /// <summary>
+    /// Utility function that gets the value and algorithm of the device public key
+    /// </summary>
+    /// <param name="connector">Connector to the device</param>
+    /// <param name="device_pubkey">Value of the public key</param>
+    /// <param name="device_pubkey_len">Length of the public key in bytes</param>
+    /// <param name="algorithm">Algorithm of the key</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
+    /// <see cref="yh_rc.YHR_BUFFER_TOO_SMALL"/> if the actual key length was bigger than <paramref name="device_pubkey_len"/>.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_get_device_pubkey(SafeConnectorHandle connector,
+        Span<byte> device_pubkey, out nuint device_pubkey_len, out yh_algorithm algorithm);
+
+    /// <summary>
+    /// Utility function that derives an ec-p256 key pair from a password using the following algoirthm.
+    /// </summary>
+    /// <remarks>
+    /// 1. Apply pkcs5_pbkdf2_hmac-sha256 on the password to derive a pseudo-random private ec-p256 key
+    /// 2. Check that the derived key is a valid ec-p256 private key
+    /// 3. If not valid append a byte with the value 1 (2, 3, 4 etc for additional failures) to the password and go to step 1
+    /// 4. Calculate the corresponding public key from the private key and the ec-p256 curve parameters
+    /// </remarks>
+    /// <param name="password">The password bytes</param>
+    /// <param name="password_len">The password length</param>
+    /// <param name="privkey">Value of the private key</param>
+    /// <param name="privkey_len">Length of the private key in bytes</param>
+    /// <param name="pubkey">Value of the public key</param>
+    /// <param name="pubkey_len">Length of the public key in bytes</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_derive_ec_p256_key(ReadOnlySpan<byte> password, nuint password_len,
+        Span<byte> privkey, nuint privkey_len, Span<byte> pubkey, nuint pubkey_len);
+
+    /// <summary>
+    /// Utility function that generates a random ec-p256 key pair
+    /// </summary>
+    /// <param name="privkey">Value of the private key</param>
+    /// <param name="privkey_len">Length of the private key in bytes</param>
+    /// <param name="pubkey">Value of the public key</param>
+    /// <param name="pubkey_len">Length of the public key in bytes</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_generate_ec_p256_key(Span<byte> privkey, nuint privkey_len,
+        Span<byte> pubkey, nuint pubkey_len);
+
+    /// <summary>
+    /// Create a session that uses the specified asymmetric key to derive session-specific keys.
+    /// </summary>
+    /// <param name="connector">Connector to the device</param>
+    /// <param name="authkey_id">Object ID of the Asymmetric Authentication Key used to authenticate the session</param>
+    /// <param name="privkey">Private key of the client, used to derive the session encryption key and authenticate the client</param>
+    /// <param name="privkey_len">Length of the private key</param>
+    /// <param name="device_pubkey">Public key of the device, used to derrive the session encryption key and authenticate the device</param>
+    /// <param name="device_pubkey_len">Length of the device public key</param>
+    /// <param name="session">created session</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or incorrect.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html">Authentication Key</seealso>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_create_session_asym(SafeConnectorHandle connector, ushort authkey_id,
+        ReadOnlySpan<byte> privkey, nuint privkey_len,
+        ReadOnlySpan<byte> device_pubkey, nuint device_pubkey_len,
+        out SafeSessionHandle session);
+
+    /// <summary>
+    /// Free data associated with the session
+    /// </summary>
+    /// <param name="session">Pointer to the session to destroy</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the session is NULL.
+    /// </returns>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_destroy_session(ref SafeSessionHandle session);
+
+    /// <summary>
+    /// Deprecated - use yh_begin_create_session instead
+    /// </summary>
+    [LibraryImport(nameof(libyubihsm))]
+    [Obsolete("Use yh_begin_create_session instead")]
+    public static partial yh_rc yh_begin_create_session_ext(SafeConnectorHandle connector, ushort authkey_id,
+        out byte* context, Span<byte> card_cryptogram, nuint card_cryptogram_len, out SafeSessionHandle session);
+
+    /// <summary>
+    /// Deprecated - use yh_finish_create_session instead
+    /// </summary>
+    [LibraryImport(nameof(libyubihsm))]
+    [Obsolete("Use yh_finish_create_session instead")]
+    public static partial yh_rc yh_finish_create_session_ext(SafeConnectorHandle connector,
+        SafeSessionHandle session, ReadOnlySpan<byte> key_senc, nuint key_senc_len,
+        ReadOnlySpan<byte> key_smac, nuint key_smac_len, ReadOnlySpan<byte> key_srmac, nuint key_srmac_len,
+        Span<byte> card_cryptogram, nuint card_cryptogram_len);
+
+    /// <summary>
+    /// Deprecated, calling this function has no effect.
+    /// </summary>
+    [LibraryImport(nameof(libyubihsm))]
+    [Obsolete("Calling this function has no effect.")]
+    public static partial yh_rc yh_authenticate_session(SafeSessionHandle session);
+
+    /// <summary>
+    /// Get device info in a struct
+    /// </summary>
+    /// <param name="connector">Connector to the device</param>
+    /// <param name="device_info">Device info</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the connector or the device_info are NULL.
+    /// <see cref="yh_rc.YHR_BUFFER_TOO_SMALL"/> if n_algorithms is smaller than the number of actually supported algorithms.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Algorithms.html">Algorithms</seealso>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_get_device_info_ex(SafeConnectorHandle connector,
+        out yh_device_info device_info);
+
+    /// <summary>
+    /// Get device version, device serial number, supported algorithms and available log entries
+    /// </summary>
+    /// <param name="connector">Connector to the device</param>
+    /// <param name="major">Device major version number</param>
+    /// <param name="minor">Device minor version number</param>
+    /// <param name="patch">Device build version number</param>
+    /// <param name="serial">Device serial number</param>
+    /// <param name="log_total">Total number of log entries</param>
+    /// <param name="log_used">Number of written log entries</param>
+    /// <param name="algorithms">List of supported algorithms</param>
+    /// <param name="n_algorithms">Number of supported algorithms</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the connector isNULL.
+    /// <see cref="yh_rc.YHR_BUFFER_TOO_SMALL"/> if <paramref name="n_algorithms"/> is smaller than the number of actually supported algorithms.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Algorithms.html">Algorithms</seealso>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_get_device_info(SafeConnectorHandle connector,
+        out byte major, out byte minor, out byte patch, out uint serial,
+        out byte log_total, out byte log_used,
+        Span<yh_algorithm> algorithms, out nuint n_algorithms);
+
+    /// <summary>
+    /// Get device version, part number (chip designator) as required by FIPS
+    /// </summary>
+    /// <param name="connector">Connector to the device</param>
+    /// <param name="part_number">Part number (chip designator)</param>
+    /// <param name="part_number_len">Size of part_number</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful or of [sic] <paramref name="part_number"/> is NULL
+    /// <see cref="yh_rc.YHR_DEVICE_INVALID_COMMAND"/> if firmware version does not support the command
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the connector is NULL.
+    /// <see cref="yh_rc.YHR_DEVICE_INVALID_DATA"/> If returned <paramref name="part_number"/> is less than 12 bytes
+    /// <see cref="yh_rc.YHR_BUFFER_TOO_SMALL"/> if <paramref name="part_number"/> is smaller than 13 bytes
+    /// </returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_get_partnumber(SafeConnectorHandle connector,
+        Span<byte> part_number, out nuint part_number_len);
+
+    /// <summary>
+    /// List objects accessible from the session
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="id">Object ID to filter by (0 to not filter by ID)</param>
+    /// <param name="type">Object type to filter by (0 to not filter by type). <see cref="yh_object_type"/></param>
+    /// <param name="domains">Domains to filter by (0 to not filter by domain)</param>
+    /// <param name="capabilities">Capabilities to filter by (0 to not filter by capabilities). <see cref="yh_capabilities"/></param>
+    /// <param name="algorithm">Algorithm to filter by (0 to not filter by algorithm)</param>
+    /// <param name="label">Label to filter by</param>
+    /// <param name="objects">Array of objects returned</param>
+    /// <param name="n_objects">Max number of objects (will be set to number found on return)</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
+    /// <see cref="yh_rc.YHR_BUFFER_TOO_SMALL"/> if <paramref name="n_objects"/> is smaller than the number of objects found.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html">Objects</seealso>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Domain.html">Domains</seealso>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Capability.html">Capabilities</seealso>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Algorithms.html">Algorithms</seealso>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Label.html">Labels</seealso>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_list_objects(SafeSessionHandle session, ushort id,
+        yh_object_type type, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm, ReadOnlySpan<byte> label,
+        Span<yh_object_descriptor> objects, out nuint n_objects);
+
+    /// <summary>
+    /// Get metadata of the object with the specified Object ID and Type
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="id">Object ID of the object to get</param>
+    /// <param name="type">Object type. <see cref="yh_object_type"/></param>
+    /// <param name="object">Object information</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the session is NULL.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_get_object_info(SafeSessionHandle session, ushort id,
+        yh_object_type type, out yh_object_descriptor @object);
+
+    /// <summary>
+    /// Get the value of the public key with the specified Object ID
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="id">Object ID of the public key</param>
+    /// <param name="data">Value of the public key</param>
+    /// <param name="data_len">Length of the public key in bytes</param>
+    /// <param name="algorithm">Algorithm of the key</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
+    /// <see cref="yh_rc.YHR_BUFFER_TOO_SMALL"/> if the actual key length was bigger than <paramref name="data_len"/>.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_get_public_key(SafeSessionHandle session, ushort id,
+        Span<byte> data, out nuint data_len, out yh_algorithm algorithm);
+
+    /// <summary>
+    /// Get the value of the public key with the specified Object ID and type
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="type">Object type of the public key</param>
+    /// <param name="id">Object ID of the public key</param>
+    /// <param name="data">Value of the public key</param>
+    /// <param name="data_len">Length of the public key in bytes</param>
+    /// <param name="algorithm">Algorithm of the key</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
+    /// <see cref="yh_rc.YHR_BUFFER_TOO_SMALL"/> if the actual key length was bigger than <paramref name="data_len"/>.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_get_public_key_ex(SafeSessionHandle session, yh_object_type type,
+        ushort id, Span<byte> data, out nuint data_len, out yh_algorithm algorithm);
+
+    /// <summary>
+    /// Close a session
+    /// </summary>
+    /// <param name="session">Session to close</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the session is NULL.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_close_session(SafeSessionHandle session);
+
+    /// <summary>
+    /// Sign data using RSA-PKCS#1v1.5
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="in"/> is either a raw hashed message (sha1, sha256, sha384 or sha512)
+    /// or that with correct digestinfo pre-pended
+    /// </remarks>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the signing key</param>
+    /// <param name="hashed">true if data is only hashed</param>
+    /// <param name="in">data to sign</param>
+    /// <param name="in_len">length of data to sign</param>
+    /// <param name="out">signed data</param>
+    /// <param name="out_len">length of signed data</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or if <paramref name="in_len"/> is not 20, 32, 48, or 64.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_sign_pkcs1v1_5(SafeSessionHandle session, ushort key_id,
+        [MarshalAs(UnmanagedType.U1)] bool hashed, ReadOnlySpan<byte> @in, nuint in_len,
+        Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Sign data using RSA-PSS
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the signing key</param>
+    /// <param name="in">Data to sign</param>
+    /// <param name="in_len">Length of data to sign</param>
+    /// <param name="out">Signed data</param>
+    /// <param name="out_len">Length of signed data</param>
+    /// <param name="salt_len">Length of salt</param>
+    /// <param name="mgf1Algo">Algorithm for mgf1</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_sign_pss(SafeSessionHandle session, ushort key_id,
+        ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len,
+        nuint salt_len, yh_algorithm mgf1Algo);
+
+    /// <summary>
+    /// Sign data using ECDSA
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the signing key</param>
+    /// <param name="in">Data to sign</param>
+    /// <param name="in_len">Length of data to sign</param>
+    /// <param name="out">Signed data</param>
+    /// <param name="out_len">Length of signed data</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_sign_ecdsa(SafeSessionHandle session, ushort key_id,
+        ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Sign data using EdDSA
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the signing key</param>
+    /// <param name="in">Data to sign</param>
+    /// <param name="in_len">Length of data to sign</param>
+    /// <param name="out">Signed data</param>
+    /// <param name="out_len">Length of signed data</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_sign_eddsa(SafeSessionHandle session, ushort key_id,
+        ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Sign data using HMAC
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the signing key</param>
+    /// <param name="in">Data to HMAC</param>
+    /// <param name="in_len">Length of data to hmac</param>
+    /// <param name="out">HMAC</param>
+    /// <param name="out_len">Length of HMAC</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_sign_hmac(SafeSessionHandle session, ushort key_id,
+        ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Get a fixed number of pseudo-random bytes from the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="len">Length of pseudo-random data to get</param>
+    /// <param name="out">Pseudo-random data out</param>
+    /// <param name="out_len">Length of pseudo-random data</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_get_pseudo_random(SafeSessionHandle session, nuint len,
+        Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Import an AES key into the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID the key. 0 if Object ID should be generated by the device</param>
+    /// <param name="label">Label of the key</param>
+    /// <param name="domains">Domains to which the key belongs</param>
+    /// <param name="capabilities">Capabilities of the key</param>
+    /// <param name="algorithm">Algorithm of the key to import</param>
+    /// <param name="key">The key to import</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_import_aes_key(SafeSessionHandle session, ref ushort key_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm, ReadOnlySpan<byte> key);
+
+    /// <summary>
+    /// Import an RSA key into the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID the key. 0 if Object ID should be generated by the device</param>
+    /// <param name="label">Label of the key</param>
+    /// <param name="domains">Domains to which the key belongs</param>
+    /// <param name="capabilities">Capabilities of the key</param>
+    /// <param name="algorithm">Algorithm of the key to import</param>
+    /// <param name="p">P component of the RSA key to import</param>
+    /// <param name="q">Q component of the RSA key to import</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_import_rsa_key(SafeSessionHandle session, ref ushort key_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm, ReadOnlySpan<byte> p, ReadOnlySpan<byte> q);
+
+    /// <summary>
+    /// Import an Elliptic Curve key into the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label of the key</param>
+    /// <param name="domains">Domains to which the key belongs</param>
+    /// <param name="capabilities">Capabilities of the key</param>
+    /// <param name="algorithm">Algorithm of the key to import</param>
+    /// <param name="s">the EC key to import</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_import_ec_key(SafeSessionHandle session, ref ushort key_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm, ReadOnlySpan<byte> s);
+
+    /// <summary>
+    /// Import an ED key into the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label of the key</param>
+    /// <param name="domains">Domains to which the key belongs</param>
+    /// <param name="capabilities">Capabilities of the key</param>
+    /// <param name="algorithm">Algorithm of the key to import</param>
+    /// <param name="k">the ED key to import</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_import_ed_key(SafeSessionHandle session, ref ushort key_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm, ReadOnlySpan<byte> k);
+
+    /// <summary>
+    /// Import an HMAC key into the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label of the key</param>
+    /// <param name="domains">Domains to which the key belongs</param>
+    /// <param name="capabilities">Capabilities of the key</param>
+    /// <param name="algorithm">Algorithm of the key to import</param>
+    /// <param name="key">The HMAC key to import</param>
+    /// <param name="key_len">Length of the HMAC key to import</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_import_hmac_key(SafeSessionHandle session, ref ushort key_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm, ReadOnlySpan<byte> key, nuint key_len);
+
+    /// <summary>
+    /// Generate an AES key in the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label of the key</param>
+    /// <param name="domains">Domains to which the key belongs</param>
+    /// <param name="capabilities">Capabilities of the key</param>
+    /// <param name="algorithm">Algorithm to use to generate the AES key</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_generate_aes_key(SafeSessionHandle session, ref ushort key_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm);
+
+    /// <summary>
+    /// Generate an RSA key in the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label of the key</param>
+    /// <param name="domains">Domains to which the key belongs</param>
+    /// <param name="capabilities">Capabilities of the key</param>
+    /// <param name="algorithm">Algorithm to use to generate the RSA key</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_generate_rsa_key(SafeSessionHandle session, ref ushort key_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm);
+
+    /// <summary>
+    /// Generate an Elliptic Curve key in the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label of the key</param>
+    /// <param name="domains">Domains to which the key belongs</param>
+    /// <param name="capabilities">Capabilities of the key</param>
+    /// <param name="algorithm">Algorithm to use to generate the EC key</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_generate_ec_key(SafeSessionHandle session, ref ushort key_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm);
+
+    /// <summary>
+    /// Generate an ED key in the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label for the key</param>
+    /// <param name="domains">Domains to which the key belongs</param>
+    /// <param name="capabilities">Capabilities of the ED key</param>
+    /// <param name="algorithm">Algorithm to use to generate the ED key</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_generate_ed_key(SafeSessionHandle session, ref ushort key_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm);
+
+    /// <summary>
+    /// Verify a generated HMAC
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the HMAC key</param>
+    /// <param name="signature">HMAC signature (20, 32, 48 or 64 bytes)</param>
+    /// <param name="signature_len">length of HMAC signature</param>
+    /// <param name="data">data to verify</param>
+    /// <param name="data_len">length of data to verify</param>
+    /// <param name="verified">true if verification succeeded</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_verify_hmac(SafeSessionHandle session, ushort key_id,
+        ReadOnlySpan<byte> signature, nuint signature_len,
+        ReadOnlySpan<byte> data, nuint data_len, [MarshalAs(UnmanagedType.U1)] out bool verified);
+
+    /// <summary>
+    /// Generate an HMAC key in the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label of the key</param>
+    /// <param name="domains">Domains to which the key belongs</param>
+    /// <param name="capabilities">Capabilities of the key</param>
+    /// <param name="algorithm">Algorithm to use to generate the HMAC key</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_generate_hmac_key(SafeSessionHandle session, ref ushort key_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm);
+
+    /// <summary>
+    /// Decrypt data that was encrypted using RSA-PKCS#1v1.5
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the RSA key to use for decryption</param>
+    /// <param name="in">Encrypted data</param>
+    /// <param name="in_len">Length of encrypted data</param>
+    /// <param name="out">Decrypted data</param>
+    /// <param name="out_len">Length of decrypted data</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_decrypt_pkcs1v1_5(SafeSessionHandle session, ushort key_id,
+        ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Decrypt data using RSA-OAEP
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the RSA key to use for decryption</param>
+    /// <param name="in">Encrypted data</param>
+    /// <param name="in_len">Length of encrypted data</param>
+    /// <param name="out">Decrypted data</param>
+    /// <param name="out_len">Length of decrypted data</param>
+    /// <param name="label">Hash of OAEP label</param>
+    /// <param name="label_len">Length of hash of OAEP label</param>
+    /// <param name="mgf1Algo">MGF1 algorithm</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_decrypt_oaep(SafeSessionHandle session, ushort key_id,
+        ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len,
+        ReadOnlySpan<byte> label, nuint label_len, yh_algorithm mgf1Algo);
+
+    /// <summary>
+    /// Derive an ECDH key from a private EC key on the device and a provided public EC key
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the EC private key to use for ECDH derivation</param>
+    /// <param name="in">Public key of another EC key-pair</param>
+    /// <param name="in_len">Length of public key</param>
+    /// <param name="out">Shared secret ECDH key</param>
+    /// <param name="out_len">Length of the shared ECDH key</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_derive_ecdh(SafeSessionHandle session, ushort key_id,
+        ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Delete an object in the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="id">Object ID of the object to delete</param>
+    /// <param name="type">Type of object to delete</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_delete_object(SafeSessionHandle session, ushort id,
+        yh_object_type type);
+
+    /// <summary>
+    /// Export an object under wrap from the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="wrapping_key_id">Object ID of the Wrap Key to use to wrap the object</param>
+    /// <param name="target_type">Type of the object to be exported</param>
+    /// <param name="target_id">Object ID of the object to be exported</param>
+    /// <param name="out">Wrapped data</param>
+    /// <param name="out_len">Length of wrapped data</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_export_wrapped(SafeSessionHandle session, ushort wrapping_key_id,
+        yh_object_type target_type, ushort target_id, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Export an object under wrap from the device with the option to include the ED25519 seed
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="wrapping_key_id">Object ID of the Wrap Key to use to wrap the object</param>
+    /// <param name="target_type">Type of the object to be exported</param>
+    /// <param name="target_id">Object ID of the object to be exported</param>
+    /// <param name="format">Format option (0=legacy, 1=include ED25519 seed)</param>
+    /// <param name="out">Wrapped data</param>
+    /// <param name="out_len">Length of wrapped data</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_export_wrapped_ex(SafeSessionHandle session, ushort wrapping_key_id,
+        yh_object_type target_type, ushort target_id, byte format, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Import a wrapped object into the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="wrapping_key_id">Object ID of the Wrap Key to use to unwrap the object</param>
+    /// <param name="in">Wrapped data</param>
+    /// <param name="in_len">Length of wrapped data</param>
+    /// <param name="target_type">Type of the imported object</param>
+    /// <param name="target_id">Object ID of the imported object</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_import_wrapped(SafeSessionHandle session, ushort wrapping_key_id,
+        ReadOnlySpan<byte> @in, nuint in_len, out yh_object_type target_type, out ushort target_id);
+
+    /// <summary>
+    /// Export a (a)symmetric key material using an RSA wrap key
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="wrap_key_id">Object ID of the Wrap Key to use to wrap the object</param>
+    /// <param name="target_type">Type of the target key object</param>
+    /// <param name="target_id">Object ID of the target key object</param>
+    /// <param name="aes">Algorithm of the ephemeral AES key</param>
+    /// <param name="hash">Hash algorithm</param>
+    /// <param name="mgf1">MGF1 algorithm</param>
+    /// <param name="oaep_label">Label for the MGF1 algorithm</param>
+    /// <param name="oaep_label_len">Label length</param>
+    /// <param name="out">Wrapped key object bytes</param>
+    /// <param name="out_len">Length of the wrapped key</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_get_rsa_wrapped_key(SafeSessionHandle session, ushort wrap_key_id,
+        yh_object_type target_type, ushort target_id, yh_algorithm aes,
+        yh_algorithm hash, yh_algorithm mgf1,
+        ReadOnlySpan<byte> oaep_label, nuint oaep_label_len, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Export an object using an RSA wrap key
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="wrap_key_id">Object ID of the Wrap Key to use to wrap the object</param>
+    /// <param name="target_type">Type of the target object</param>
+    /// <param name="target_id">Object ID of the target object</param>
+    /// <param name="aes">Algorithm of the ephemeral AES key</param>
+    /// <param name="hash">Hash algorithm</param>
+    /// <param name="mgf1">MGF1 algorithm</param>
+    /// <param name="oaep_label">Label for the MGF1 algorithm</param>
+    /// <param name="oaep_label_len">Label length</param>
+    /// <param name="out">Wrapped object bytes</param>
+    /// <param name="out_len">Length of the wrapped object</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_export_rsa_wrapped(SafeSessionHandle session, ushort wrap_key_id,
+        yh_object_type target_type, ushort target_id, yh_algorithm aes,
+        yh_algorithm hash, yh_algorithm mgf1,
+        ReadOnlySpan<byte> oaep_label, nuint oaep_label_len, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Import an object using an RSA wrap key
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="wrapping_key_id">Object ID of the Wrap Key to use to unwrap the object</param>
+    /// <param name="hash">Hash algorithm</param>
+    /// <param name="mgf1">MGF1 algorithm</param>
+    /// <param name="label">Label for the MGF1 algorithm</param>
+    /// <param name="label_len">Label length</param>
+    /// <param name="in">Wrapped object bytes</param>
+    /// <param name="in_len">Length of the wrapped object</param>
+    /// <param name="target_type">Type of the target object</param>
+    /// <param name="target_id">Object ID of the target object</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_import_rsa_wrapped(SafeSessionHandle session, ushort wrapping_key_id,
+        yh_algorithm hash, yh_algorithm mgf1,
+        ReadOnlySpan<byte> label, nuint label_len,
+        ReadOnlySpan<byte> @in, nuint in_len,
+        out yh_object_type target_type, out ushort target_id);
+
+    /// <summary>
+    /// Import an (a)symmetric key using an RSA wrap key
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="wrapping_key_id">Object ID of the Wrap Key to use to unwrap the object</param>
+    /// <param name="type">Type of object to import</param>
+    /// <param name="target_id">Object ID of object to import</param>
+    /// <param name="algo">Key algorithm of object to import</param>
+    /// <param name="label">Label of object to import</param>
+    /// <param name="domains">Domains of object to import</param>
+    /// <param name="capabilities">Capabilities of object to import</param>
+    /// <param name="hash">Hash algorithm</param>
+    /// <param name="mgf1">MGF1 algorithm</param>
+    /// <param name="oaep_label">Label for the MGF1 algorithm</param>
+    /// <param name="oaep_label_len">Label length</param>
+    /// <param name="in">Wrapped object bytes</param>
+    /// <param name="in_len">Length of the wrapped object</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_put_rsa_wrapped_key(
+        SafeSessionHandle session, ushort wrapping_key_id, yh_object_type type,
+        ref ushort target_id, yh_algorithm algo, ReadOnlySpan<byte> label, ushort domains,
+        in yh_capabilities capabilities, yh_algorithm hash, yh_algorithm mgf1,
+        ReadOnlySpan<byte> oaep_label, nuint oaep_label_len, ReadOnlySpan<byte> @in, nuint in_len);
+
+    /// <summary>
+    /// Import a Wrap Key into the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID the Wrap Key. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label of the Wrap Key</param>
+    /// <param name="domains">Domains where the Wrap Key will be operating within</param>
+    /// <param name="capabilities">Capabilities of the Wrap Key</param>
+    /// <param name="algorithm">Algorithm of the Wrap Key</param>
+    /// <param name="delegated_capabilities">Delegated capabilities of the Wrap Key</param>
+    /// <param name="in">the Wrap Key to import</param>
+    /// <param name="in_len">Length of the Wrap Key to import</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_import_wrap_key(SafeSessionHandle session, ref ushort key_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm, in yh_capabilities delegated_capabilities,
+        ReadOnlySpan<byte> @in, nuint in_len);
+
+    /// <summary>
+    /// Import a public RSA key as a public wrap Key into the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID the Wrap Key. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label of the Wrap Key</param>
+    /// <param name="domains">Domains where the Wrap Key will be operating within</param>
+    /// <param name="capabilities">Capabilities of the Wrap Key</param>
+    /// <param name="algorithm">Algorithm of the Public Wrap Key</param>
+    /// <param name="delegated_capabilities">Delegated capabilities of the Wrap Key</param>
+    /// <param name="in">the Public Wrap Key to import in PEM format</param>
+    /// <param name="in_len">Length of the Wrap Key to import</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_import_public_wrap_key(SafeSessionHandle session, ref ushort key_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm, in yh_capabilities delegated_capabilities,
+        ReadOnlySpan<byte> @in, nuint in_len);
+
+    /// <summary>
+    /// Generate a Wrap Key that can be used for export, import, wrap data and unwrap data in the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the Wrap Key. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label of the Wrap Key</param>
+    /// <param name="domains">Domains where the Wrap Key will be operating within</param>
+    /// <param name="capabilities">Capabilities of the Wrap Key</param>
+    /// <param name="algorithm">Algorithm used to generate the Wrap Key</param>
+    /// <param name="delegated_capabilities">Delegated capabilitites of the Wrap Key</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_generate_wrap_key(SafeSessionHandle session, ref ushort key_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm, in yh_capabilities delegated_capabilities);
+
+    /// <summary>
+    /// Get audit logs from the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="unlogged_boot">Number of unlogged boot events</param>
+    /// <param name="unlogged_auth">Number of unlogged authentication events</param>
+    /// <param name="out">Log entries on the device</param>
+    /// <param name="n_items">Number of log entries</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_get_log_entries(SafeSessionHandle session, out ushort unlogged_boot,
+        out ushort unlogged_auth, Span<yh_log_entry> @out, out nuint n_items);
+
+    /// <summary>
+    /// Set the index of the last extracted log entry
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="index">index to set</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_set_log_index(SafeSessionHandle session, ushort index);
+
+    /// <summary>
+    /// Get an YH_OPAQUE object (like an X.509 certificate) from the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="object_id">Object ID of the Opaque object</param>
+    /// <param name="out">the retrieved Opaque object</param>
+    /// <param name="out_len">Length of the retrieved Opaque object</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_get_opaque(SafeSessionHandle session, ushort object_id,
+        Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Import an YH_OPAQUE object into the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="object_id">Object ID of the Opaque object</param>
+    /// <param name="label">Label of the Opaque object</param>
+    /// <param name="domains">Domains the Opaque object will be operating within</param>
+    /// <param name="capabilities">Capabilities of the Opaque object</param>
+    /// <param name="algorithm">Algorithm of the Opaque object</param>
+    /// <param name="in">the Opaque object to import</param>
+    /// <param name="in_len">Length of the Opaque object to import</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_import_opaque(SafeSessionHandle session, ref ushort object_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len);
+
+    /// <summary>
+    /// Get an YH_OPAQUE object from the device with an option to decompress the data
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="object_id">Object ID of the Opaque object</param>
+    /// <param name="out">the retrieved Opaque object</param>
+    /// <param name="out_len">Length of the retrieved Opaque object</param>
+    /// <param name="stored_len">Length of the stored opaque object</param>
+    /// <param name="try_decompress">Try decompressing the object data before returning it</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_get_opaque_ex(SafeSessionHandle session, ushort object_id,
+        Span<byte> @out, out nuint out_len, out nuint stored_len, [MarshalAs(UnmanagedType.U1)] bool try_decompress);
+
+    /// <summary>
+    /// Import an YH_OPAQUE object into the device with an option to compress the data before import
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="object_id">Object ID of the Opaque object. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label of the Opaque object</param>
+    /// <param name="domains">Domains the Opaque object will be operating within</param>
+    /// <param name="capabilities">Capabilities of the Opaque object</param>
+    /// <param name="algorithm">Algorithm of the Opaque object</param>
+    /// <param name="in">the Opaque object to import</param>
+    /// <param name="in_len">Length of the Opaque object to import</param>
+    /// <param name="compress">Compression option for X509 certificates</param>
+    /// <param name="import_len">Number of bytes imported</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_import_opaque_ex(SafeSessionHandle session, ref ushort object_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len,
+        yh_compress_option compress, out nuint import_len);
+
+    /// <summary>
+    /// Sign an SSH Certificate request
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the key used to sign the request</param>
+    /// <param name="template_id">Object ID of the template to use as a certificate template</param>
+    /// <param name="sig_algo">Signature algorithm to use to sign the certificate request</param>
+    /// <param name="in">Certificate request</param>
+    /// <param name="in_len">Length of the certificate request</param>
+    /// <param name="out">Signature</param>
+    /// <param name="out_len">Length of the signature</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_sign_ssh_certificate(SafeSessionHandle session, ushort key_id,
+        ushort template_id, yh_algorithm sig_algo,
+        ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Import an YH_AUTHENTICATION_KEY into the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the imported key. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label of the key</param>
+    /// <param name="domains">Domains to which the key belongs</param>
+    /// <param name="capabilities">Capabilities of the key</param>
+    /// <param name="delegated_capabilities">Delegated capabilities of the key</param>
+    /// <param name="key_enc">Long lived encryption key of the Authentication Key to import</param>
+    /// <param name="key_enc_len">Length of the encryption key. Must be YH_KEY_LEN</param>
+    /// <param name="key_mac">Long lived MAC key of the Authentication Key to import</param>
+    /// <param name="key_mac_len">Length of the MAC key. Must be YH_KEY_LEN</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_import_authentication_key(
+        SafeSessionHandle session, ref ushort key_id, ReadOnlySpan<byte> label, ushort domains,
+        in yh_capabilities capabilities, in yh_capabilities delegated_capabilities,
+        ReadOnlySpan<byte> key_enc, nuint key_enc_len,
+        ReadOnlySpan<byte> key_mac, nuint key_mac_len);
+
+    /// <summary>
+    /// Import an YH_AUTHENTICATION_KEY with long lived keys derived from a password
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label of the key</param>
+    /// <param name="domains">Domains to which the key belongs</param>
+    /// <param name="capabilities">Capabilities of the key</param>
+    /// <param name="delegated_capabilities">Delegated capabilities of the key</param>
+    /// <param name="password">Password used to derive the long lived encryption key and MAC key</param>
+    /// <param name="password_len">Length of password</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_import_authentication_key_derived(
+        SafeSessionHandle session, ref ushort key_id, ReadOnlySpan<byte> label, ushort domains,
+        in yh_capabilities capabilities, in yh_capabilities delegated_capabilities,
+        ReadOnlySpan<byte> password, nuint password_len);
+
+    /// <summary>
+    /// Replace the long lived encryption key and MAC key associated with an YH_AUTHENTICATION_KEY
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the key to replace</param>
+    /// <param name="key_enc">New long lived encryption key</param>
+    /// <param name="key_enc_len">Length of the new encryption key. Must be YH_KEY_LEN</param>
+    /// <param name="key_mac">New long lived MAC key</param>
+    /// <param name="key_mac_len">Length of the new MAC key. Must be YH_KEY_LEN</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_change_authentication_key(SafeSessionHandle session, ref ushort key_id,
+        ReadOnlySpan<byte> key_enc, nuint key_enc_len,
+        ReadOnlySpan<byte> key_mac, nuint key_mac_len);
+
+    /// <summary>
+    /// Replace the long lived encryption key and MAC key with keys derived from a password
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the key to replace</param>
+    /// <param name="password">Password to derive the new encryption key and MAC key</param>
+    /// <param name="password_len">Length of password</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_change_authentication_key_derived(SafeSessionHandle session,
+        ref ushort key_id, ReadOnlySpan<byte> password, nuint password_len);
+
+    /// <summary>
+    /// Get a YH_TEMPLATE object from the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="object_id">Object ID of the Template to get</param>
+    /// <param name="out">The retrieved Template</param>
+    /// <param name="out_len">Length of the retrieved Template</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_get_template(SafeSessionHandle session, ushort object_id,
+        Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Import a YH_TEMPLATE object into the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="object_id">Object ID of the Template. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label of the Template</param>
+    /// <param name="domains">Domains the Template will be operating within</param>
+    /// <param name="capabilities">Capabilities of the Template</param>
+    /// <param name="algorithm">Algorithm of the Template</param>
+    /// <param name="in">Template to import</param>
+    /// <param name="in_len">Length of the Template to import</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_import_template(SafeSessionHandle session, ref ushort object_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len);
+
+    /// <summary>
+    /// Create a Yubico OTP AEAD using the provided data
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the Otp-aead Key to use</param>
+    /// <param name="key">OTP key</param>
+    /// <param name="private_id">OTP private id</param>
+    /// <param name="out">The created AEAD</param>
+    /// <param name="out_len">Length of the created AEAD</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_create_otp_aead(SafeSessionHandle session, ushort key_id,
+        ReadOnlySpan<byte> key, ReadOnlySpan<byte> private_id, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Create OTP AEAD from random data
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the Otp-aead Key to use</param>
+    /// <param name="out">The created AEAD</param>
+    /// <param name="out_len">Length of the created AEAD</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_randomize_otp_aead(SafeSessionHandle session, ushort key_id,
+        Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Decrypt a Yubico OTP and return counters and time information
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the key used for decryption</param>
+    /// <param name="aead">AEAD as created by yh_util_create_otp_aead or yh_util_randomize_otp_aead</param>
+    /// <param name="aead_len">Length of AEAD</param>
+    /// <param name="otp">OTP</param>
+    /// <param name="useCtr">OTP use counter</param>
+    /// <param name="sessionCtr">OTP session counter</param>
+    /// <param name="tstph">OTP timestamp high</param>
+    /// <param name="tstpl">OTP timestamp low</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_decrypt_otp(SafeSessionHandle session, ushort key_id,
+        ReadOnlySpan<byte> aead, nuint aead_len, ReadOnlySpan<byte> otp,
+        out ushort useCtr, out byte sessionCtr, out byte tstph, out ushort tstpl);
+
+    /// <summary>
+    /// Rewrap an OTP AEAD from one YH_OTP_AEAD_KEY to another
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="id_from">Object ID of the AEAD Key to wrap from</param>
+    /// <param name="id_to">Object ID of the AEAD Key to wrap to</param>
+    /// <param name="aead_in">AEAD to unwrap</param>
+    /// <param name="in_len">Length of AEAD</param>
+    /// <param name="aead_out">The created AEAD</param>
+    /// <param name="out_len">Length of output AEAD</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_rewrap_otp_aead(SafeSessionHandle session, ushort id_from,
+        ushort id_to, ReadOnlySpan<byte> aead_in, nuint in_len,
+        Span<byte> aead_out, out nuint out_len);
+
+    /// <summary>
+    /// Import an YH_OTP_AEAD_KEY used for Yubico OTP Decryption
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the AEAD Key. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label of the AEAD Key</param>
+    /// <param name="domains">Domains the AEAD Key will be operating within</param>
+    /// <param name="capabilities">Capabilities of the AEAD Key</param>
+    /// <param name="nonce_id">Nonce ID</param>
+    /// <param name="in">AEAD Key to import</param>
+    /// <param name="in_len">Length of AEAD Key to import. Must be 16, 24 or 32</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_import_otp_aead_key(SafeSessionHandle session, ref ushort key_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        uint nonce_id, ReadOnlySpan<byte> @in, nuint in_len);
+
+    /// <summary>
+    /// Generate an YH_OTP_AEAD_KEY for Yubico OTP decryption in the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the AEAD Key. 0 if the Object ID should be generated by the device</param>
+    /// <param name="label">Label of the AEAD Key</param>
+    /// <param name="domains">Domains the AEAD Key will be operating within</param>
+    /// <param name="capabilities">Capabilities of the AEAD Key</param>
+    /// <param name="algorithm">Algorithm used to generate the AEAD Key</param>
+    /// <param name="nonce_id">Nonce ID</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_generate_otp_aead_key(SafeSessionHandle session, ref ushort key_id,
+        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        yh_algorithm algorithm, uint nonce_id);
+
+    /// <summary>
+    /// Get attestation of an Asymmetric Key in the form of an X.509 certificate
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the Asymmetric Key to attest</param>
+    /// <param name="attest_id">Object ID for the key used to sign the attestation certificate</param>
+    /// <param name="out">The attestation certificate</param>
+    /// <param name="out_len">Length of the attestation certificate</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_sign_attestation_certificate(SafeSessionHandle session, ushort key_id,
+        ushort attest_id, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Set a device-global option
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="option">Option to set</param>
+    /// <param name="len">Length of option value</param>
+    /// <param name="val">Option value</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_set_option(SafeSessionHandle session, yh_option option, nuint len,
+        Span<byte> val);
+
+    /// <summary>
+    /// Get a device-global option
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="option">Option to get</param>
+    /// <param name="out">Option value</param>
+    /// <param name="out_len">Length of option value</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_get_option(SafeSessionHandle session, yh_option option,
+        Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Report currently free storage
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="total_records">Total number of records</param>
+    /// <param name="free_records">Number of free records</param>
+    /// <param name="total_pages">Total number of pages</param>
+    /// <param name="free_pages">Number of free pages</param>
+    /// <param name="page_size">Page size in bytes</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_get_storage_info(SafeSessionHandle session,
+        out ushort total_records, out ushort free_records, out ushort total_pages,
+        out ushort free_pages, out ushort page_size);
+
+    /// <summary>
+    /// Encrypt (wrap) data using a YH_WRAP_KEY
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the Wrap Key to use</param>
+    /// <param name="in">Data to wrap</param>
+    /// <param name="in_len">Length of data to wrap</param>
+    /// <param name="out">Wrapped data</param>
+    /// <param name="out_len">Length of the wrapped data</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_wrap_data(SafeSessionHandle session, ushort key_id,
+        ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Decrypt (unwrap) data using a YH_WRAP_KEY
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the Wrap Key to use</param>
+    /// <param name="in">Wrapped data</param>
+    /// <param name="in_len">Length of wrapped data</param>
+    /// <param name="out">Unwrapped data</param>
+    /// <param name="out_len">Length of unwrapped data</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_unwrap_data(SafeSessionHandle session, ushort key_id,
+        ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Encrypt data using a AES YH_SYMMETRIC_KEY in ECB mode
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the Symmetric Key to use</param>
+    /// <param name="in">Plaintext data</param>
+    /// <param name="in_len">Length of plaintext data</param>
+    /// <param name="out">Encrypted data</param>
+    /// <param name="out_len">Length of encrypted data</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_encrypt_aes_ecb(SafeSessionHandle session, ushort key_id,
+        ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Decrypt data using a AES YH_SYMMETRIC_KEY in ECB mode
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the Symmetric Key to use</param>
+    /// <param name="in">Encrypted data</param>
+    /// <param name="in_len">Length of encrypted data</param>
+    /// <param name="out">Decrypted data</param>
+    /// <param name="out_len">Length of decrypted data</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_decrypt_aes_ecb(SafeSessionHandle session, ushort key_id,
+        ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Encrypt data using an AES YH_SYMMETRIC_KEY in CBC mode
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the Symmetric Key to use</param>
+    /// <param name="iv">The 16-byte initialization vector</param>
+    /// <param name="in">Plaintext data</param>
+    /// <param name="in_len">Length of plaintext data</param>
+    /// <param name="out">Encrypted data</param>
+    /// <param name="out_len">Length of encrypted data</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_encrypt_aes_cbc(SafeSessionHandle session, ushort key_id,
+        ReadOnlySpan<byte> iv, ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Decrypt data using an AES YH_SYMMETRIC_KEY in CBC mode
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="key_id">Object ID of the Symmetric Key to use</param>
+    /// <param name="iv">The 16-byte initialization vector</param>
+    /// <param name="in">Encrypted data</param>
+    /// <param name="in_len">Length of encrypted data</param>
+    /// <param name="out">Decrypted data</param>
+    /// <param name="out_len">Length of decrypted data</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_decrypt_aes_cbc(SafeSessionHandle session, ushort key_id,
+        ReadOnlySpan<byte> iv, ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
+
+    /// <summary>
+    /// Pad data using PKCS #7 padding
+    /// </summary>
+    /// <param name="buffer">Data to be padded</param>
+    /// <param name="length">Pointer to the current length of the data</param>
+    /// <param name="size">The maximum size of the buffer</param>
+    /// <param name="block_size">The block size of the cipher used for encryption, in bytes</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_pad_pkcs7(Span<byte> buffer, ref nuint length, nuint size,
+        byte block_size);
+
+    /// <summary>
+    /// Unpad data that has PKCS #7 padding
+    /// </summary>
+    /// <param name="buffer">Data to be unpadded</param>
+    /// <param name="length">Pointer to the current length of the data</param>
+    /// <param name="block_size">The block size of the cipher used for encryption, in bytes</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_unpad_pkcs7(Span<byte> buffer, ref nuint length, byte block_size);
+
+    /// <summary>
+    /// Blink the LED of the device to identify it
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="seconds">Number of seconds to blink</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_blink_device(SafeSessionHandle session, byte seconds);
+
+    /// <summary>
+    /// Factory reset the device
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_util_reset_device(SafeSessionHandle session);
+
+    /// <summary>
+    /// Get the session ID
+    /// </summary>
+    /// <param name="session">Authenticated session to use</param>
+    /// <param name="sid">Session ID</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_get_session_id(SafeSessionHandle session, out byte sid);
+
+    /// <summary>
+    /// Check if the connector has a device connected
+    /// </summary>
+    /// <param name="connector">Connector currently in use</param>
+    /// <returns>True if a device is connected</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    [return: MarshalAs(UnmanagedType.U1)]
+    public static partial bool yh_connector_has_device(SafeConnectorHandle connector);
+
+    /// <summary>
+    /// Get the connector version
+    /// </summary>
+    /// <param name="connector">Connector currently in use</param>
+    /// <param name="major">Connector major version</param>
+    /// <param name="minor">Connector minor version</param>
+    /// <param name="patch">Connector patch version</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_get_connector_version(SafeConnectorHandle connector,
+        out byte major, out byte minor, out byte patch);
+
+    /// <summary>
+    /// Get connector address
+    /// </summary>
+    /// <param name="connector">Connector currently in use</param>
+    /// <param name="address">Pointer to the connector address as string</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_get_connector_address(SafeConnectorHandle connector, out nint address);
+
+    /// <summary>
+    /// Convert capability string to byte array
+    /// </summary>
+    /// <param name="capability">String of capabilities separated by ',', ':' or '|'</param>
+    /// <param name="result">Array of capabilities</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_string_to_capabilities(ReadOnlySpan<byte> capability,
+        out yh_capabilities result);
+
+    /// <summary>
+    /// Convert an array of capabilities into strings separated by ','
+    /// </summary>
+    /// <param name="num">Array of capabilities</param>
+    /// <param name="result">Array of the capabilies as strings</param>
+    /// <param name="n_result">Number of elements in result</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_capabilities_to_strings(in yh_capabilities num,
+        out nint result, out nuint n_result);
+
+    /// <summary>
+    /// Check if a capability is set
+    /// </summary>
+    /// <param name="capabilities">Array of capabilities</param>
+    /// <param name="capability">Capability to check as a string</param>
+    /// <returns>True if the capability is in capabilities</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    [return: MarshalAs(UnmanagedType.U1)]
+    public static partial bool yh_check_capability(in yh_capabilities capabilities,
+        ReadOnlySpan<byte> capability);
+
+    /// <summary>
+    /// Merge two sets of capabilities
+    /// </summary>
+    /// <param name="a">Array of capabilities</param>
+    /// <param name="b">Array of capabilities</param>
+    /// <param name="result">Resulting array of capabilities</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_merge_capabilities(in yh_capabilities a, in yh_capabilities b,
+        out yh_capabilities result);
+
+    /// <summary>
+    /// Filter one set of capabilities with another
+    /// </summary>
+    /// <param name="capabilities">Array of capabilities</param>
+    /// <param name="filter">Array of capabilities</param>
+    /// <param name="result">Resulting array of capabilities</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_filter_capabilities(in yh_capabilities capabilities,
+        in yh_capabilities filter, out yh_capabilities result);
+
+    /// <summary>
+    /// Check if an algorithm is a supported Symmetric Key AES algorithm
+    /// </summary>
+    /// <param name="algorithm">Algorithm to check</param>
+    /// <returns>True if the algorithm is one of the supported AES algorithms</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    [return: MarshalAs(UnmanagedType.U1)]
+    public static partial bool yh_is_aes(yh_algorithm algorithm);
+
+    /// <summary>
+    /// Check if an algorithm is a supported RSA algorithm
+    /// </summary>
+    /// <param name="algorithm">Algorithm to check</param>
+    /// <returns>True if the algorithm is one of the supported RSA algorithms</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    [return: MarshalAs(UnmanagedType.U1)]
+    public static partial bool yh_is_rsa(yh_algorithm algorithm);
+
+    /// <summary>
+    /// Check if an algorithm is a supported Elliptic Curve algorithm
+    /// </summary>
+    /// <param name="algorithm">Algorithm to check</param>
+    /// <returns>True if the algorithm is one of the supported EC algorithms</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    [return: MarshalAs(UnmanagedType.U1)]
+    public static partial bool yh_is_ec(yh_algorithm algorithm);
+
+    /// <summary>
+    /// Check if an algorithm is a supported ED algorithm
+    /// </summary>
+    /// <param name="algorithm">algorithm</param>
+    /// <returns>True if the algorithm is #YH_ALGO_EC_ED25519</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    [return: MarshalAs(UnmanagedType.U1)]
+    public static partial bool yh_is_ed(yh_algorithm algorithm);
+
+    /// <summary>
+    /// Check if algorithm is a supported HMAC algorithm
+    /// </summary>
+    /// <param name="algorithm">Algorithm to check</param>
+    /// <returns>True if the algorithm is one of the supported HMAC algorithms</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    [return: MarshalAs(UnmanagedType.U1)]
+    public static partial bool yh_is_hmac(yh_algorithm algorithm);
+
+    /// <summary>
+    /// Get the expected key length of a key generated by the given algorithm
+    /// </summary>
+    /// <param name="algorithm">Algorithm to check</param>
+    /// <param name="result">Expected bitlength of a key generated by the algorithm</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_get_key_bitlength(yh_algorithm algorithm, out nuint result);
+
+    /// <summary>
+    /// Convert an algorithm to its string representation
+    /// </summary>
+    /// <param name="algo">Algorithm to convert</param>
+    /// <param name="result">The algorithm as a String</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_algo_to_string(yh_algorithm algo, out nint result);
+
+    /// <summary>
+    /// Convert a string to an algorithm's numeric value
+    /// </summary>
+    /// <param name="string">Algorithm as string</param>
+    /// <param name="algo">Algorithm numeric value</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_string_to_algo(ReadOnlySpan<byte> @string, out yh_algorithm algo);
+
+    /// <summary>
+    /// Convert a yh_object_type to its string representation
+    /// </summary>
+    /// <param name="type">Type to convert</param>
+    /// <param name="result">The type as a String</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_type_to_string(yh_object_type type, out nint result);
+
+    /// <summary>
+    /// Convert a string to a type's numeric value
+    /// </summary>
+    /// <param name="string">Type as a String</param>
+    /// <param name="type">Type numeric value</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_string_to_type(ReadOnlySpan<byte> @string, out yh_object_type type);
+
+    /// <summary>
+    /// Convert a string to an option's numeric value
+    /// </summary>
+    /// <param name="string">Option as string</param>
+    /// <param name="option">Option numeric value</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_string_to_option(ReadOnlySpan<byte> @string, out yh_option option);
+
+    /// <summary>
+    /// Verify an array of log entries
+    /// </summary>
+    /// <param name="logs">Array of log entries</param>
+    /// <param name="n_items">number of log entries</param>
+    /// <param name="last_previous_log">Optional pointer to the entry before the first entry</param>
+    /// <returns>True if verification succeeds</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    [return: MarshalAs(UnmanagedType.U1)]
+    public static partial bool yh_verify_logs(Span<yh_log_entry> logs, nuint n_items,
+        in yh_log_entry last_previous_log);
+
+    /// <summary>
+    /// Convert a string to a domain's numeric value
+    /// </summary>
+    /// <param name="domains">String of domains</param>
+    /// <param name="result">Resulting parsed domains as an unsigned int</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_string_to_domains(ReadOnlySpan<byte> domains, out ushort result);
+
+    /// <summary>
+    /// Convert domains parameter to its String representation
+    /// </summary>
+    /// <param name="domains">Encoded domains</param>
+    /// <param name="string">Domains as a string</param>
+    /// <param name="max_len">Maximum length of the string</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_domains_to_string(ushort domains, Span<byte> @string, nuint max_len);
 }
