@@ -1,4 +1,6 @@
-﻿namespace YubiHsmSharp;
+﻿using System.Runtime.InteropServices;
+
+namespace YubiHsmSharp;
 
 /// <summary>
 /// Libyubihsm is a library for communicating with a YubiHSM 2 device.
@@ -852,5 +854,52 @@ public static class yubihsm
 
         /// <summary>Compress data before importing it</summary>
         COMPRESS = 3,
+    }
+
+    /// <summary>
+    /// Device info struct
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct yh_device_info
+    {
+        /// <summary>
+        /// Fimrware version major
+        /// </summary>
+        byte major;
+
+        /// <summary>
+        /// Firmware version minor
+        /// </summary>
+        byte minor;
+
+        /// <summary>
+        /// Firmware version patch
+        /// </summary>
+        byte patch;
+
+        /// <summary>
+        /// Device serial number
+        /// </summary>
+        uint serial;
+
+        /// <summary>
+        /// Total available logs
+        /// </summary>
+        byte log_total;
+
+        /// <summary>
+        /// Total used logs
+        /// </summary>
+        byte log_used;
+
+        /// <summary>
+        /// List of algorithms supported by the device
+        /// </summary>
+        fixed int algorithms[YH_MAX_ALGORITHM_COUNT];
+
+        /// <summary>
+        /// Number of algorithms supported by the device
+        /// </summary>
+        nuint n_algorithms;
     }
 }
