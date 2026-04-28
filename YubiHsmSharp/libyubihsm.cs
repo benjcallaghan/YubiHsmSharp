@@ -47,7 +47,7 @@ namespace YubiHsmSharp;
 /// </code>
 /// </example>
 /// <seealso>yubihsm.h</seealso> 
-internal static partial class libyubihsm
+internal static unsafe partial class libyubihsm
 {
     /// <summary>
     /// Length of context array for authentication
@@ -221,7 +221,7 @@ internal static partial class libyubihsm
     /// Capabilities representation
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct yh_capabilities
+    public struct yh_capabilities
     {
         /// <summary>
         /// Capabilities is represented as an 8 byte byte array.
@@ -880,7 +880,7 @@ internal static partial class libyubihsm
     /// Device info struct
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct yh_device_info
+    public struct yh_device_info
     {
         /// <summary>
         /// Fimrware version major
@@ -928,7 +928,7 @@ internal static partial class libyubihsm
     /// </summary>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Logs.html"/> 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public unsafe struct yh_log_entry
+    public struct yh_log_entry
     {
         /// <summary>
         /// Monotonically increasing index
@@ -982,7 +982,7 @@ internal static partial class libyubihsm
     /// Object descriptor
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public unsafe struct yh_object_descriptor
+    public struct yh_object_descriptor
     {
         /// <summary>
         /// Object capabilities
@@ -1194,8 +1194,8 @@ internal static partial class libyubihsm
     /// </summary>
     /// <param name="err"><see cref="yh_rc"/> error code</param>
     /// <returns>String with descriptive error</returns>
-    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
-    public static partial string yh_strerror(yh_rc err);
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial byte* yh_strerror(yh_rc err);
 
     /// <summary>
     /// Set verbosity level when executing commands.
@@ -1208,7 +1208,7 @@ internal static partial class libyubihsm
     /// <param name="verbosity">The desired level of debug output</param>
     /// <returns><see cref="yh_rc.YHR_SUCCESS"/></returns>
     /// <seealso cref="yh_verbosity"/> 
-    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_set_verbosity(SafeConnectorHandle connector, yh_verbosity verbosity);
 
     /// <summary>
@@ -1218,7 +1218,7 @@ internal static partial class libyubihsm
     /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if seccessful [sic].
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if verbosity is NULL</returns>
     /// <seealso cref="yh_verbosity"/> 
-    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_get_verbosity(out yh_verbosity verbosity);
 
     /// <summary>
@@ -1226,7 +1226,7 @@ internal static partial class libyubihsm
     /// </summary>
     /// <param name="connector">If not NULL, the debug messages will be written to the specified output file</param>
     /// <param name="output">The destination of the debug messages</param>
-    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    [LibraryImport(nameof(libyubihsm))]
     // TODO: Add a stronger handle-like type for FILE *output.
     public static partial void yh_set_debug_output(SafeConnectorHandle connector, nint output);
 
@@ -1234,14 +1234,14 @@ internal static partial class libyubihsm
     /// Global library initialization
     /// </summary>
     /// <returns><see cref="yh_rc.YHR_SUCCESS"/></returns>
-    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_init();
 
     /// <summary>
     /// Global library cleanup
     /// </summary>
     /// <returns><see cref="yh_rc.YHR_SUCCESS"/></returns>
-    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_exit();
 
     /// <summary>
@@ -1256,8 +1256,8 @@ internal static partial class libyubihsm
     /// <see cref="yh_rc.YHR_MEMORY_ERROR"/> if failed to allocate memory for the connector.
     /// <see cref="yh_rc.YHR_CONNECTION_ERROR"/> if failed to create the connector
     /// </returns>
-    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
-    public static partial yh_rc yh_init_connector(string url, out SafeConnectorHandle connector);
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_init_connector(ReadOnlySpan<byte> url, out SafeConnectorHandle connector);
 
     /// <summary>
     /// Set connector options.
@@ -1271,8 +1271,8 @@ internal static partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the connector or the value are NULL, or if the option is unknown.
     /// <see cref="yh_rc.YHR_CONNECTION_ERROR"/> if failed to set the option.
     /// </returns>
-    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
-    public static unsafe partial yh_rc yh_set_connector_option(SafeConnectorHandle connector, yh_connector_option opt, void* val);
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_set_connector_option(SafeConnectorHandle connector, yh_connector_option opt, void* val);
 
     /// <summary>
     /// Connect to the device through the specified connector
@@ -1284,7 +1284,7 @@ internal static partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the connector does not exist.
     /// </returns>
     /// <seealso cref="yh_rc"/> 
-    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_connect(SafeConnectorHandle connector, int timeout);
 
     /// <summary>
@@ -1295,7 +1295,7 @@ internal static partial class libyubihsm
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the connector is NULL
     /// </returns>
-    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_disconnect(SafeConnectorHandle connector);
 
     /// <summary>
@@ -1309,7 +1309,7 @@ internal static partial class libyubihsm
     /// <param name="response">Response data</param>
     /// <param name="response_len">Length of response data</param>
     /// <returns></returns>
-    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_send_plain_msg(SafeConnectorHandle connector,
         yh_cmd cmd, ReadOnlySpan<byte> data, nuint data_len,
         out yh_cmd response_cmd, Span<byte> response, out nuint response_len);
@@ -1327,7 +1327,7 @@ internal static partial class libyubihsm
     /// <param name="response_len">Length of response data</param>
     /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful.</returns>
     /// <seealso cref="yh_rc"/> 
-    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_send_secure_msg(SafeSessionHandle session,
         yh_cmd cmd, ReadOnlySpan<byte> data, nuint data_len,
         out yh_cmd response_cmd, Span<byte> response, out nuint response_len);
