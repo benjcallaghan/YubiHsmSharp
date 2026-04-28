@@ -47,7 +47,7 @@ namespace YubiHsmSharp;
 /// </code>
 /// </example>
 /// <seealso>yubihsm.h</seealso> 
-public static class yubihsm
+public static partial class libyubihsm
 {
     /// <summary>
     /// Length of context array for authentication
@@ -1188,4 +1188,12 @@ public static class yubihsm
     /// This is used in combination with objects original 'origin'.
     /// </summary>
     public const int YH_ORIGIN_IMPORTED_WRAPPED = 0x10;
+
+    /// <summary>
+    /// Return a string describing an error condition
+    /// </summary>
+    /// <param name="err"><see cref="yh_rc"/> error code</param>
+    /// <returns>String with descriptive error</returns>
+    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    public static partial string yh_strerror(yh_rc err);
 }
