@@ -617,4 +617,181 @@ public static class yubihsm
         /// never exists in device and is mostly here for PKCS#11.</summary>
         YH_WRAP_KEY_PUBLIC = YH_WRAP_KEY | 0x80,
     }
+
+    /// <summary>
+    /// Max number of algorithms defined here
+    /// </summary>
+    public const int YH_MAX_ALGORITHM_COUNT = 0xff;
+
+    /// <summary>
+    /// Algorithms
+    /// </summary>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Algorithm.html"/>
+    public enum yh_algorithm
+    {
+        /// <summary>rsa-pkcs1-sha1</summary>
+        YH_ALGO_RSA_PKCS1_SHA1 = 1,
+
+        /// <summary>rsa-pkcs1-sha256</summary>
+        YH_ALGO_RSA_PKCS1_SHA256 = 2,
+
+        /// <summary>rsa-pkcs1-sha384</summary>
+        YH_ALGO_RSA_PKCS1_SHA384 = 3,
+
+        /// <summary>rsa-pkcs1-sha512</summary>
+        YH_ALGO_RSA_PKCS1_SHA512 = 4,
+
+        /// <summary>rsa-pss-sha1</summary>
+        YH_ALGO_RSA_PSS_SHA1 = 5,
+
+        /// <summary>rsa-pss-sha256</summary>
+        YH_ALGO_RSA_PSS_SHA256 = 6,
+
+        /// <summary>rsa-pss-sha384</summary>
+        YH_ALGO_RSA_PSS_SHA384 = 7,
+
+        /// <summary>rsa-pss-sha512</summary>
+        YH_ALGO_RSA_PSS_SHA512 = 8,
+
+        /// <summary>rsa2048</summary>
+        YH_ALGO_RSA_2048 = 9,
+
+        /// <summary>rsa3072</summary>
+        YH_ALGO_RSA_3072 = 10,
+
+        /// <summary>rsa4096</summary>
+        YH_ALGO_RSA_4096 = 11,
+
+        /// <summary>ecp256</summary>
+        YH_ALGO_EC_P256 = 12,
+
+        /// <summary>ecp384</summary>
+        YH_ALGO_EC_P384 = 13,
+
+        /// <summary>ecp521</summary>
+        YH_ALGO_EC_P521 = 14,
+
+        /// <summary>eck256</summary>
+        YH_ALGO_EC_K256 = 15,
+
+        /// <summary>ecbp256</summary>
+        YH_ALGO_EC_BP256 = 16,
+
+        /// <summary>ecbp384</summary>
+        YH_ALGO_EC_BP384 = 17,
+
+        /// <summary>ecbp512</summary>
+        YH_ALGO_EC_BP512 = 18,
+
+        /// <summary>hmac-sha1</summary>
+        YH_ALGO_HMAC_SHA1 = 19,
+
+        /// <summary>hmac-sha256</summary>
+        YH_ALGO_HMAC_SHA256 = 20,
+
+        /// <summary>hmac-sha384</summary>
+        YH_ALGO_HMAC_SHA384 = 21,
+
+        /// <summary>hmac-sha512</summary>
+        YH_ALGO_HMAC_SHA512 = 22,
+
+        /// <summary>ecdsa-sha1</summary>
+        YH_ALGO_EC_ECDSA_SHA1 = 23,
+
+        /// <summary>ecdh</summary>
+        YH_ALGO_EC_ECDH = 24,
+
+        /// <summary>rsa-oaep-sha1</summary>
+        YH_ALGO_RSA_OAEP_SHA1 = 25,
+
+        /// <summary>rsa-oaep-sha256</summary>
+        YH_ALGO_RSA_OAEP_SHA256 = 26,
+
+        /// <summary>rsa-oaep-sha384</summary>
+        YH_ALGO_RSA_OAEP_SHA384 = 27,
+
+        /// <summary>rsa-oaep-sha512</summary>
+        YH_ALGO_RSA_OAEP_SHA512 = 28,
+
+        /// <summary>aes128-ccm-wrap</summary>
+        YH_ALGO_AES128_CCM_WRAP = 29,
+
+        /// <summary>opaque-data</summary>
+        YH_ALGO_OPAQUE_DATA = 30,
+
+        /// <summary>opaque-x509-certificate</summary>
+        YH_ALGO_OPAQUE_X509_CERTIFICATE = 31,
+
+        /// <summary>mgf1-sha1</summary>
+        YH_ALGO_MGF1_SHA1 = 32,
+
+        /// <summary>mgf1-sha256</summary>
+        YH_ALGO_MGF1_SHA256 = 33,
+
+        /// <summary>mgf1-sha384</summary>
+        YH_ALGO_MGF1_SHA384 = 34,
+
+        /// <summary>mgf1-sha512</summary>
+        YH_ALGO_MGF1_SHA512 = 35,
+
+        /// <summary>template-ssh</summary>
+        YH_ALGO_TEMPLATE_SSH = 36,
+
+        /// <summary>aes128-yubico-otp</summary>
+        YH_ALGO_AES128_YUBICO_OTP = 37,
+
+        /// <summary>aes128-yubico-authentication</summary>
+        YH_ALGO_AES128_YUBICO_AUTHENTICATION = 38,
+
+        /// <summary>aes192-yubico-otp</summary>
+        YH_ALGO_AES192_YUBICO_OTP = 39,
+
+        /// <summary>aes256-yubico-otp</summary>
+        YH_ALGO_AES256_YUBICO_OTP = 40,
+
+        /// <summary>aes192-ccm-wrap</summary>
+        YH_ALGO_AES192_CCM_WRAP = 41,
+
+        /// <summary>aes256-ccm-wrap</summary>
+        YH_ALGO_AES256_CCM_WRAP = 42,
+
+        /// <summary>ecdsa-sha256</summary>
+        YH_ALGO_EC_ECDSA_SHA256 = 43,
+
+        /// <summary>ecdsa-sha384</summary>
+        YH_ALGO_EC_ECDSA_SHA384 = 44,
+
+        /// <summary>ecdsa-sha512</summary>
+        YH_ALGO_EC_ECDSA_SHA512 = 45,
+
+        /// <summary>ed25519</summary>
+        YH_ALGO_EC_ED25519 = 46,
+
+        /// <summary>ecp224</summary>
+        YH_ALGO_EC_P224 = 47,
+
+        /// <summary>rsa-pkcs1-decrypt</summary>
+        YH_ALGO_RSA_PKCS1_DECRYPT = 48,
+
+        /// <summary>ec-p256-yubico-authentication</summary>
+        YH_ALGO_EC_P256_YUBICO_AUTHENTICATION = 49,
+
+        /// <summary>aes128</summary>
+        YH_ALGO_AES128 = 50,
+
+        /// <summary>aes192</summary>
+        YH_ALGO_AES192 = 51,
+
+        /// <summary>aes256</summary>
+        YH_ALGO_AES256 = 52,
+
+        /// <summary>aes-ecb</summary>
+        YH_ALGO_AES_ECB = 53,
+
+        /// <summary>aes-cbc</summary>
+        YH_ALGO_AES_CBC = 54,
+
+        /// <summary>aes-kwp</summary>
+        YH_ALGO_AES_KWP = 55,
+    }
 }
