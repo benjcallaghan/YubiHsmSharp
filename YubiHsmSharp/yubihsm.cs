@@ -794,4 +794,63 @@ public static class yubihsm
         /// <summary>aes-kwp</summary>
         YH_ALGO_AES_KWP = 55,
     }
+
+    /// <summary>
+    /// Global options
+    /// </summary>
+    public enum yh_option
+    {
+        /// <summary>Enable/Disable Forced Audit mode</summary>
+        YH_OPTION_FORCE_AUDIT = 1,
+
+        /// <summary>Enable/Disable logging of specific commands</summary>
+        YH_OPTION_COMMAND_AUDIT = 3,
+
+        /// <summary>Toggle algorithms on/off</summary>
+        YH_OPTION_ALGORITHM_TOGGLE = 4,
+
+        /// <summary>Fips mode on/off</summary>
+        YH_OPTION_FIPS_MODE = 5,
+    }
+
+    /// <summary>
+    /// Options for the connector, set with <see cref="yh_set_connector_option()"/>
+    /// </summary>
+    public enum yh_connector_option
+    {
+        /// <summary>File with CA certificate to validate the connector with (const char *).</summary>
+        /// <remarks>Not implemented on Windows</remarks>
+        YH_CONNECTOR_HTTPS_CA = 1,
+
+        /// <summary>Proxy server to use for connecting to the connector (const char *).</summary>
+        /// <remarks>Not implemented on Windows</remarks>
+        YH_CONNECTOR_PROXY_SERVER = 2,
+
+        /// <summary>File with client certificate to authenticate client with (const char *).</summary>
+        /// <remarks>Not implemented on Windows</remarks>
+        YH_CONNECTOR_HTTPS_CERT = 3,
+
+        /// <summary>File with client certificates key (const char *).</summary>
+        /// <remarks>Not implemented on Windows</remarks>
+        YH_CONNECTOR_HTTPS_KEY = 4,
+
+        /// <summary>Comma separated list of hosts ignoring proxy, `*` to disable proxy.</summary>
+        /// <remarks>Not implemented on Windows</remarks>
+        YH_CONNECTOR_NOPROXY = 5,
+    }
+
+    /// <summary>
+    /// Options for data compression
+    /// </summary>
+    public enum yh_compress_option
+    {
+        /// <summary>Do not compress data before importing it</summary>
+        NO_COMPRESS = 1,
+
+        /// <summary>Compress data if it's too big</summary>
+        COMPRESS_IF_TOO_BIG = 2,
+
+        /// <summary>Compress data before importing it</summary>
+        COMPRESS = 3,
+    }
 }
