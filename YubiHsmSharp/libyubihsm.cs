@@ -1297,4 +1297,38 @@ internal static partial class libyubihsm
     /// </returns>
     [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
     public static partial yh_rc yh_disconnect(SafeConnectorHandle connector);
+
+    /// <summary>
+    /// Send a plain (unencrypted) message to the device through a connector
+    /// </summary>
+    /// <param name="connector">Connector to the device</param>
+    /// <param name="cmd">Command to send <see cref="yh_cmd"/></param>
+    /// <param name="data">Data to send</param>
+    /// <param name="data_len">length of data to send</param>
+    /// <param name="response_cmd">Response command</param>
+    /// <param name="response">Response data</param>
+    /// <param name="response_len">Length of response data</param>
+    /// <returns></returns>
+    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    public static partial yh_rc yh_send_plain_msg(SafeConnectorHandle connector,
+        yh_cmd cmd, ReadOnlySpan<byte> data, nuint data_len,
+        out yh_cmd response_cmd, Span<byte> response, out nuint response_len);
+
+    /// <summary>
+    /// Send an encrypted message to the device over a session.
+    /// The session has to be authenticated.
+    /// </summary>
+    /// <param name="session">Session to send the message over</param>
+    /// <param name="cmd">Command to send</param>
+    /// <param name="data">Data to send</param>
+    /// <param name="data_len">Length of data to send</param>
+    /// <param name="response_cmd">Response command</param>
+    /// <param name="response">Response data</param>
+    /// <param name="response_len">Length of response data</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful.</returns>
+    /// <seealso cref="yh_rc"/> 
+    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    public static partial yh_rc yh_send_secure_msg(SafeSessionHandle session,
+        yh_cmd cmd, ReadOnlySpan<byte> data, nuint data_len,
+        out yh_cmd response_cmd, Span<byte> response, out nuint response_len);
 }
