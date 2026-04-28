@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace YubiHsmSharp;
 
-public class SafeConnectorHandle : SafeHandle
+internal class SafeConnectorHandle : SafeHandle
 {
     public SafeConnectorHandle() : base(IntPtr.Zero, true) { }
 

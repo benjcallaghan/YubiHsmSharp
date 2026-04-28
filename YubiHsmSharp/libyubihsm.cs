@@ -47,7 +47,7 @@ namespace YubiHsmSharp;
 /// </code>
 /// </example>
 /// <seealso>yubihsm.h</seealso> 
-public static partial class libyubihsm
+internal static partial class libyubihsm
 {
     /// <summary>
     /// Length of context array for authentication
@@ -1210,4 +1210,23 @@ public static partial class libyubihsm
     /// <seealso cref="yh_verbosity"/> 
     [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
     public static partial yh_rc yh_set_verbosity(SafeConnectorHandle connector, yh_verbosity verbosity);
+
+    /// <summary>
+    /// Get verbosity level when executing commands
+    /// </summary>
+    /// <param name="verbosity">The verbosity level</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if seccessful [sic].
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if verbosity is NULL</returns>
+    /// <seealso cref="yh_verbosity"/> 
+    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    public static partial yh_rc yh_get_verbosity(out yh_verbosity verbosity);
+
+    /// <summary>
+    /// Set file for debug output
+    /// </summary>
+    /// <param name="connector">If not NULL, the debug messages will be written to the specified output file</param>
+    /// <param name="output">The destination of the debug messages</param>
+    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    // TODO: Add a stronger handle-like type for FILE *output.
+    public static partial void yh_set_debug_output(SafeConnectorHandle connector, nint output);
 }
