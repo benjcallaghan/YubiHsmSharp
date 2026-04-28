@@ -1196,4 +1196,18 @@ public static partial class libyubihsm
     /// <returns>String with descriptive error</returns>
     [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
     public static partial string yh_strerror(yh_rc err);
+
+    /// <summary>
+    /// Set verbosity level when executing commands.
+    /// Default verbosity is <see cref="yh_verbosity.YH_VERB_QUIET"/>
+    /// </summary>
+    /// <remarks>
+    /// This function may be called prior to global library initialization to set the debug level
+    /// </remarks>
+    /// <param name="connector">If not NULL, the verbosity of the specific connector will be set</param>
+    /// <param name="verbosity">The desired level of debug output</param>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/></returns>
+    /// <seealso cref="yh_verbosity"/> 
+    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    public static partial yh_rc yh_set_verbosity(SafeConnectorHandle connector, yh_verbosity verbosity);
 }
