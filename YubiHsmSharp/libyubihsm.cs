@@ -1229,4 +1229,72 @@ internal static partial class libyubihsm
     [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
     // TODO: Add a stronger handle-like type for FILE *output.
     public static partial void yh_set_debug_output(SafeConnectorHandle connector, nint output);
+
+    /// <summary>
+    /// Global library initialization
+    /// </summary>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/></returns>
+    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    public static partial yh_rc yh_init();
+
+    /// <summary>
+    /// Global library cleanup
+    /// </summary>
+    /// <returns><see cref="yh_rc.YHR_SUCCESS"/></returns>
+    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    public static partial yh_rc yh_exit();
+
+    /// <summary>
+    /// Instantiate a new connector
+    /// </summary>
+    /// <param name="url">URL associated with this connector</param>
+    /// <param name="connector">Connector to the device</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if either the URL or the connector are NULL.
+    /// <see cref="yh_rc.YHR_GENERIC_ERROR"/> if failed to load the backend.
+    /// <see cref="yh_rc.YHR_MEMORY_ERROR"/> if failed to allocate memory for the connector.
+    /// <see cref="yh_rc.YHR_CONNECTION_ERROR"/> if failed to create the connector
+    /// </returns>
+    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    public static partial yh_rc yh_init_connector(string url, out SafeConnectorHandle connector);
+
+    /// <summary>
+    /// Set connector options.
+    /// Note that backend options are not supported with winhttp or USB connectors
+    /// </summary>
+    /// <param name="connector">Connector to set an option on</param>
+    /// <param name="opt">Option to set. <see cref="yh_connector_option"/></param>
+    /// <param name="val">Value of the option. Type of value is specific to the given option</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the connector or the value are NULL, or if the option is unknown.
+    /// <see cref="yh_rc.YHR_CONNECTION_ERROR"/> if failed to set the option.
+    /// </returns>
+    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    public static unsafe partial yh_rc yh_set_connector_option(SafeConnectorHandle connector, yh_connector_option opt, void* val);
+
+    /// <summary>
+    /// Connect to the device through the specified connector
+    /// </summary>
+    /// <param name="connector">Connector to the device</param>
+    /// <param name="timeout">Connection timeout in seconds</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the connector does not exist.
+    /// </returns>
+    /// <seealso cref="yh_rc"/> 
+    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    public static partial yh_rc yh_connect(SafeConnectorHandle connector, int timeout);
+
+    /// <summary>
+    /// Disconnect from a connector
+    /// </summary>
+    /// <param name="connector">Connector from which to disconnect</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the connector is NULL
+    /// </returns>
+    [LibraryImport(nameof(libyubihsm), StringMarshalling = StringMarshalling.Utf8)]
+    public static partial yh_rc yh_disconnect(SafeConnectorHandle connector);
 }
