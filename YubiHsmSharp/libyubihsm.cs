@@ -1331,4 +1331,127 @@ internal static unsafe partial class libyubihsm
     public static partial yh_rc yh_send_secure_msg(SafeSessionHandle session,
         yh_cmd cmd, ReadOnlySpan<byte> data, nuint data_len,
         out yh_cmd response_cmd, Span<byte> response, out nuint response_len);
+
+    /// <summary>
+    /// Create a session that uses an encryption key and a MAC key derived from a password
+    /// </summary>
+    /// <param name="connector">Connector to the device</param>
+    /// <param name="authkey_id">Object ID of the Authentication Key used to authentication the session</param>
+    /// <param name="password">Password used to derive the session encryption key and MAC key</param>
+    /// <param name="password_len">Length of the password in bytes</param>
+    /// <param name="recreate_session">If true, the session will be recreated if expired. This caches the password in memory</param>
+    /// <param name="session">The created session</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the connector, the password or the session are NULL.
+    /// <see cref="yh_rc.YHR_GENERIC_ERROR"/> if failed to derive the session encryption key and/or the MAC key or if PRNG related errors occur.
+    /// <see cref="yh_rc.YHR_MEMORY_ERROR"/> if failed to allocate memory for the session.
+    /// </returns>
+    /// <seealso cref="yh_rc"/> 
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_create_session_derived(SafeConnectorHandle connector, ushort authkey_id,
+        ReadOnlySpan<byte> password, nuint password_len,
+        [MarshalAs(UnmanagedType.U1)] bool recreate_session, out SafeSessionHandle session);
+
+    /// <summary>
+    /// Create a session that uses the specified encryption key and MAC key to derive session-specific keys
+    /// </summary>
+    /// <param name="connector">Connector to the device</param>
+    /// <param name="authkey_id">Object ID of the Authentication Key used to authenticate the session</param>
+    /// <param name="key_enc">Key used to derive the session encryption key</param>
+    /// <param name="key_enc_len">Length of the encryption key</param>
+    /// <param name="key_mac">Key used to derive the session MAC key</param>
+    /// <param name="key_mac_len">Length of the MAC key</param>
+    /// <param name="recreate_session">If true, the session will be recreated if expired. This caches the password in memory</param>
+    /// <param name="session">created session</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or incorrect.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html">Authentication Key</seealso>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_create_session(SafeConnectorHandle connector, ushort authkey_id,
+        ReadOnlySpan<byte> key_enc, nuint key_enc_len,
+        ReadOnlySpan<byte> key_mac, nuint key_mac_len,
+        [MarshalAs(UnmanagedType.U1)] bool recreate_session, out SafeSessionHandle session);
+
+    /// <summary>
+    /// Create a session that uses named encryption keys from a platform-specific key store to derive session-specific keys
+    /// </summary>
+    /// <param name="connector">Connector to the device</param>
+    /// <param name="authkey_id">Object ID of the Authentication Key used to authenticate the session</param>
+    /// <param name="key_enc_name">Name of key used to derive the session encryption key</param>
+    /// <param name="key_mac_name">Name of key used to derive the session MAC keys</param>
+    /// <param name="session">created session</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or incorrect.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html">Authentication Key</seealso>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_create_session_ex(SafeConnectorHandle connector, ushort authkey_id,
+        ReadOnlySpan<byte> key_enc_name, ReadOnlySpan<byte> key_mac_name,
+        out SafeSessionHandle session);
+
+    /// <summary>
+    /// Begin creating a session where the session keys are calculated outside the library.
+    /// </summary>
+    /// <remarks>
+    /// This function must be followed by <see cref="yh_finish_create_session"/> to set the session keys.
+    /// If <paramref name="host_challenge_len"/> is 0 when calling this function an 8 byte random challenge is generated,
+    /// and symmetric authentication is assumed.
+    /// For asymmetric authentication the host challenge must be provided.
+    /// <param name="connector">Connector to the device</param>
+    /// <param name="authkey_id">Object ID of the Authentication Key used to authenticate the session</param>
+    /// <param name="context">pointer to where context data is saved</param>
+    /// <param name="host_challenge">Host challenge</param>
+    /// <param name="host_challenge_len">Length of the host challenge</param>
+    /// <param name="card_cryptogram">Card cryptogram from the device</param>
+    /// <param name="card_cryptogram_len">Length of card cryptogram</param>
+    /// <param name="session">created session</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
+    /// <see cref="yh_rc.YHR_MEMORY_ERROR"/> if failed to allocate memory for the session.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_begin_create_session(SafeConnectorHandle connector, ushort authkey_id,
+        out byte* context, Span<byte> host_challenge, out nuint host_challenge_len,
+        Span<byte> card_cryptogram, out nuint card_cryptogram_len, out SafeSessionHandle session);
+
+    /// <summary>
+    /// Finish creating a session.
+    /// </summary>
+    /// <remarks>
+    /// This function must be called after <see cref="yh_begin_create_session"/>.
+    /// For symmetric authentication this function will authenticate the session with the device
+    /// using the provided session keys and card cryptogram.
+    /// For asymmetric authentication the card cryptogram must be validated externally.
+    /// </remarks>
+    /// <param name="session">The session created with <see cref="yh_begin_create_session"/></param>
+    /// <param name="key_senc">Session encryption key used to encrypt the messages exchanged with the device</param>
+    /// <param name="key_senc_len">Lenght [sic] of the encryption key. Must be <see cref="YH_KEY_LEN"/></param>
+    /// <param name="key_smac">Session MAC key used for creating the authentication tag for each message</param>
+    /// <param name="key_smac_len">Length of the MAC key. Must be <see cref="YH_KEY_LEN"/></param>
+    /// <param name="key_srmac">Session return MAC key used for creating the authentication tag for each response message</param>
+    /// <param name="key_srmac_len">Length of the return MAC key. Must be <see cref="YH_KEY_LEN"/></param>
+    /// <param name="card_cryptogram">Card cryptogram</param>
+    /// <param name="card_cryptogram_len">Length of card cryptogram</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or any of the key lengths are not <see cref="YH_KEY_LEN"/>.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
+    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
+    [LibraryImport(nameof(libyubihsm))]
+    public static partial yh_rc yh_finish_create_session(SafeSessionHandle session,
+        ReadOnlySpan<byte> key_senc, nuint key_senc_len, ReadOnlySpan<byte> key_smac, nuint key_smac_len,
+        ReadOnlySpan<byte> key_srmac, nuint key_srmac_len, Span<byte> card_cryptogram, nuint card_cryptogram_len);
 }
