@@ -1036,4 +1036,156 @@ public static class yubihsm
         /// </summary>
         yh_capabilities delegated_capabilities;
     }
+
+    private static readonly (string name, int bit)[] yh_capability = [
+        ("change-authentication-key", 0x2e),
+        ("create-otp-aead", 0x1e),
+        ("decrypt-cbc", 0x34),
+        ("decrypt-ecb", 0x32),
+        ("decrypt-oaep", 0x0a),
+        ("decrypt-otp", 0x1d),
+        ("decrypt-pkcs", 0x09),
+        ("delete-asymmetric-key", 0x29),
+        ("delete-authentication-key", 0x28),
+        ("delete-hmac-key", 0x2b),
+        ("delete-opaque", 0x27),
+        ("delete-otp-aead-key", 0x2d),
+        ("delete-public-wrap-key", 0x37),
+        ("delete-symmetric-key", 0x31),
+        ("delete-template", 0x2c),
+        ("delete-wrap-key", 0x2a),
+        ("derive-ecdh", 0x0b),
+        ("encrypt-cbc", 0x35),
+        ("encrypt-ecb", 0x33),
+        ("export-wrapped", 0x0c),
+        ("exportable-under-wrap", 0x10),
+        ("generate-asymmetric-key", 0x04),
+        ("generate-hmac-key", 0x15),
+        ("generate-otp-aead-key", 0x24),
+        ("generate-symmetric-key", 0x30),
+        ("generate-wrap-key", 0x0f),
+        ("get-log-entries", 0x18),
+        ("get-opaque", 0x00),
+        ("get-option", 0x12),
+        ("get-pseudo-random", 0x13),
+        ("get-template", 0x1a),
+        ("import-wrapped", 0x0d),
+        ("put-asymmetric-key", 0x03),
+        ("put-authentication-key", 0x02),
+        ("put-mac-key", 0x14),
+        ("put-opaque", 0x01),
+        ("put-otp-aead-key", 0x23),
+        ("put-public-wrap-key", 0x36),
+        ("put-symmetric-key", 0x2f),
+        ("put-template", 0x1b),
+        ("put-wrap-key", 0x0e),
+        ("randomize-otp-aead", 0x1f),
+        ("reset-device", 0x1c),
+        ("rewrap-from-otp-aead-key", 0x20),
+        ("rewrap-to-otp-aead-key", 0x21),
+        ("set-option", 0x11),
+        ("sign-attestation-certificate", 0x22),
+        ("sign-ecdsa", 0x07),
+        ("sign-eddsa", 0x08),
+        ("sign-hmac", 0x16),
+        ("sign-pkcs", 0x05),
+        ("sign-pss", 0x06),
+        ("sign-ssh-certificate", 0x19),
+        ("unwrap-data", 0x26),
+        ("verify-hmac", 0x17),
+        ("wrap-data", 0x25),
+    ];
+
+    private static readonly (string name, yh_algorithm algorithm)[] yh_algorithms = [
+        ("aes128", yh_algorithm.YH_ALGO_AES128),
+        ("aes192", yh_algorithm.YH_ALGO_AES192),
+        ("aes256", yh_algorithm.YH_ALGO_AES256),
+        ("aes128-ccm-wrap", yh_algorithm.YH_ALGO_AES128_CCM_WRAP),
+        ("aes128-yubico-authentication", yh_algorithm.YH_ALGO_AES128_YUBICO_AUTHENTICATION),
+        ("aes128-yubico-otp", yh_algorithm.YH_ALGO_AES128_YUBICO_OTP),
+        ("aes192-ccm-wrap", yh_algorithm.YH_ALGO_AES192_CCM_WRAP),
+        ("aes192-yubico-otp", yh_algorithm.YH_ALGO_AES192_YUBICO_OTP),
+        ("aes256-ccm-wrap", yh_algorithm.YH_ALGO_AES256_CCM_WRAP),
+        ("aes256-yubico-otp", yh_algorithm.YH_ALGO_AES256_YUBICO_OTP),
+        ("aes-cbc", yh_algorithm.YH_ALGO_AES_CBC),
+        ("aes-ecb", yh_algorithm.YH_ALGO_AES_ECB),
+        ("aes-kwp", yh_algorithm.YH_ALGO_AES_KWP),
+        ("ecbp256", yh_algorithm.YH_ALGO_EC_BP256),
+        ("ecbp384", yh_algorithm.YH_ALGO_EC_BP384),
+        ("ecbp512", yh_algorithm.YH_ALGO_EC_BP512),
+        ("ecdh", yh_algorithm.YH_ALGO_EC_ECDH),
+        ("ecdsa-sha1", yh_algorithm.YH_ALGO_EC_ECDSA_SHA1),
+        ("ecdsa-sha256", yh_algorithm.YH_ALGO_EC_ECDSA_SHA256),
+        ("ecdsa-sha384", yh_algorithm.YH_ALGO_EC_ECDSA_SHA384),
+        ("ecdsa-sha512", yh_algorithm.YH_ALGO_EC_ECDSA_SHA512),
+        ("eck256", yh_algorithm.YH_ALGO_EC_K256),
+        ("ecp224", yh_algorithm.YH_ALGO_EC_P224),
+        ("ecp256", yh_algorithm.YH_ALGO_EC_P256),
+        ("ecp256-yubico-authentication", yh_algorithm.YH_ALGO_EC_P256_YUBICO_AUTHENTICATION),
+        ("ecp384", yh_algorithm.YH_ALGO_EC_P384),
+        ("ecp521", yh_algorithm.YH_ALGO_EC_P521),
+        ("ed25519", yh_algorithm.YH_ALGO_EC_ED25519),
+        ("hmac-sha1", yh_algorithm.YH_ALGO_HMAC_SHA1),
+        ("hmac-sha256", yh_algorithm.YH_ALGO_HMAC_SHA256),
+        ("hmac-sha384", yh_algorithm.YH_ALGO_HMAC_SHA384),
+        ("hmac-sha512", yh_algorithm.YH_ALGO_HMAC_SHA512),
+        ("mgf1-sha1", yh_algorithm.YH_ALGO_MGF1_SHA1),
+        ("mgf1-sha256", yh_algorithm.YH_ALGO_MGF1_SHA256),
+        ("mgf1-sha384", yh_algorithm.YH_ALGO_MGF1_SHA384),
+        ("mgf1-sha512", yh_algorithm.YH_ALGO_MGF1_SHA512),
+        ("opaque-data", yh_algorithm.YH_ALGO_OPAQUE_DATA),
+        ("opaque-x509-certificate", yh_algorithm.YH_ALGO_OPAQUE_X509_CERTIFICATE),
+        ("rsa-oaep-sha1", yh_algorithm.YH_ALGO_RSA_OAEP_SHA1),
+        ("rsa-oaep-sha256", yh_algorithm.YH_ALGO_RSA_OAEP_SHA256),
+        ("rsa-oaep-sha384", yh_algorithm.YH_ALGO_RSA_OAEP_SHA384),
+        ("rsa-oaep-sha512", yh_algorithm.YH_ALGO_RSA_OAEP_SHA512),
+        ("rsa-pkcs1-decrypt", yh_algorithm.YH_ALGO_RSA_PKCS1_DECRYPT),
+        ("rsa-pkcs1-sha1", yh_algorithm.YH_ALGO_RSA_PKCS1_SHA1),
+        ("rsa-pkcs1-sha256", yh_algorithm.YH_ALGO_RSA_PKCS1_SHA256),
+        ("rsa-pkcs1-sha384", yh_algorithm.YH_ALGO_RSA_PKCS1_SHA384),
+        ("rsa-pkcs1-sha512", yh_algorithm.YH_ALGO_RSA_PKCS1_SHA512),
+        ("rsa-pss-sha1", yh_algorithm.YH_ALGO_RSA_PSS_SHA1),
+        ("rsa-pss-sha256", yh_algorithm.YH_ALGO_RSA_PSS_SHA256),
+        ("rsa-pss-sha384", yh_algorithm.YH_ALGO_RSA_PSS_SHA384),
+        ("rsa-pss-sha512", yh_algorithm.YH_ALGO_RSA_PSS_SHA512),
+        ("rsa2048", yh_algorithm.YH_ALGO_RSA_2048),
+        ("rsa3072", yh_algorithm.YH_ALGO_RSA_3072),
+        ("rsa4096", yh_algorithm.YH_ALGO_RSA_4096),
+        ("template-ssh", yh_algorithm.YH_ALGO_TEMPLATE_SSH),
+    ];
+
+    private static readonly (string name, yh_object_type type)[] yh_types = [
+        ("authentication-key", yh_object_type.YH_AUTHENTICATION_KEY),
+        ("asymmetric-key", yh_object_type.YH_ASYMMETRIC_KEY),
+        ("hmac-key", yh_object_type.YH_HMAC_KEY),
+        ("opaque", yh_object_type.YH_OPAQUE),
+        ("otp-aead-key", yh_object_type.YH_OTP_AEAD_KEY),
+        ("public-wrap-key", yh_object_type.YH_PUBLIC_WRAP_KEY),
+        ("symmetric-key", yh_object_type.YH_SYMMETRIC_KEY),
+        ("template", yh_object_type.YH_TEMPLATE),
+        ("wrap-key", yh_object_type.YH_WRAP_KEY),
+    ];
+
+    private static readonly (string name, yh_option option)[] yh_options = [
+        ("command-audit", yh_option.YH_OPTION_COMMAND_AUDIT),
+        ("force-audit", yh_option.YH_OPTION_FORCE_AUDIT),
+        ("algorithm-toggle", yh_option.YH_OPTION_ALGORITHM_TOGGLE),
+        ("fips-mode", yh_option.YH_OPTION_FIPS_MODE),
+    ];
+
+    /// <summary>
+    /// The object was generated on the device
+    /// </summary>
+    public const int YH_ORIGIN_GENERATED = 0x01;
+
+    /// <summary>
+    /// The object was imported into the device
+    /// </summary>
+    public const int YH_ORIGIN_IMPORTED = 0x02;
+
+    /// <summary>
+    /// The object was imported into the device under wrap.
+    /// This is used in combination with objects original 'origin'.
+    /// </summary>
+    public const int YH_ORIGIN_IMPORTED_WRAPPED = 0x10;
 }
