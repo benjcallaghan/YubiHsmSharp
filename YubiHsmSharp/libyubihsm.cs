@@ -1,4 +1,20 @@
-﻿using System.Runtime.InteropServices;
+﻿/*
+ * Copyright 2015-2018 Yubico AB
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+using System.Runtime.InteropServices;
 
 namespace YubiHsmSharp;
 
@@ -1751,6 +1767,9 @@ internal static unsafe partial class libyubihsm
     /// <summary>
     /// Sign data using RSA-PSS
     /// </summary>
+    /// <remarks>
+    /// <paramref name="in"/> is a raw hashed message (sha1, sha256, sha384 or sha512)
+    /// </remarks>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the signing key</param>
     /// <param name="in">Data to sign</param>
@@ -1759,7 +1778,11 @@ internal static unsafe partial class libyubihsm
     /// <param name="out_len">Length of signed data</param>
     /// <param name="salt_len">Length of salt</param>
     /// <param name="mgf1Algo">Algorithm for mgf1</param>
-    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or if <paramref name="in_len"/> is not 20, 32, 48 or 64.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_util_sign_pss(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len,
@@ -1768,13 +1791,20 @@ internal static unsafe partial class libyubihsm
     /// <summary>
     /// Sign data using ECDSA
     /// </summary>
+    /// <remarks>
+    /// <paramref name="in"/> is a raw hashed message, a truncated hash to the curve length or a padded hash to the curve length
+    /// </remarks>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the signing key</param>
     /// <param name="in">Data to sign</param>
     /// <param name="in_len">Length of data to sign</param>
     /// <param name="out">Signed data</param>
     /// <param name="out_len">Length of signed data</param>
-    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or if <paramref name="in_len"/> is not 20, 28, 34, 48, 64 or 66.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_util_sign_ecdsa(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
@@ -1788,7 +1818,11 @@ internal static unsafe partial class libyubihsm
     /// <param name="in_len">Length of data to sign</param>
     /// <param name="out">Signed data</param>
     /// <param name="out_len">Length of signed data</param>
-    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or if <paramref name="in_len"/> is bigger than <see cref="YH_MSG_BUF_SIZE"/>-2.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_util_sign_eddsa(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
@@ -1802,7 +1836,11 @@ internal static unsafe partial class libyubihsm
     /// <param name="in_len">Length of data to hmac</param>
     /// <param name="out">HMAC</param>
     /// <param name="out_len">Length of HMAC</param>
-    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or if <paramref name="in_len"/> is bigger than <see cref="YH_MSG_BUF_SIZE"/>-2.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_util_sign_hmac(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
@@ -1814,7 +1852,11 @@ internal static unsafe partial class libyubihsm
     /// <param name="len">Length of pseudo-random data to get</param>
     /// <param name="out">Pseudo-random data out</param>
     /// <param name="out_len">Length of pseudo-random data</param>
-    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_util_get_pseudo_random(SafeSessionHandle session, nuint len,
         Span<byte> @out, out nuint out_len);
@@ -1824,12 +1866,16 @@ internal static unsafe partial class libyubihsm
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID the key. 0 if Object ID should be generated by the device</param>
-    /// <param name="label">Label of the key</param>
-    /// <param name="domains">Domains to which the key belongs</param>
-    /// <param name="capabilities">Capabilities of the key</param>
-    /// <param name="algorithm">Algorithm of the key to import</param>
+    /// <param name="label">Label of the key. Maximum length is <see cref="YH_OBJ_LABEL_LEN"/></param>
+    /// <param name="domains">Domains to which the key belongs specified as an unsigned int. <see cref="yh_string_to_domains"/></param>
+    /// <param name="capabilities">Capabilities of the key. <see cref="yh_string_to_capabilities"/></param>
+    /// <param name="algorithm">Algorithm of the key to import. Must be one of <see cref="yh_algorithm.YH_ALGO_AES128"/>, <see cref="yh_algorithm.YH_ALGO_AES192"/> or <see cref="yh_algorithm.YH_ALGO_AES256"/></param>
     /// <param name="key">The key to import</param>
-    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the <paramref name="algorithm"/> is not one of <see cref="yh_algorithm.YH_ALGO_AES128"/>, <see cref="yh_algorithm.YH_ALGO_AES192"/> or <see cref="yh_algorithm.YH_ALGO_AES256"/>.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_util_import_aes_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
@@ -1840,13 +1886,17 @@ internal static unsafe partial class libyubihsm
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID the key. 0 if Object ID should be generated by the device</param>
-    /// <param name="label">Label of the key</param>
-    /// <param name="domains">Domains to which the key belongs</param>
-    /// <param name="capabilities">Capabilities of the key</param>
-    /// <param name="algorithm">Algorithm of the key to import</param>
+    /// <param name="label">Label of the key. Maximum length is <see cref="YH_OBJ_LABEL_LEN"/></param>
+    /// <param name="domains">Domains to which the key belongs specified as an unsigned int. <see cref="yh_string_to_domains"/></param>
+    /// <param name="capabilities">Capabilities of the key. <see cref="yh_string_to_capabilities"/></param>
+    /// <param name="algorithm">Algorithm of the key to import. Must be one of <see cref="yh_algorithm.YH_ALGO_RSA_2048"/>, <see cref="yh_algorithm.YH_ALGO_RSA_3072"/> or <see cref="yh_algorithm.YH_ALGO_RSA_4096"/></param>
     /// <param name="p">P component of the RSA key to import</param>
     /// <param name="q">Q component of the RSA key to import</param>
-    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the algorithm is not one of <see cref="yh_algorithm.YH_ALGO_RSA_2048"/>, <see cref="yh_algorithm.YH_ALGO_RSA_3072"/> or <see cref="yh_algorithm.YH_ALGO_RSA_4096"/>
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_util_import_rsa_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
@@ -1857,12 +1907,20 @@ internal static unsafe partial class libyubihsm
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
-    /// <param name="label">Label of the key</param>
-    /// <param name="domains">Domains to which the key belongs</param>
-    /// <param name="capabilities">Capabilities of the key</param>
-    /// <param name="algorithm">Algorithm of the key to import</param>
+    /// <param name="label">Label of the key. Maximum length is <see cref="YH_OBJ_LABEL_LEN"/></param>
+    /// <param name="domains">Domains to which the key belongs specified as an unsigned int. <see cref="yh_string_to_domains"/></param>
+    /// <param name="capabilities">Capabilities of the key. <see cref="yh_string_to_capabilities"/></param>
+    /// <param name="algorithm">Algorithm of the key to import. Must be one of:
+    /// <see cref="yh_algorithm.YH_ALGO_EC_P224"/>, <see cref="yh_algorithm.YH_ALGO_EC_P256"/>, <see cref="yh_algorithm.YH_ALGO_EC_K256"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP256"/>,
+    /// <see cref="yh_algorithm.YH_ALGO_EC_P384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP512"/> or <see cref="yh_algorithm.YH_ALGO_EC_P521"/></param>
     /// <param name="s">the EC key to import</param>
-    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the <paramref name="algorithm"/> is not one of
+    /// <see cref="yh_algorithm.YH_ALGO_EC_P224"/>, <see cref="yh_algorithm.YH_ALGO_EC_P256"/>, <see cref="yh_algorithm.YH_ALGO_EC_K256"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP256"/>,
+    /// <see cref="yh_algorithm.YH_ALGO_EC_P384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP512"/> or <see cref="yh_algorithm.YH_ALGO_EC_P521"/></param>
+    /// </returns>
+    /// <seealso cref="yh_rc"/> 
     [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_util_import_ec_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
@@ -1873,12 +1931,16 @@ internal static unsafe partial class libyubihsm
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
-    /// <param name="label">Label of the key</param>
-    /// <param name="domains">Domains to which the key belongs</param>
-    /// <param name="capabilities">Capabilities of the key</param>
-    /// <param name="algorithm">Algorithm of the key to import</param>
+    /// <param name="label">Label of the key. Maximum length is <see cref="YH_OBJ_LABEL_LEN"/></param>
+    /// <param name="domains">Domains to which the key belongs. <see cref="yh_string_to_domains"/></param>
+    /// <param name="capabilities">Capabilities of the key. <see cref="yh_string_to_capabilities"/></param>
+    /// <param name="algorithm">Algorithm of the key to import. Must be <see cref="yh_algorithm.YH_ALGO_EC_ED25519"/></param>
     /// <param name="k">the ED key to import</param>
-    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the <paramref name="algorithm"/> is not <see cref="yh_algorithm.YH_ALGO_EC_ED25519"/>.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_util_import_ed_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
@@ -1889,13 +1951,19 @@ internal static unsafe partial class libyubihsm
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
-    /// <param name="label">Label of the key</param>
-    /// <param name="domains">Domains to which the key belongs</param>
-    /// <param name="capabilities">Capabilities of the key</param>
-    /// <param name="algorithm">Algorithm of the key to import</param>
+    /// <param name="label">Label of the key. Maximum length is <see cref="YH_OBJ_LABEL_LEN"/></param>
+    /// <param name="domains">Domains to which the key belongs. <see cref="yh_string_to_domains"/></param>
+    /// <param name="capabilities">Capabilities of the key. <see cref="yh_string_to_capabilities"/></param>
+    /// <param name="algorithm">Algorithm of the key to import. Must be one of:
+    /// <see cref="yh_algorithm.YH_ALGO_HMAC_SHA1"/>, <see cref="yh_algorithm.YH_ALGO_HMAC_SHA256"/>, <see cref="yh_algorithm.YH_ALGO_HMAC_SHA384"/>
+    /// or <see cref="yh_algorithm.YH_ALGO_HMAC_SHA512"/></param>
     /// <param name="key">The HMAC key to import</param>
     /// <param name="key_len">Length of the HMAC key to import</param>
-    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_util_import_hmac_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
@@ -1906,11 +1974,16 @@ internal static unsafe partial class libyubihsm
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
-    /// <param name="label">Label of the key</param>
-    /// <param name="domains">Domains to which the key belongs</param>
-    /// <param name="capabilities">Capabilities of the key</param>
-    /// <param name="algorithm">Algorithm to use to generate the AES key</param>
-    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    /// <param name="label">Label of the key. Maximum length is <see cref="YH_OBJ_LABEL_LEN"/></param>
+    /// <param name="domains">Domains to which the key belongs. <see cref="yh_string_to_domains"/></param>
+    /// <param name="capabilities">Capabilities of the key. <see cref="yh_string_to_capabilities"/></param>
+    /// <param name="algorithm">Algorithm to use to generate the AES key. Supported algorithms:
+    /// <see cref="yh_algorithm.YH_ALGO_AES128"/>, <see cref="yh_algorithm.YH_ALGO_AES192"/> or <see cref="yh_algorithm.YH_ALGO_AES256"/>.</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the <paramref name="algorithm"/> is not one of <see cref="yh_algorithm.YH_ALGO_AES128"/>, <see cref="yh_algorithm.YH_ALGO_AES192"/> or <see cref="yh_algorithm.YH_ALGO_AES256"/>.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_util_generate_aes_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
@@ -1921,11 +1994,16 @@ internal static unsafe partial class libyubihsm
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
-    /// <param name="label">Label of the key</param>
-    /// <param name="domains">Domains to which the key belongs</param>
-    /// <param name="capabilities">Capabilities of the key</param>
-    /// <param name="algorithm">Algorithm to use to generate the RSA key</param>
-    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    /// <param name="label">Label of the key. Maximum length is <see cref="YH_OBJ_LABEL_LEN"/></param>
+    /// <param name="domains">Domains to which the key belongs. <see cref="yh_string_to_domains"/></param>
+    /// <param name="capabilities">Capabilities of the key. <see cref="yh_string_to_capabilities"/></param>
+    /// <param name="algorithm">Algorithm to use to generate the RSA key. Supported algorithms:
+    /// <see cref="yh_algorithm.YH_ALGO_RSA_2048"/>, <see cref="yh_algorithm.YH_ALGO_RSA_3072"/> and <see cref="yh_algorithm.YH_ALGO_RSA_4096"/></param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the algorithm is not one of <see cref="yh_algorithm.YH_ALGO_RSA_2048"/>, <see cref="yh_algorithm.YH_ALGO_RSA_3072"/> and <see cref="yh_algorithm.YH_ALGO_RSA_4096"/>.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_util_generate_rsa_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
@@ -1936,11 +2014,21 @@ internal static unsafe partial class libyubihsm
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
-    /// <param name="label">Label of the key</param>
-    /// <param name="domains">Domains to which the key belongs</param>
-    /// <param name="capabilities">Capabilities of the key</param>
-    /// <param name="algorithm">Algorithm to use to generate the EC key</param>
-    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    /// <param name="label">Label of the key. Maximum length is <see cref="YH_OBJ_LABEL_LEN"/></param>
+    /// <param name="domains">Domains to which the key belongs. <see cref="yh_string_to_domains"/></param>
+    /// <param name="capabilities">Capabilities of the key <see cref="yh_string_to_capabilities"/></param>
+    /// <param name="algorithm">Algorithm to use to generate the EC key. Supported algorithm:
+    /// <see cref="yh_algorithm.YH_ALGO_EC_P224"/>, <see cref="yh_algorithm.YH_ALGO_EC_P256"/>, <see cref="yh_algorithm.YH_ALGO_EC_K256"/>,
+    /// <see cref="yh_algorithm.YH_ALGO_EC_BP256"/>, <see cref="yh_algorithm.YH_ALGO_EC_P384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP512"/> and
+    /// <see cref="yh_algorithm.YH_ALGO_EC_P521"/>.</param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the algorithm is not one of
+    /// <see cref="yh_algorithm.YH_ALGO_EC_P224"/>, <see cref="yh_algorithm.YH_ALGO_EC_P256"/>, <see cref="yh_algorithm.YH_ALGO_EC_K256"/>,
+    /// <see cref="yh_algorithm.YH_ALGO_EC_BP256"/>, <see cref="yh_algorithm.YH_ALGO_EC_P384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP512"/> or
+    /// <see cref="yh_algorithm.YH_ALGO_EC_P521"/>.</param>
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_util_generate_ec_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
@@ -1951,11 +2039,15 @@ internal static unsafe partial class libyubihsm
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
-    /// <param name="label">Label for the key</param>
-    /// <param name="domains">Domains to which the key belongs</param>
-    /// <param name="capabilities">Capabilities of the ED key</param>
-    /// <param name="algorithm">Algorithm to use to generate the ED key</param>
-    /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful</returns>
+    /// <param name="label">Label for the key. Maximum length <see cref="YH_OBJ_LABEL_LEN"/></param>
+    /// <param name="domains">Domains to which the key belongs. <see cref="yh_string_to_domains"/></param>
+    /// <param name="capabilities">Capabilities of the ED key. <see cref="yh_string_to_capabilities"/></param>
+    /// <param name="algorithm">Algorithm to use to generate the ED key. Supported algorithm: <see cref="yh_algorithm.YH_ALGO_EC_ED25519"/></param>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the algorithm is not <see cref="yh_algorithm.YH_ALGO_EC_ED25519"/>.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(libyubihsm))]
     public static partial yh_rc yh_util_generate_ed_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
