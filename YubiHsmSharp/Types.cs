@@ -76,6 +76,10 @@ public struct YhObjectInfo
     /// </summary>
     public uint LastUsedTime { get; init; }
 
+    /// <summary>
+    /// Returns a string representation of the object info.
+    /// </summary>
+    /// <returns>A string in format [Type:ID] Label.</returns>
     public override string ToString() => $"[{Type}:0x{Id:X4}] {Label}";
 }
 
@@ -134,6 +138,10 @@ public struct YhDeviceInfo
     /// </summary>
     public ushort AuditLogEntries { get; init; }
 
+    /// <summary>
+    /// Returns a string representation of the device info.
+    /// </summary>
+    /// <returns>A string with device serial, firmware, and FIPS mode info.</returns>
     public override string ToString() =>
         $"YubiHSM Serial:{SerialNumber} Firmware:{FirmwareVersion} FIPS:{FipsMode}";
 }
