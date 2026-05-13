@@ -1,185 +1,170 @@
 namespace YubiHsmSharp;
 
 /// <summary>
-/// YubiHSM return codes (error codes and status values).
-/// See: https://docs.yubico.com/hardware/yubihsm-2/
+/// YubiHSM return codes (from yh_rc in official yubihsm.h).
+/// See: https://github.com/Yubico/yubihsm-shell/blob/main/lib/yubihsm.h
 /// </summary>
 public enum YhReturnCode
 {
     /// <summary>
-    /// Success (YHR_SUCCESS in C library).
+    /// Returned value when function was successful (YHR_SUCCESS).
     /// </summary>
     Success = 0,
 
     /// <summary>
-    /// Memory allocation error.
+    /// Returned value when unable to allocate memory (YHR_MEMORY_ERROR).
     /// </summary>
     MemoryError = -1,
 
     /// <summary>
-    /// Library initialization error.
+    /// Returned value when failing to initialize libyubihsm (YHR_INIT_ERROR).
     /// </summary>
     InitError = -2,
 
     /// <summary>
-    /// Connection error.
+    /// Returned value when a connection error was encountered (YHR_CONNECTION_ERROR).
     /// </summary>
     ConnectionError = -3,
 
     /// <summary>
-    /// Connector not found.
+    /// Returned value when failing to find a suitable connector (YHR_CONNECTOR_NOT_FOUND).
     /// </summary>
     ConnectorNotFound = -4,
 
     /// <summary>
-    /// Invalid parameters.
+    /// Returned value when an argument to a function is invalid (YHR_INVALID_PARAMETERS).
     /// </summary>
     InvalidParameters = -5,
 
     /// <summary>
-    /// Wrong data length.
+    /// Returned value when there is a mismatch between expected and received length (YHR_WRONG_LENGTH).
     /// </summary>
     WrongLength = -6,
 
     /// <summary>
-    /// Session not found.
+    /// Returned value when there is not enough space to store data (YHR_BUFFER_TOO_SMALL).
     /// </summary>
-    SessionNotFound = -7,
+    BufferTooSmall = -7,
 
     /// <summary>
-    /// Authentication failed.
+    /// Returned value when failing to verify cryptogram (YHR_CRYPTOGRAM_MISMATCH).
     /// </summary>
-    AuthenticationFailed = -8,
+    CryptogramMismatch = -8,
 
     /// <summary>
-    /// Sessions full (16 max concurrent sessions).
+    /// Returned value when failing to authenticate the session (YHR_SESSION_AUTHENTICATION_FAILED).
     /// </summary>
-    SessionsFull = -9,
+    SessionAuthenticationFailed = -9,
 
     /// <summary>
-    /// Session setup error.
+    /// Returned value when failing to verify MAC (YHR_MAC_MISMATCH).
     /// </summary>
-    SessionSetupError = -10,
+    MacMismatch = -10,
 
     /// <summary>
-    /// Device storage full.
+    /// Returned value when the device returned no error (YHR_DEVICE_OK).
     /// </summary>
-    StorageFull = -11,
+    DeviceOk = -11,
 
     /// <summary>
-    /// Insufficient permissions for operation.
+    /// Returned value when the device receives an invalid command (YHR_DEVICE_INVALID_COMMAND).
     /// </summary>
-    InsufficientPermissions = -12,
+    DeviceInvalidCommand = -12,
 
     /// <summary>
-    /// Audit log full.
+    /// Returned value when the device receives a malformed command/invalid data (YHR_DEVICE_INVALID_DATA).
     /// </summary>
-    AuditLogFull = -13,
+    DeviceInvalidData = -13,
 
     /// <summary>
-    /// Object not found on device.
+    /// Returned value when the device session is invalid (YHR_DEVICE_INVALID_SESSION).
     /// </summary>
-    ObjectNotFound = -14,
+    DeviceInvalidSession = -14,
 
     /// <summary>
-    /// Invalid object ID.
+    /// Return value when the device fails to encrypt or verify the message (YHR_DEVICE_AUTHENTICATION_FAILED).
     /// </summary>
-    InvalidId = -15,
+    DeviceAuthenticationFailed = -15,
 
     /// <summary>
-    /// Device communication error.
+    /// Return value when no more sessions can be opened on the device (YHR_DEVICE_SESSIONS_FULL).
     /// </summary>
-    DeviceOk = 0x00,
+    DeviceSessionsFull = -16,
 
     /// <summary>
-    /// Invalid command sent to device.
+    /// Return value when failing to create a device session (YHR_DEVICE_SESSION_FAILED).
     /// </summary>
-    DeviceInvalidCommand = 0x01,
+    DeviceSessionFailed = -17,
 
     /// <summary>
-    /// Invalid data in command.
+    /// Return value when encountering a storage failure on the device (YHR_DEVICE_STORAGE_FAILED).
     /// </summary>
-    DeviceInvalidData = 0x02,
+    DeviceStorageFailed = -18,
 
     /// <summary>
-    /// Invalid or expired session.
+    /// Return value when there is a mismatch between expected and received length on device (YHR_DEVICE_WRONG_LENGTH).
     /// </summary>
-    DeviceInvalidSession = 0x03,
+    DeviceWrongLength = -19,
 
     /// <summary>
-    /// Authentication failed on device.
+    /// Return value when the permissions to perform the operation are wrong (YHR_DEVICE_INSUFFICIENT_PERMISSIONS).
     /// </summary>
-    DeviceAuthenticationFailed = 0x04,
+    DeviceInsufficientPermissions = -20,
 
     /// <summary>
-    /// No sessions available on device (16 max).
+    /// Return value when the log buffer is full and forced audit is set (YHR_DEVICE_LOG_FULL).
     /// </summary>
-    DeviceSessionsFull = 0x05,
+    DeviceLogFull = -21,
 
     /// <summary>
-    /// Session channel setup failed.
+    /// Return value when the object is not found on the device (YHR_DEVICE_OBJECT_NOT_FOUND).
     /// </summary>
-    DeviceSessionChannelSetupFailed = 0x06,
+    DeviceObjectNotFound = -22,
 
     /// <summary>
-    /// Device storage full.
+    /// Return value when an invalid Object ID is used (YHR_DEVICE_INVALID_ID).
     /// </summary>
-    DeviceStorageFull = 0x07,
+    DeviceInvalidId = -23,
 
     /// <summary>
-    /// Wrong data length in command.
+    /// Return value when an invalid OTP is submitted (YHR_DEVICE_INVALID_OTP).
     /// </summary>
-    DeviceWrongLength = 0x08,
+    DeviceInvalidOtp = -24,
 
     /// <summary>
-    /// Insufficient permissions for operation.
+    /// Return value when the device is in demo mode and has to be power cycled (YHR_DEVICE_DEMO_MODE).
     /// </summary>
-    DeviceInsufficientPermissions = 0x09,
+    DeviceDemoMode = -25,
 
     /// <summary>
-    /// Audit log full and forced.
+    /// Return value when the command execution has not terminated (YHR_DEVICE_COMMAND_UNEXECUTED).
     /// </summary>
-    DeviceAuditLogFull = 0x0A,
+    DeviceCommandUnexecuted = -26,
 
     /// <summary>
-    /// Object not found on device.
+    /// Return value when encountering an unknown error (YHR_GENERIC_ERROR).
     /// </summary>
-    DeviceObjectNotFound = 0x0B,
+    GenericError = -27,
 
     /// <summary>
-    /// Invalid object ID.
+    /// Return value when trying to add an object with an ID that already exists (YHR_DEVICE_OBJECT_EXISTS).
     /// </summary>
-    DeviceInvalidId = 0x0C,
+    DeviceObjectExists = -28,
 
     /// <summary>
-    /// Invalid OTP.
+    /// Return value when connector operation failed (YHR_CONNECTOR_ERROR).
     /// </summary>
-    DeviceInvalidOtp = 0x0D,
+    ConnectorError = -29,
 
     /// <summary>
-    /// Demo mode limitations.
+    /// Return value when encountering SSH CA constraint violation (YHR_DEVICE_SSH_CA_CONSTRAINT_VIOLATION).
     /// </summary>
-    DeviceDemoMode = 0x0E,
+    DeviceSshCaConstraintViolation = -30,
 
     /// <summary>
-    /// Command execution failed.
+    /// Return value when an algorithm is disabled (YHR_DEVICE_ALGORITHM_DISABLED).
     /// </summary>
-    DeviceCommandError = 0x0F,
-
-    /// <summary>
-    /// Object already exists.
-    /// </summary>
-    DeviceObjectExists = 0x10,
-
-    /// <summary>
-    /// Device not ready.
-    /// </summary>
-    DeviceNotReady = 0x11,
-
-    /// <summary>
-    /// Generic device error.
-    /// </summary>
-    DeviceGenericError = 0x12,
+    DeviceAlgorithmDisabled = -31,
 }
 
 /// <summary>
