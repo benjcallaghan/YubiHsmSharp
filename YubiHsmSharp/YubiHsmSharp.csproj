@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <ImplicitUsings>enable</ImplicitUsings>
+    
+    <!-- Package metadata -->
+    <PackageId>YubiHsmSharp</PackageId>
+    <Title>YubiHsmSharp</Title>
+    <Version>1.0.0</Version>
+    <Authors>Ben Callaghan</Authors>
+    <Description>A comprehensive .NET wrapper for the YubiHSM 2 SDK (libyubihsm). Provides a type-safe, object-oriented API for HSM operations including key management, cryptographic signing, verification, and encryption.</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/benjcallaghan/YubiHsmSharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/benjcallaghan/YubiHsmSharp</RepositoryUrl>
+    <PackageTags>yubihsm;hsm;cryptography;security;pkcs11</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- No external dependencies for core wrapper; P/Invoke directly to libyubihsm -->
+  </ItemGroup>
+
+</Project>
