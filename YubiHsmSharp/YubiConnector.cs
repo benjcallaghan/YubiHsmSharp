@@ -89,3 +89,15 @@ public class YubiConnector
         YubiHsmException.ThrowIfError(err);
     }
 }
+
+internal class SafeConnectorHandle : SafeHandle
+{
+    public SafeConnectorHandle() : base(IntPtr.Zero, true) { }
+
+    public override bool IsInvalid => throw new NotImplementedException();
+
+    protected override bool ReleaseHandle()
+    {
+        throw new NotImplementedException();
+    }
+}
