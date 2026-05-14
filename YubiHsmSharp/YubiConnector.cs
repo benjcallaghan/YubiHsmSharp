@@ -1,4 +1,5 @@
-using static YubiHsmSharp.yubihsm;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace YubiHsmSharp;
 
@@ -87,6 +88,76 @@ public class YubiConnector
     {
         yh_rc err = yh_set_verbosity(this.handle, (yh_verbosity)verbosity);
         YubiHsmException.ThrowIfError(err);
+    }
+
+    /// <summary>
+    /// Sets the CA certificate file path to validate the connector with. Not implemented on Windows.
+    /// </summary>
+    /// <param name="utf8FilePath">File path to the CA certificate file, UTF-8 encoded and null-terminated</param>
+    [UnsupportedOSPlatform("windows")]
+    public unsafe void SetCertificateAuthority(ReadOnlySpan<byte> utf8FilePath)
+    {
+        fixed (byte* pUtf8FilePath = utf8FilePath)
+        {
+            yh_rc err = yh_set_connector_option(this.handle, yh_connector_option.YH_CONNECTOR_HTTPS_CA, pUtf8FilePath);
+            YubiHsmException.ThrowIfError(err);
+        }
+    }
+
+    /// <summary>
+    /// Sets the proxy server URL to use for this connector. Not implemented on Windows.
+    /// </summary>
+    /// <param name="utf8ProxyUrl">The proxy server URL, UTF-8 encoded and null-terminated</param>
+    [UnsupportedOSPlatform("windows")]
+    public unsafe void SetProxyServer(ReadOnlySpan<byte> utf8ProxyUrl)
+    {
+        fixed (byte* pUtf8ProxyUrl = utf8ProxyUrl)
+        {
+            yh_rc err = yh_set_connector_option(this.handle, yh_connector_option.YH_CONNECTOR_PROXY_SERVER, pUtf8ProxyUrl);
+            YubiHsmException.ThrowIfError(err);
+        }
+    }
+
+    /// <summary>
+    /// Sets the client certificate file path to use for this connector. Not implemented on Windows.
+    /// </summary>
+    /// <param name="utf8FilePath">File path to the client certificate file, UTF-8 encoded and null-terminated</param>
+    [UnsupportedOSPlatform("windows")]
+    public unsafe void SetClientCertificate(ReadOnlySpan<byte> utf8FilePath)
+    {
+        fixed (byte* pUtf8FilePath = utf8FilePath)
+        {
+            yh_rc err = yh_set_connector_option(this.handle, yh_connector_option.YH_CONNECTOR_HTTPS_CERT, pUtf8FilePath);
+            YubiHsmException.ThrowIfError(err);
+        }
+    }
+
+    /// <summary>
+    /// Sets the client certificate key file path to use for this connector. Not implemented on Windows.
+    /// </summary>
+    /// <param name="utf8FilePath">File path to the client certificate key file, UTF-8 encoded and null-terminated</param>
+    [UnsupportedOSPlatform("windows")]
+    public unsafe void SetClientCertificateKey(ReadOnlySpan<byte> utf8FilePath)
+    {
+        fixed (byte* pUtf8FilePath = utf8FilePath)
+        {
+            yh_rc err = yh_set_connector_option(this.handle, yh_connector_option.YH_CONNECTOR_HTTPS_KEY, pUtf8FilePath);
+            YubiHsmException.ThrowIfError(err);
+        }
+    }
+
+    /// <summary>
+    /// Sets the no-proxy list for this connector. Not implemented on Windows.
+    /// </summary>
+    /// <param name="utf8NoProxy">The no-proxy list, comma-separated, UTF-8 encoded, and null-terminated</param>
+    [UnsupportedOSPlatform("windows")]
+    public unsafe void SetNoProxy(ReadOnlySpan<byte> utf8NoProxy)
+    {
+        fixed (byte* pUtf8NoProxy = utf8NoProxy)
+        {
+            yh_rc err = yh_set_connector_option(this.handle, yh_connector_option.YH_CONNECTOR_NOPROXY, pUtf8NoProxy);
+            YubiHsmException.ThrowIfError(err);
+        }
     }
 }
 

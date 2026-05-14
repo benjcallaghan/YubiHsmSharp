@@ -1,6 +1,3 @@
-using System.Runtime.InteropServices;
-using static YubiHsmSharp.yubihsm;
-
 namespace YubiHsmSharp;
 
 /// <summary>

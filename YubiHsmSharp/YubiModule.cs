@@ -1,6 +1,3 @@
-using System.Runtime.InteropServices;
-using static YubiHsmSharp.yubihsm;
-
 namespace YubiHsmSharp;
 
 /// <summary>
@@ -23,7 +20,6 @@ public class YubiModule : IDisposable
 
     /// <summary>
     /// Initializes a connection to a YubiHSM device using the specified URL.
-    /// UTF-8 string literals are automatically null-terminated.
     /// </summary>
     /// <param name="utf8Url">The URL associated with this connector, encoded as UTF-8 and null-terminated.</param>
     /// <returns>A <see cref="YubiConnector"/> configured with the provided URL.</returns>

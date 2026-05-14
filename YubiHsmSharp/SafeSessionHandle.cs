@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-
 namespace YubiHsmSharp;
 
 internal class SafeSessionHandle : SafeHandle
