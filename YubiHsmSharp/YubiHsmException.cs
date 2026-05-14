@@ -1,0 +1,20 @@
+using System.Runtime.InteropServices;
+using static YubiHsmSharp.libyubihsm;
+
+namespace YubiHsmSharp;
+
+/// <summary>
+/// The exception that is thrown when a native YubiHSM method returns an error code.
+/// </summary>
+public class YubiHsmException : Exception
+{
+    internal YubiHsmException(yh_rc err) : base(GetErrorMessage(err))
+    {        
+    }
+
+    private static string GetErrorMessage(yh_rc err)
+    {
+        nint message = yh_strerror(err);
+        return Marshal.PtrToStringUTF8(message) ?? String.Empty;
+    }
+}

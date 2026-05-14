@@ -1211,7 +1211,7 @@ internal static unsafe partial class libyubihsm
     /// <param name="err"><see cref="yh_rc"/> error code</param>
     /// <returns>String with descriptive error</returns>
     [LibraryImport(nameof(libyubihsm))]
-    public static partial byte* yh_strerror(yh_rc err);
+    public static partial nint yh_strerror(yh_rc err);
 
     /// <summary>
     /// Set verbosity level when executing commands.
