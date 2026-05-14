@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace YubiHsmSharp;
 
-public class SafeSessionHandle : SafeHandle
+internal class SafeSessionHandle : SafeHandle
 {
     public SafeSessionHandle() : base(IntPtr.Zero, true) { }
 
