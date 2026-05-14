@@ -20,6 +20,7 @@ public class YubiSession : IDisposable
     /// <param name="responseBuffer">The buffer to receive the response.</param>
     /// <param name="responseLength">The length of the received response.</param>
     /// <returns>The response command.</returns>
+    /// <seealso cref="YubiConnector.SendMessage"/>
     public Command SendMessage(Command request, ReadOnlySpan<byte> requestData, Span<byte> responseBuffer, out int responseLength)
     {
         yh_rc err = yh_send_secure_msg(this.handle, (yh_cmd)request, requestData, (nuint)requestData.Length,
