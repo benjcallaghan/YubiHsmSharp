@@ -17,4 +17,12 @@ public class YubiHsmException : Exception
         nint message = yh_strerror(err);
         return Marshal.PtrToStringUTF8(message) ?? String.Empty;
     }
+
+    internal static void ThrowIfError(yh_rc err)
+    {
+        if (err != yh_rc.YHR_SUCCESS)
+        {
+            throw new YubiHsmException(err);
+        }
+    }
 }
