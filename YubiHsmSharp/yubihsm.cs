@@ -1324,7 +1324,12 @@ internal static unsafe partial class yubihsm
     /// <param name="response_cmd">Response command</param>
     /// <param name="response">Response data</param>
     /// <param name="response_len">Length of response data</param>
-    /// <returns></returns>
+    /// <returns>
+    /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the input parameters are NULL.
+    /// <see cref="yh_rc.YHR_BUFFER_TOO_SMALL"/> if the actual response was longer than <paramref name="response_len"/>.
+    /// </returns>
+    /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_send_plain_msg(SafeConnectorHandle connector,
         yh_cmd cmd, ReadOnlySpan<byte> data, nuint data_len,
