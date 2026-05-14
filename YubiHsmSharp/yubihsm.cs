@@ -63,7 +63,7 @@ namespace YubiHsmSharp;
 /// </code>
 /// </example>
 /// <seealso>yubihsm.h</seealso> 
-internal static unsafe partial class libyubihsm
+internal static unsafe partial class yubihsm
 {
     /// <summary>
     /// Length of context array for authentication
@@ -1210,7 +1210,7 @@ internal static unsafe partial class libyubihsm
     /// </summary>
     /// <param name="err"><see cref="yh_rc"/> error code</param>
     /// <returns>String with descriptive error</returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial nint yh_strerror(yh_rc err);
 
     /// <summary>
@@ -1224,7 +1224,7 @@ internal static unsafe partial class libyubihsm
     /// <param name="verbosity">The desired level of debug output</param>
     /// <returns><see cref="yh_rc.YHR_SUCCESS"/></returns>
     /// <seealso cref="yh_verbosity"/> 
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_set_verbosity(SafeConnectorHandle connector, yh_verbosity verbosity);
 
     /// <summary>
@@ -1234,7 +1234,7 @@ internal static unsafe partial class libyubihsm
     /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if seccessful [sic].
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if verbosity is NULL</returns>
     /// <seealso cref="yh_verbosity"/> 
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_get_verbosity(out yh_verbosity verbosity);
 
     /// <summary>
@@ -1242,7 +1242,7 @@ internal static unsafe partial class libyubihsm
     /// </summary>
     /// <param name="connector">If not NULL, the debug messages will be written to the specified output file</param>
     /// <param name="output">The destination of the debug messages</param>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     // TODO: Add a stronger handle-like type for FILE *output.
     public static partial void yh_set_debug_output(SafeConnectorHandle connector, nint output);
 
@@ -1250,14 +1250,14 @@ internal static unsafe partial class libyubihsm
     /// Global library initialization
     /// </summary>
     /// <returns><see cref="yh_rc.YHR_SUCCESS"/></returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_init();
 
     /// <summary>
     /// Global library cleanup
     /// </summary>
     /// <returns><see cref="yh_rc.YHR_SUCCESS"/></returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_exit();
 
     /// <summary>
@@ -1272,7 +1272,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_MEMORY_ERROR"/> if failed to allocate memory for the connector.
     /// <see cref="yh_rc.YHR_CONNECTION_ERROR"/> if failed to create the connector
     /// </returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_init_connector(ReadOnlySpan<byte> url, out SafeConnectorHandle connector);
 
     /// <summary>
@@ -1287,7 +1287,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the connector or the value are NULL, or if the option is unknown.
     /// <see cref="yh_rc.YHR_CONNECTION_ERROR"/> if failed to set the option.
     /// </returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_set_connector_option(SafeConnectorHandle connector, yh_connector_option opt, void* val);
 
     /// <summary>
@@ -1300,7 +1300,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the connector does not exist.
     /// </returns>
     /// <seealso cref="yh_rc"/> 
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_connect(SafeConnectorHandle connector, int timeout);
 
     /// <summary>
@@ -1311,7 +1311,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the connector is NULL
     /// </returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_disconnect(SafeConnectorHandle connector);
 
     /// <summary>
@@ -1325,7 +1325,7 @@ internal static unsafe partial class libyubihsm
     /// <param name="response">Response data</param>
     /// <param name="response_len">Length of response data</param>
     /// <returns></returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_send_plain_msg(SafeConnectorHandle connector,
         yh_cmd cmd, ReadOnlySpan<byte> data, nuint data_len,
         out yh_cmd response_cmd, Span<byte> response, out nuint response_len);
@@ -1343,7 +1343,7 @@ internal static unsafe partial class libyubihsm
     /// <param name="response_len">Length of response data</param>
     /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if successful.</returns>
     /// <seealso cref="yh_rc"/> 
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_send_secure_msg(SafeSessionHandle session,
         yh_cmd cmd, ReadOnlySpan<byte> data, nuint data_len,
         out yh_cmd response_cmd, Span<byte> response, out nuint response_len);
@@ -1365,7 +1365,7 @@ internal static unsafe partial class libyubihsm
     /// </returns>
     /// <seealso cref="yh_rc"/> 
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_create_session_derived(SafeConnectorHandle connector, ushort authkey_id,
         ReadOnlySpan<byte> password, nuint password_len,
         [MarshalAs(UnmanagedType.U1)] bool recreate_session, out SafeSessionHandle session);
@@ -1388,7 +1388,7 @@ internal static unsafe partial class libyubihsm
     /// <seealso cref="yh_rc"/>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html">Authentication Key</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_create_session(SafeConnectorHandle connector, ushort authkey_id,
         ReadOnlySpan<byte> key_enc, nuint key_enc_len,
         ReadOnlySpan<byte> key_mac, nuint key_mac_len,
@@ -1409,7 +1409,7 @@ internal static unsafe partial class libyubihsm
     /// <seealso cref="yh_rc"/>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html">Authentication Key</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_create_session_ex(SafeConnectorHandle connector, ushort authkey_id,
         ReadOnlySpan<byte> key_enc_name, ReadOnlySpan<byte> key_mac_name,
         out SafeSessionHandle session);
@@ -1438,7 +1438,7 @@ internal static unsafe partial class libyubihsm
     /// </returns>
     /// <seealso cref="yh_rc"/>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_begin_create_session(SafeConnectorHandle connector, ushort authkey_id,
         out byte* context, Span<byte> host_challenge, out nuint host_challenge_len,
         Span<byte> card_cryptogram, out nuint card_cryptogram_len, out SafeSessionHandle session);
@@ -1467,7 +1467,7 @@ internal static unsafe partial class libyubihsm
     /// </returns>
     /// <seealso cref="yh_rc"/>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_finish_create_session(SafeSessionHandle session,
         ReadOnlySpan<byte> key_senc, nuint key_senc_len, ReadOnlySpan<byte> key_smac, nuint key_smac_len,
         ReadOnlySpan<byte> key_srmac, nuint key_srmac_len, Span<byte> card_cryptogram, nuint card_cryptogram_len);
@@ -1485,7 +1485,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_BUFFER_TOO_SMALL"/> if the actual key length was bigger than <paramref name="device_pubkey_len"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_device_pubkey(SafeConnectorHandle connector,
         Span<byte> device_pubkey, out nuint device_pubkey_len, out yh_algorithm algorithm);
 
@@ -1509,7 +1509,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_derive_ec_p256_key(ReadOnlySpan<byte> password, nuint password_len,
         Span<byte> privkey, nuint privkey_len, Span<byte> pubkey, nuint pubkey_len);
 
@@ -1525,7 +1525,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_ec_p256_key(Span<byte> privkey, nuint privkey_len,
         Span<byte> pubkey, nuint pubkey_len);
 
@@ -1546,7 +1546,7 @@ internal static unsafe partial class libyubihsm
     /// <seealso cref="yh_rc"/>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html">Authentication Key</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_create_session_asym(SafeConnectorHandle connector, ushort authkey_id,
         ReadOnlySpan<byte> privkey, nuint privkey_len,
         ReadOnlySpan<byte> device_pubkey, nuint device_pubkey_len,
@@ -1561,13 +1561,13 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the session is NULL.
     /// </returns>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_destroy_session(ref SafeSessionHandle session);
 
     /// <summary>
     /// Deprecated - use yh_begin_create_session instead
     /// </summary>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     [Obsolete("Use yh_begin_create_session instead")]
     public static partial yh_rc yh_begin_create_session_ext(SafeConnectorHandle connector, ushort authkey_id,
         out byte* context, Span<byte> card_cryptogram, nuint card_cryptogram_len, out SafeSessionHandle session);
@@ -1575,7 +1575,7 @@ internal static unsafe partial class libyubihsm
     /// <summary>
     /// Deprecated - use yh_finish_create_session instead
     /// </summary>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     [Obsolete("Use yh_finish_create_session instead")]
     public static partial yh_rc yh_finish_create_session_ext(SafeConnectorHandle connector,
         SafeSessionHandle session, ReadOnlySpan<byte> key_senc, nuint key_senc_len,
@@ -1585,7 +1585,7 @@ internal static unsafe partial class libyubihsm
     /// <summary>
     /// Deprecated, calling this function has no effect.
     /// </summary>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     [Obsolete("Calling this function has no effect.")]
     public static partial yh_rc yh_authenticate_session(SafeSessionHandle session);
 
@@ -1601,7 +1601,7 @@ internal static unsafe partial class libyubihsm
     /// </returns>
     /// <seealso cref="yh_rc"/>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Algorithms.html">Algorithms</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_device_info_ex(SafeConnectorHandle connector,
         out yh_device_info device_info);
 
@@ -1624,7 +1624,7 @@ internal static unsafe partial class libyubihsm
     /// </returns>
     /// <seealso cref="yh_rc"/>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Algorithms.html">Algorithms</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_device_info(SafeConnectorHandle connector,
         out byte major, out byte minor, out byte patch, out uint serial,
         out byte log_total, out byte log_used,
@@ -1643,7 +1643,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_DEVICE_INVALID_DATA"/> If returned <paramref name="part_number"/> is less than 12 bytes
     /// <see cref="yh_rc.YHR_BUFFER_TOO_SMALL"/> if <paramref name="part_number"/> is smaller than 13 bytes
     /// </returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_partnumber(SafeConnectorHandle connector,
         Span<byte> part_number, out nuint part_number_len);
 
@@ -1670,7 +1670,7 @@ internal static unsafe partial class libyubihsm
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Capability.html">Capabilities</seealso>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Algorithms.html">Algorithms</seealso>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Label.html">Labels</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_list_objects(SafeSessionHandle session, ushort id,
         yh_object_type type, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm, ReadOnlySpan<byte> label,
@@ -1688,7 +1688,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the session is NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_object_info(SafeSessionHandle session, ushort id,
         yh_object_type type, out yh_object_descriptor @object);
 
@@ -1706,7 +1706,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_BUFFER_TOO_SMALL"/> if the actual key length was bigger than <paramref name="data_len"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_public_key(SafeSessionHandle session, ushort id,
         Span<byte> data, out nuint data_len, out yh_algorithm algorithm);
 
@@ -1725,7 +1725,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_BUFFER_TOO_SMALL"/> if the actual key length was bigger than <paramref name="data_len"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_public_key_ex(SafeSessionHandle session, yh_object_type type,
         ushort id, Span<byte> data, out nuint data_len, out yh_algorithm algorithm);
 
@@ -1738,7 +1738,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the session is NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_close_session(SafeSessionHandle session);
 
     /// <summary>
@@ -1760,7 +1760,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or if <paramref name="in_len"/> is not 20, 32, 48, or 64.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_sign_pkcs1v1_5(SafeSessionHandle session, ushort key_id,
         [MarshalAs(UnmanagedType.U1)] bool hashed, ReadOnlySpan<byte> @in, nuint in_len,
         Span<byte> @out, out nuint out_len);
@@ -1784,7 +1784,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or if <paramref name="in_len"/> is not 20, 32, 48 or 64.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_sign_pss(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len,
         nuint salt_len, yh_algorithm mgf1Algo);
@@ -1806,7 +1806,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or if <paramref name="in_len"/> is not 20, 28, 34, 48, 64 or 66.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_sign_ecdsa(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
@@ -1824,7 +1824,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or if <paramref name="in_len"/> is bigger than <see cref="YH_MSG_BUF_SIZE"/>-2.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_sign_eddsa(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
@@ -1842,7 +1842,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or if <paramref name="in_len"/> is bigger than <see cref="YH_MSG_BUF_SIZE"/>-2.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_sign_hmac(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
@@ -1858,7 +1858,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_pseudo_random(SafeSessionHandle session, nuint len,
         Span<byte> @out, out nuint out_len);
 
@@ -1877,7 +1877,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the <paramref name="algorithm"/> is not one of <see cref="yh_algorithm.YH_ALGO_AES128"/>, <see cref="yh_algorithm.YH_ALGO_AES192"/> or <see cref="yh_algorithm.YH_ALGO_AES256"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_aes_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm, ReadOnlySpan<byte> key);
@@ -1898,7 +1898,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the algorithm is not one of <see cref="yh_algorithm.YH_ALGO_RSA_2048"/>, <see cref="yh_algorithm.YH_ALGO_RSA_3072"/> or <see cref="yh_algorithm.YH_ALGO_RSA_4096"/>
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_rsa_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm, ReadOnlySpan<byte> p, ReadOnlySpan<byte> q);
@@ -1922,7 +1922,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_algorithm.YH_ALGO_EC_P384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP512"/> or <see cref="yh_algorithm.YH_ALGO_EC_P521"/>
     /// </returns>
     /// <seealso cref="yh_rc"/> 
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_ec_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm, ReadOnlySpan<byte> s);
@@ -1942,7 +1942,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the <paramref name="algorithm"/> is not <see cref="yh_algorithm.YH_ALGO_EC_ED25519"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_ed_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm, ReadOnlySpan<byte> k);
@@ -1965,7 +1965,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_hmac_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm, ReadOnlySpan<byte> key, nuint key_len);
@@ -1985,7 +1985,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the <paramref name="algorithm"/> is not one of <see cref="yh_algorithm.YH_ALGO_AES128"/>, <see cref="yh_algorithm.YH_ALGO_AES192"/> or <see cref="yh_algorithm.YH_ALGO_AES256"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_aes_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm);
@@ -2005,7 +2005,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the algorithm is not one of <see cref="yh_algorithm.YH_ALGO_RSA_2048"/>, <see cref="yh_algorithm.YH_ALGO_RSA_3072"/> and <see cref="yh_algorithm.YH_ALGO_RSA_4096"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_rsa_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm);
@@ -2030,7 +2030,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_algorithm.YH_ALGO_EC_P521"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_ec_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm);
@@ -2049,7 +2049,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the algorithm is not <see cref="yh_algorithm.YH_ALGO_EC_ED25519"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_ed_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm);
@@ -2069,7 +2069,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL if <paramref name="signature_len"/> + <paramref name="data_len"/> is too long.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_verify_hmac(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> signature, nuint signature_len,
         ReadOnlySpan<byte> data, nuint data_len, [MarshalAs(UnmanagedType.U1)] out bool verified);
@@ -2090,7 +2090,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL. 
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_hmac_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm);
@@ -2109,7 +2109,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or if <paramref name="in_len"/> is bigger than <see cref="YH_MSG_BUF_SIZE"/>-2.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_decrypt_pkcs1v1_5(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
@@ -2131,7 +2131,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_WRONG_LENGTH"/> if <paramref name="in_len"/> or <paramref name="label_len"/> are not what expected.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_decrypt_oaep(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len,
         ReadOnlySpan<byte> label, nuint label_len, yh_algorithm mgf1Algo);
@@ -2150,7 +2150,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or if <paramref name="in_len"/> is bigger than <see cref="YH_MSG_BUF_SIZE"/>02.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_derive_ecdh(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
@@ -2165,7 +2165,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if <paramref name="session"/> is NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_delete_object(SafeSessionHandle session, ushort id,
         yh_object_type type);
 
@@ -2183,7 +2183,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_export_wrapped(SafeSessionHandle session, ushort wrapping_key_id,
         yh_object_type target_type, ushort target_id, Span<byte> @out, out nuint out_len);
 
@@ -2202,7 +2202,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_export_wrapped_ex(SafeSessionHandle session, ushort wrapping_key_id,
         yh_object_type target_type, ushort target_id, byte format, Span<byte> @out, out nuint out_len);
 
@@ -2220,7 +2220,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_wrapped(SafeSessionHandle session, ushort wrapping_key_id,
         ReadOnlySpan<byte> @in, nuint in_len, out yh_object_type target_type, out ushort target_id);
 
@@ -2244,7 +2244,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or if the command is not supported.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_rsa_wrapped_key(SafeSessionHandle session, ushort wrap_key_id,
         yh_object_type target_type, ushort target_id, yh_algorithm aes,
         yh_algorithm hash, yh_algorithm mgf1,
@@ -2269,7 +2269,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or if the command is not supported.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_export_rsa_wrapped(SafeSessionHandle session, ushort wrap_key_id,
         yh_object_type target_type, ushort target_id, yh_algorithm aes,
         yh_algorithm hash, yh_algorithm mgf1,
@@ -2293,7 +2293,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or if the command is not supported.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_rsa_wrapped(SafeSessionHandle session, ushort wrapping_key_id,
         yh_algorithm hash, yh_algorithm mgf1,
         ReadOnlySpan<byte> label, nuint label_len,
@@ -2322,7 +2322,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or if the command is not supported.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_put_rsa_wrapped_key(
         SafeSessionHandle session, ushort wrapping_key_id, yh_object_type type,
         ref ushort target_id, yh_algorithm algo, ReadOnlySpan<byte> label, ushort domains,
@@ -2348,7 +2348,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> will also be returned if the firmware versiion does not support RSA wrap keys.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_wrap_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm, in yh_capabilities delegated_capabilities,
@@ -2372,7 +2372,7 @@ internal static unsafe partial class libyubihsm
     /// and if <paramref name="algorithm"/> is not one of <see cref="yh_algorithm.YH_ALGO_RSA_2048"/>, <see cref="yh_algorithm.YH_ALGO_RSA_3072"/>, or <see cref="yh_algorithm.YH_ALGO_RSA_4096"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_public_wrap_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm, in yh_capabilities delegated_capabilities,
@@ -2393,7 +2393,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_wrap_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm, in yh_capabilities delegated_capabilities);
@@ -2417,7 +2417,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_BUFFER_TOO_SMALL"/> if <paramref name="n_items"/> is smaller than the actual number of retrieved log entries. 
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_log_entries(SafeSessionHandle session, out ushort unlogged_boot,
         out ushort unlogged_auth, Span<yh_log_entry> @out, out nuint n_items);
 
@@ -2437,7 +2437,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if <paramref name="session"/> is NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_set_log_index(SafeSessionHandle session, ushort index);
 
     /// <summary>
@@ -2452,7 +2452,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_opaque(SafeSessionHandle session, ushort object_id,
         Span<byte> @out, out nuint out_len);
 
@@ -2471,7 +2471,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or <paramref name="in_len"/> is too big.
     /// </returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_opaque(SafeSessionHandle session, ref ushort object_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len);
@@ -2490,7 +2490,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_opaque_ex(SafeSessionHandle session, ushort object_id,
         Span<byte> @out, out nuint out_len, out nuint stored_len, [MarshalAs(UnmanagedType.U1)] bool try_decompress);
 
@@ -2512,7 +2512,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or <paramref name="in_len"/> is too big.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_opaque_ex(SafeSessionHandle session, ref ushort object_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len,
@@ -2534,7 +2534,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or if <paramref name="in_len"/> is too big.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_sign_ssh_certificate(SafeSessionHandle session, ushort key_id,
         ushort template_id, yh_algorithm sig_algo,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
@@ -2558,7 +2558,7 @@ internal static unsafe partial class libyubihsm
     /// </returns>
     /// <seealso cref="yh_rc"/>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html">Authentication Key</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_authentication_key(
         SafeSessionHandle session, ref ushort key_id, ReadOnlySpan<byte> label, ushort domains,
         in yh_capabilities capabilities, in yh_capabilities delegated_capabilities,
@@ -2581,7 +2581,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_authentication_key_derived(
         SafeSessionHandle session, ref ushort key_id, ReadOnlySpan<byte> label, ushort domains,
         in yh_capabilities capabilities, in yh_capabilities delegated_capabilities,
@@ -2602,7 +2602,7 @@ internal static unsafe partial class libyubihsm
     /// </returns>
     /// <seealso cref="yh_rc"/>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html">Authentication Key</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_change_authentication_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> key_enc, nuint key_enc_len,
         ReadOnlySpan<byte> key_mac, nuint key_mac_len);
@@ -2621,7 +2621,7 @@ internal static unsafe partial class libyubihsm
     /// </returns>
     /// <seealso cref="yh_rc"/> 
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html">Authentication Key</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_change_authentication_key_derived(SafeSessionHandle session,
         ref ushort key_id, ReadOnlySpan<byte> password, nuint password_len);
 
@@ -2637,7 +2637,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_template(SafeSessionHandle session, ushort object_id,
         Span<byte> @out, out nuint out_len);
 
@@ -2657,7 +2657,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or if <paramref name="in_len"/> is too big.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_template(SafeSessionHandle session, ref ushort object_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len);
@@ -2676,7 +2676,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_create_otp_aead(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> key, ReadOnlySpan<byte> private_id, Span<byte> @out, out nuint out_len);
 
@@ -2692,7 +2692,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_randomize_otp_aead(SafeSessionHandle session, ushort key_id,
         Span<byte> @out, out nuint out_len);
 
@@ -2713,7 +2713,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_decrypt_otp(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> aead, nuint aead_len, ReadOnlySpan<byte> otp,
         out ushort useCtr, out byte sessionCtr, out byte tstph, out ushort tstpl);
@@ -2733,7 +2733,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_rewrap_otp_aead(SafeSessionHandle session, ushort id_from,
         ushort id_to, ReadOnlySpan<byte> aead_in, nuint in_len,
         Span<byte> aead_out, out nuint out_len);
@@ -2754,7 +2754,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or if <paramref name="in_len"/> is not one of 16, 24, or 32.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_otp_aead_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         uint nonce_id, ReadOnlySpan<byte> @in, nuint in_len);
@@ -2775,7 +2775,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_otp_aead_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
         yh_algorithm algorithm, uint nonce_id);
@@ -2793,7 +2793,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_sign_attestation_certificate(SafeSessionHandle session, ushort key_id,
         ushort attest_id, Span<byte> @out, out nuint out_len);
 
@@ -2809,7 +2809,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if <paramref name="session"/> or <paramref name="val"/> are NULL or if <paramref name="len"/> is too long.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_set_option(SafeSessionHandle session, yh_option option, nuint len,
         Span<byte> val);
 
@@ -2825,7 +2825,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_option(SafeSessionHandle session, yh_option option,
         Span<byte> @out, out nuint out_len);
 
@@ -2843,7 +2843,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the <paramref name="session"/> is NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_storage_info(SafeSessionHandle session,
         out ushort total_records, out ushort free_records, out ushort total_pages,
         out ushort free_pages, out ushort page_size);
@@ -2862,7 +2862,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or if <paramref name="in_len"/> is too big.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_wrap_data(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
@@ -2879,7 +2879,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL or if <paramref name="in_len"/> is too big.
     /// </returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_unwrap_data(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
@@ -2896,7 +2896,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_encrypt_aes_ecb(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
@@ -2913,7 +2913,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_decrypt_aes_ecb(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
@@ -2931,7 +2931,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_encrypt_aes_cbc(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> iv, ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
@@ -2949,7 +2949,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_decrypt_aes_cbc(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> iv, ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
@@ -2964,7 +2964,7 @@ internal static unsafe partial class libyubihsm
     /// If successful, returns <see cref="yh_rc.YHR_SUCCESS"/> and sets the contents of <paramref name="length"/> to the padded length of the buffer.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_pad_pkcs7(Span<byte> buffer, ref nuint length, nuint size,
         byte block_size);
 
@@ -2982,7 +2982,7 @@ internal static unsafe partial class libyubihsm
     /// to the unpadded length of the buffer.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_unpad_pkcs7(Span<byte> buffer, ref nuint length, byte block_size);
 
     /// <summary>
@@ -2995,7 +2995,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the <paramref name="session"/> is NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_blink_device(SafeSessionHandle session, byte seconds);
 
     /// <summary>
@@ -3007,7 +3007,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the <paramref name="session"/> is NULL.
     /// </returns>
     /// <seealso cref="yh_rc"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_reset_device(SafeSessionHandle session);
 
     /// <summary>
@@ -3019,7 +3019,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_get_session_id(SafeSessionHandle session, out byte sid);
 
     /// <summary>
@@ -3027,7 +3027,7 @@ internal static unsafe partial class libyubihsm
     /// </summary>
     /// <param name="connector">Connector currently in use</param>
     /// <returns>True if the <paramref name="connector"/> is not NULL and there is a device connected to it. False otherwise</returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     [return: MarshalAs(UnmanagedType.U1)]
     public static partial bool yh_connector_has_device(SafeConnectorHandle connector);
 
@@ -3042,7 +3042,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_get_connector_version(SafeConnectorHandle connector,
         out byte major, out byte minor, out byte patch);
 
@@ -3055,7 +3055,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_get_connector_address(SafeConnectorHandle connector, out nint address);
 
     /// <summary>
@@ -3077,7 +3077,7 @@ internal static unsafe partial class libyubihsm
     ///  * "0xffffffffffffffff" => {"\xff\xff\xff\xff\xff\xff\xff\xff"}
     /// </example>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Capability.html">Capability</seealso> 
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_string_to_capabilities(ReadOnlySpan<byte> capability,
         out yh_capabilities result);
 
@@ -3092,7 +3092,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// <see cref="yh_rc.YHR_BUFFER_TOO_SMALL"/> if <paramref name="n_result"/> is too small.
     /// </returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_capabilities_to_strings(in yh_capabilities num,
         out nint result, out nuint n_result);
 
@@ -3112,7 +3112,7 @@ internal static unsafe partial class libyubihsm
     /// </code>
     /// </example>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Capability.html">Capability</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     [return: MarshalAs(UnmanagedType.U1)]
     public static partial bool yh_check_capability(in yh_capabilities capabilities,
         ReadOnlySpan<byte> capability);
@@ -3128,7 +3128,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Capability.html">Capability</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_merge_capabilities(in yh_capabilities a, in yh_capabilities b,
         out yh_capabilities result);
 
@@ -3144,7 +3144,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Capability.html">Capability</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_filter_capabilities(in yh_capabilities capabilities,
         in yh_capabilities filter, out yh_capabilities result);
 
@@ -3156,7 +3156,7 @@ internal static unsafe partial class libyubihsm
     /// </remarks>
     /// <param name="algorithm">Algorithm to check. <see cref="yh_algorithm"/></param>
     /// <returns>True if the algorithm is one of the supported AES algorithms. False otherwise</returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     [return: MarshalAs(UnmanagedType.U1)]
     public static partial bool yh_is_aes(yh_algorithm algorithm);
 
@@ -3168,7 +3168,7 @@ internal static unsafe partial class libyubihsm
     /// </remarks>
     /// <param name="algorithm">Algorithm to check. <see cref="yh_algorithm"/></param>
     /// <returns>True if the algorithm is one of the supported RSA algorithms. False otherwise</returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     [return: MarshalAs(UnmanagedType.U1)]
     public static partial bool yh_is_rsa(yh_algorithm algorithm);
 
@@ -3182,7 +3182,7 @@ internal static unsafe partial class libyubihsm
     /// </remarks>
     /// <param name="algorithm">Algorithm to check. <see cref="yh_algorithm"/></param>
     /// <returns>True if the algorithm is one of the supported EC algorithms. False otherwise</returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     [return: MarshalAs(UnmanagedType.U1)]
     public static partial bool yh_is_ec(yh_algorithm algorithm);
 
@@ -3194,7 +3194,7 @@ internal static unsafe partial class libyubihsm
     /// </remarks>
     /// <param name="algorithm">algorithm. <see cref="yh_algorithm"/></param>
     /// <returns>True if the algorithm is <see cref="yh_algorithm.YH_ALGO_EC_ED25519"/>. False otherwise</returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     [return: MarshalAs(UnmanagedType.U1)]
     public static partial bool yh_is_ed(yh_algorithm algorithm);
 
@@ -3207,7 +3207,7 @@ internal static unsafe partial class libyubihsm
     /// </remarks>
     /// <param name="algorithm">Algorithm to check. <see cref="yh_algorithm"/></param>
     /// <returns>True if the algorithm is one of the supported HMAC algorithms. False otherwise</returns>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     [return: MarshalAs(UnmanagedType.U1)]
     public static partial bool yh_is_hmac(yh_algorithm algorithm);
 
@@ -3222,7 +3222,7 @@ internal static unsafe partial class libyubihsm
     /// the <paramref name="algorithm"/> is no supported by YubiHSM 2.
     /// </returns>
     /// <seealso cref="yh_algorithm"/>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_get_key_bitlength(yh_algorithm algorithm, out nuint result);
 
     /// <summary>
@@ -3235,7 +3235,7 @@ internal static unsafe partial class libyubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if <paramref name="result"/> is NULL.
     /// </returns>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Algorithms.html">Algorithms</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_algo_to_string(yh_algorithm algo, out nint result);
 
     /// <summary>
@@ -3257,7 +3257,7 @@ internal static unsafe partial class libyubihsm
     /// </code>
     /// </example>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Algorithms.html">Algorithms</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_string_to_algo(ReadOnlySpan<byte> @string, out yh_algorithm algo);
 
     /// <summary>
@@ -3278,7 +3278,7 @@ internal static unsafe partial class libyubihsm
     /// </code>
     /// </example>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html">Object</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_type_to_string(yh_object_type type, out nint result);
 
     /// <summary>
@@ -3300,7 +3300,7 @@ internal static unsafe partial class libyubihsm
     /// </code>
     /// </example>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html">Object</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_string_to_type(ReadOnlySpan<byte> @string, out yh_object_type type);
 
     /// <summary>
@@ -3321,7 +3321,7 @@ internal static unsafe partial class libyubihsm
     /// </code>
     /// </example>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Options.html">Options</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_string_to_option(ReadOnlySpan<byte> @string, out yh_option option);
 
     /// <summary>
@@ -3332,7 +3332,7 @@ internal static unsafe partial class libyubihsm
     /// <param name="last_previous_log">Optional pointer to the entry before the first entry</param>
     /// <returns>True if verification succeeds. False otherwise</returns>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Logs.html">Logs</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     [return: MarshalAs(UnmanagedType.U1)]
     public static partial bool yh_verify_logs(Span<yh_log_entry> logs, nuint n_items,
         in yh_log_entry last_previous_log);
@@ -3365,7 +3365,7 @@ internal static unsafe partial class libyubihsm
     ///  * "2:4" => 10
     /// </example>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Domain.html">Domains</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_string_to_domains(ReadOnlySpan<byte> domains, out ushort result);
 
     /// <summary>
@@ -3385,7 +3385,7 @@ internal static unsafe partial class libyubihsm
     ///  * 0xffff => "1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16"
     /// </example>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Domain.html">Domains</seealso>
-    [LibraryImport(nameof(libyubihsm))]
+    [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_domains_to_string(ushort domains, Span<byte> @string, nuint max_len);
 
 #if FUZZING

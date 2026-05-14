@@ -1,5 +1,5 @@
 using System.Runtime.InteropServices;
-using static YubiHsmSharp.libyubihsm;
+using static YubiHsmSharp.yubihsm;
 
 namespace YubiHsmSharp;
 
