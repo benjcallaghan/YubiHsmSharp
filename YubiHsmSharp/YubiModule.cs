@@ -22,6 +22,19 @@ public class YubiModule : IDisposable
     }
 
     /// <summary>
+    /// Initializes a connection to a YubiHSM device using the specified URL.
+    /// UTF-8 string literals are automatically null-terminated.
+    /// </summary>
+    /// <param name="utf8Url">The URL associated with this connector, encoded as UTF-8 and null-terminated.</param>
+    /// <returns>A <see cref="YubiConnector"/> configured with the provided URL.</returns>
+    public YubiConnector InitConnector(ReadOnlySpan<byte> utf8Url)
+    {
+        yh_rc err = yh_init_connector(utf8Url, out SafeConnectorHandle handle);
+        YubiHsmException.ThrowIfError(err);
+        return new YubiConnector(handle);
+    }
+
+    /// <summary>
     /// Cleans up the YubiHSM module.
     /// </summary>
     public void Dispose()
