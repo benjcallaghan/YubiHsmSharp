@@ -44,9 +44,19 @@ public enum Verbosity
     All = 0xff,
 }
 
+/// <summary>
+/// Represents a (pending) connection to a YubiHSM device.
+/// </summary>
 public class YubiConnector
 {
     private static readonly SafeConnectorHandle NullConnectorHandle = new SafeConnectorHandle();
+
+    private readonly SafeConnectorHandle handle;
+
+    internal YubiConnector(SafeConnectorHandle handle)
+    {
+        this.handle = handle;
+    }
 
     /// <summary>
     /// Gets or sets the global verbosity level when executing device commands.
@@ -65,5 +75,17 @@ public class YubiConnector
             yh_rc err = yh_set_verbosity(NullConnectorHandle, (yh_verbosity)value);
             YubiHsmException.ThrowIfError(err);
         }
+    }
+
+    /// <summary>
+    /// Sets the verbosity level for this connector instance.
+    /// This value overrides the global verbosity for this connector,
+    /// but it does not affect other connectors.
+    /// </summary>
+    /// <param name="verbosity">The verbosity level to set on this connector</param>
+    public void SetVerbosity(Verbosity verbosity)
+    {
+        yh_rc err = yh_set_verbosity(this.handle, (yh_verbosity)verbosity);
+        YubiHsmException.ThrowIfError(err);
     }
 }
