@@ -48,9 +48,9 @@ public enum Verbosity
 /// <summary>
 /// Represents a (pending) connection to a YubiHSM device.
 /// </summary>
-public class YubiConnector
+public class YubiConnector : IDisposable
 {
-    private static readonly SafeConnectorHandle NullConnectorHandle = new SafeConnectorHandle();
+    private static readonly SafeConnectorHandle NullConnectorHandle = new();
 
     private readonly SafeConnectorHandle handle;
 
@@ -159,16 +159,35 @@ public class YubiConnector
             YubiHsmException.ThrowIfError(err);
         }
     }
+
+    /// <summary>
+    /// Connect to the device through this connector.
+    /// </summary>
+    /// <param name="timeout">Connection timeout in seconds, 0 for no timeout.</param>
+    public void Connect(int timeout = 0)
+    {
+        yh_rc err = yh_connect(this.handle, timeout);
+        YubiHsmException.ThrowIfError(err);
+    }
+
+    /// <summary>
+    /// Disconnect from the device and clean up resources associated with this connector.
+    /// </summary>
+    public void Dispose()
+    {
+        this.handle.Dispose();
+    }
 }
 
 internal class SafeConnectorHandle : SafeHandle
 {
     public SafeConnectorHandle() : base(IntPtr.Zero, true) { }
 
-    public override bool IsInvalid => throw new NotImplementedException();
+    public override bool IsInvalid => this.handle == IntPtr.Zero;
 
     protected override bool ReleaseHandle()
     {
-        throw new NotImplementedException();
+        yh_rc err = yh_disconnect(this.handle);
+        return err == yh_rc.YHR_SUCCESS;
     }
 }

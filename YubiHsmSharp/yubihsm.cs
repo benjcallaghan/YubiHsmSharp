@@ -1312,7 +1312,7 @@ internal static unsafe partial class yubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the connector is NULL
     /// </returns>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_disconnect(SafeConnectorHandle connector);
+    public static partial yh_rc yh_disconnect(nint connector);
 
     /// <summary>
     /// Send a plain (unencrypted) message to the device through a connector
