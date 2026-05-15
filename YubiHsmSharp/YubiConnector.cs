@@ -235,6 +235,18 @@ public sealed class YubiConnector : IDisposable
     // No need to expose yh_util_get_device_info since yh_util_get_device_info_ex provides a structured DeviceInfo.
 
     /// <summary>
+    /// Gets the device version, part number (chip designator) as required by FIPS.
+    /// </summary>
+    /// <param name="utf8PartNumber">A buffer to store the part number (chip designator), UTF-8 encoded</param>
+    /// <param name="partNumberLength">The length of the part number</param>
+    public void GetPartNumber(Span<byte> utf8PartNumber, out int partNumberLength)
+    {
+        yh_rc err = yh_util_get_partnumber(this.handle, utf8PartNumber, out nuint partNumberLen);
+        YubiHsmException.ThrowIfError(err);
+        partNumberLength = (int)partNumberLen;
+    }
+
+    /// <summary>
     /// Disconnect from the device and clean up resources associated with this connector.
     /// </summary>
     public void Dispose()
