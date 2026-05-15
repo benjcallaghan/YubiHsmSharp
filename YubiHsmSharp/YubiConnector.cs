@@ -223,6 +223,18 @@ public sealed class YubiConnector : IDisposable
     }
 
     /// <summary>
+    /// Gets device information.
+    /// </summary>
+    /// <returns>The device information</returns>
+    public DeviceInfo GetDeviceInfo()
+    {
+        yh_rc err = yh_util_get_device_info_ex(this.handle, out DeviceInfo deviceInfo);
+        YubiHsmException.ThrowIfError(err);
+        return deviceInfo;
+    }
+    // No need to expose yh_util_get_device_info since yh_util_get_device_info_ex provides a structured DeviceInfo.
+
+    /// <summary>
     /// Disconnect from the device and clean up resources associated with this connector.
     /// </summary>
     public void Dispose()

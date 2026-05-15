@@ -416,53 +416,6 @@ internal static unsafe partial class yubihsm
     }
 
     /// <summary>
-    /// Device info struct
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct yh_device_info
-    {
-        /// <summary>
-        /// Fimrware version major
-        /// </summary>
-        byte major;
-
-        /// <summary>
-        /// Firmware version minor
-        /// </summary>
-        byte minor;
-
-        /// <summary>
-        /// Firmware version patch
-        /// </summary>
-        byte patch;
-
-        /// <summary>
-        /// Device serial number
-        /// </summary>
-        uint serial;
-
-        /// <summary>
-        /// Total available logs
-        /// </summary>
-        byte log_total;
-
-        /// <summary>
-        /// Total used logs
-        /// </summary>
-        byte log_used;
-
-        /// <summary>
-        /// List of algorithms supported by the device
-        /// </summary>
-        fixed int algorithms[YH_MAX_ALGORITHM_COUNT];
-
-        /// <summary>
-        /// Number of algorithms supported by the device
-        /// </summary>
-        nuint n_algorithms;
-    }
-
-    /// <summary>
     /// Logging struct as returned by device
     /// </summary>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Logs.html"/> 
@@ -1130,8 +1083,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Algorithms.html">Algorithms</seealso>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_util_get_device_info_ex(SafeConnectorHandle connector,
-        out yh_device_info device_info);
+    public static partial yh_rc yh_util_get_device_info_ex(SafeConnectorHandle connector, out DeviceInfo device_info);
 
     /// <summary>
     /// Get device version, device serial number, supported algorithms and available log entries
