@@ -223,7 +223,7 @@ internal static unsafe partial class yubihsm
     public const int YH_CCM_WRAP_OVERHEAD = 1 + 13 + 16;
 
     public const int YH_EC_P256_PRIVKEY_LEN = 32;
-    public const int YH_EC_256_PUBKEY_LEN = 65;
+    public const int YH_EC_P256_PUBKEY_LEN = 65;
 
     // Reference to a connector
     // typedef struct yh_connector yh_connector;
