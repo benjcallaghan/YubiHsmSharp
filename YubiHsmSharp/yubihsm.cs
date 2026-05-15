@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-using System.Runtime.InteropServices;
-
 namespace YubiHsmSharp;
 
 /// <summary>
@@ -175,48 +173,6 @@ internal static unsafe partial class yubihsm
     public const string YH_FUZZ_URL_SCHEME = "yhfuzz://";
 
     /// <summary>
-    /// Debug levels
-    /// </summary>
-    [Flags]
-    public enum yh_verbosity
-    {
-        /// <summary>
-        /// Debug level quiet. No messages printed out
-        /// </summary>
-        YH_VERB_QUIET = 0x00,
-
-        /// <summary>
-        /// Debug level intermediate. Intermediate results printed out
-        /// </summary>
-        YH_VERB_INTERMEDIATE = 0x01,
-
-        /// <summary>
-        /// Debug level crypto. Crypto results printed out
-        /// </summary>
-        YH_VERB_CRYPTO = 0x02,
-
-        /// <summary>
-        /// Debug level raw. Raw messages printed out
-        /// </summary>
-        YH_VERB_RAW = 0x04,
-
-        /// <summary>
-        /// Debug level info. General information messages printed out
-        /// </summary>
-        YH_VERB_INFO = 0x08,
-
-        /// <summary>
-        /// Debug level error. Error messages printed out
-        /// </summary>
-        YH_VERB_ERR = 0x10,
-
-        /// <summary>
-        /// Debug level all. All previous options enabled
-        /// </summary>
-        YH_VERB_ALL = 0xff,
-    }
-
-    /// <summary>
     /// This is the overhead when doing aes-ccm wrapping: 1 byte identifier,
     /// 13 bytes nonce and 16 bytes mac
     /// </summary>
@@ -350,267 +306,6 @@ internal static unsafe partial class yubihsm
     }
 
     /// <summary>
-    /// Command definitions
-    /// </summary>
-    public enum yh_cmd
-    {
-        /// <summary>Echo data back from the device.</summary>
-        YHC_ECHO = 0x01,
-        YHC_ECHO_R = 0x01 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Create a session with the device.</summary>
-        YHC_CREATE_SESSION = 0x03,
-        YHC_CREATE_SESSION_R = 0x03 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Authenticate the session to the device</summary>
-        YHC_AUTHENTICATE_SESSION = 0x04,
-        YHC_AUTHENTICATE_SESSION_R = 0x04 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Send a command over an established session</summary>
-        YHC_SESSION_MESSAGE = 0x05,
-        YHC_SESSION_MESSAGE_R = 0x05 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Get device metadata</summary>
-        YHC_GET_DEVICE_INFO = 0x06,
-        YHC_GET_DEVICE_INFO_R = 0x06 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Factory reset a device</summary>
-        YHC_RESET_DEVICE = 0x08,
-        YHC_RESET_DEVICE_R = 0x08 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Get the device pubkey for asym auth</summary>
-        YHC_GET_DEVICE_PUBKEY = 0x0a,
-        YHC_GET_DEVICE_PUBKEY_R = 0x0a | YH_CMD_RESP_FLAG,
-
-        /// <summary>Close session</summary>
-        YHC_CLOSE_SESSION = 0x40,
-        YHC_CLOSE_SESSION_R = 0x40 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Get storage information</summary>
-        YHC_GET_STORAGE_INFO = 0x041,
-        YHC_GET_STORAGE_INFO_R = 0x041 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Import an Opaque Object into the device</summary>
-        YHC_PUT_OPAQUE = 0x42,
-        YHC_PUT_OPAQUE_R = 0x42 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Get an Opaque Object from device</summary>
-        YHC_GET_OPAQUE = 0x43,
-        YHC_GET_OPAQUE_R = 0x43 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Import an Authentication Key into the device</summary>
-        YHC_PUT_AUTHENTICATION_KEY = 0x44,
-        YHC_PUT_AUTHENTICATION_KEY_R = 0x44 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Import an Asymmetric Key into the device</summary>
-        YHC_PUT_ASYMMETRIC_KEY = 0x45,
-        YHC_PUT_ASYMMETRIC_KEY_R = 0x45 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Generate an Asymmetric Key in the device</summary>
-        YHC_GENERATE_ASYMMETRIC_KEY = 0x46,
-        YHC_GENERATE_ASYMMETRIC_KEY_R = 0x46 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Sign data using RSA-PKCS#1v1.5</summary>
-        YHC_SIGN_PKCS1 = 0x47,
-        YHC_SIGN_PKCS1_R = 0x47 | YH_CMD_RESP_FLAG,
-
-        /// <summary>List objects in the device</summary>
-        YHC_LIST_OBJECTS = 0x48,
-        YHC_LIST_OBJECTS_R = 0x48 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Decrypt data that was encrypted using RSA-PKCS#1v1.5</summary>
-        YHC_DECRYPT_PKCS1 = 0x49,
-        YHC_DECRYPT_PKCS1_R = 0x49 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Get an Object under wrap from the device.</summary>
-        YHC_EXPORT_WRAPPED = 0x4a,
-        YHC_EXPORT_WRAPPED_R = 0x4a | YH_CMD_RESP_FLAG,
-
-        /// <summary>Import a wrapped Object into the device</summary>
-        YHC_IMPORT_WRAPPED = 0x4b,
-        YHC_IMPORT_WRAPPED_R = 0x4b | YH_CMD_RESP_FLAG,
-
-        /// <summary>Import a Wrap Key into the device</summary>
-        YHC_PUT_WRAP_KEY = 0x4c,
-        YHC_PUT_WRAP_KEY_R = 0x4c | YH_CMD_RESP_FLAG,
-
-        /// <summary>Get all current audit log entries from the device Log Store</summary>
-        YHC_GET_LOG_ENTRIES = 0x4d,
-        YHC_GET_LOG_ENTRIES_R = 0x4d | YH_CMD_RESP_FLAG,
-
-        /// <summary>Get all metadata about an Object</summary>
-        YHC_GET_OBJECT_INFO = 0x4e,
-        YHC_GET_OBJECT_INFO_R = 0x4e | YH_CMD_RESP_FLAG,
-
-        /// <summary>Set a device-global options that affect general behavior</summary>
-        YHC_SET_OPTION = 0x4f,
-        YHC_SET_OPTION_R = 0x4f | YH_CMD_RESP_FLAG,
-
-        /// <summary>Get a device-global option</summary>
-        YHC_GET_OPTION = 0x50,
-        YHC_GET_OPTION_R = 0x50 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Get a fixed number of pseudo-random bytes from the device</summary>
-        YHC_GET_PSEUDO_RANDOM = 0x51,
-        YHC_GET_PSEUDO_RANDOM_R = 0x51 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Import a HMAC key into the device</summary>
-        YHC_PUT_HMAC_KEY = 0x52,
-        YHC_PUT_HMAC_KEY_R = 0x52 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Perform an HMAC operation in the device</summary>
-        YHC_SIGN_HMAC = 0x53,
-        YHC_SIGN_HMAC_R = 0x53 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Get the public key of an Asymmetric Key in the device</summary>
-        YHC_GET_PUBLIC_KEY = 0x54,
-        YHC_GET_PUBLIC_KEY_R = 0x54 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Sign data using RSA-PSS</summary>
-        YHC_SIGN_PSS = 0x55,
-        YHC_SIGN_PSS_R = 0x55 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Sign data using ECDSA</summary>
-        YHC_SIGN_ECDSA = 0x56,
-        YHC_SIGN_ECDSA_R = 0x56 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Perform an ECDH key exchange operation with a private key in the device</summary>
-        YHC_DERIVE_ECDH = 0x57,
-        YHC_DERIVE_ECDH_R = 0x57 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Delete object in the device</summary>
-        YHC_DELETE_OBJECT = 0x58,
-        YHC_DELETE_OBJECT_R = 0x58 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Decrypt data using RSA-OAEP</summary>
-        YHC_DECRYPT_OAEP = 0x59,
-        YHC_DECRYPT_OAEP_R = 0x59 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Generate an HMAC Key in the device</summary>
-        YHC_GENERATE_HMAC_KEY = 0x5a,
-        YHC_GENERATE_HMAC_KEY_R = 0x5a | YH_CMD_RESP_FLAG,
-
-        /// <summary>Generate a Wrap Key in the device</summary>
-        YHC_GENERATE_WRAP_KEY = 0x5b,
-        YHC_GENERATE_WRAP_KEY_R = 0x5b | YH_CMD_RESP_FLAG,
-
-        /// <summary>Verify a generated HMAC</summary>
-        YHC_VERIFY_HMAC = 0x5c,
-        YHC_VERIFY_HMAC_R = 0x5c | YH_CMD_RESP_FLAG,
-
-        /// <summary>Sign SSH certificate request</summary>
-        YHC_SIGN_SSH_CERTIFICATE = 0x5d,
-        YHC_SIGN_SSH_CERTIFICATE_R = 0x5d | YH_CMD_RESP_FLAG,
-
-        /// <summary>Import a template into the device</summary>
-        YHC_PUT_TEMPLATE = 0x5e,
-        YHC_PUT_TEMPLATE_R = 0x5e | YH_CMD_RESP_FLAG,
-
-        /// <summary>Get a template from the device</summary>
-        YHC_GET_TEMPLATE = 0x5f,
-        YHC_GET_TEMPLATE_R = 0x5f | YH_CMD_RESP_FLAG,
-
-        /// <summary>Decrypt a Yubico OTP</summary>
-        YHC_DECRYPT_OTP = 0x60,
-        YHC_DECRYPT_OTP_R = 0x60 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Create a Yubico OTP AEAD</summary>
-        YHC_CREATE_OTP_AEAD = 0x61,
-        YHC_CREATE_OTP_AEAD_R = 0x61 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Generate an OTP AEAD from random data</summary>
-        YHC_RANDOMIZE_OTP_AEAD = 0x62,
-        YHC_RANDOMIZE_OTP_AEAD_R = 0x62 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Re-encrypt a Yubico OTP AEAD from one OTP AEAD Key to another OTP AEAD Key</summary>
-        YHC_REWRAP_OTP_AEAD = 0x63,
-        YHC_REWRAP_OTP_AEAD_R = 0x63 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Get attestation of an Asymmetric Key</summary>
-        YHC_SIGN_ATTESTATION_CERTIFICATE = 0x64,
-        YHC_SIGN_ATTESTATION_CERTIFICATE_R = 0x64 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Import an OTP AEAD Key into the device</summary>
-        YHC_PUT_OTP_AEAD_KEY = 0x65,
-        YHC_PUT_OTP_AEAD_KEY_R = 0x65 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Generate an OTP AEAD Key in the device</summary>
-        YHC_GENERATE_OTP_AEAD_KEY = 0x66,
-        YHC_GENERATE_OTP_AEAD_KEY_R = 0x66 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Set the last extracted audit log entry</summary>
-        YHC_SET_LOG_INDEX = 0x67,
-        YHC_SET_LOG_INDEX_R = 0x67 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Encrypt (wrap) data using a Wrap Key</summary>
-        YHC_WRAP_DATA = 0x68,
-        YHC_WRAP_DATA_R = 0x68 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Decrypt (unwrap) data using a Wrap Key</summary>
-        YHC_UNWRAP_DATA = 0x69,
-        YHC_UNWRAP_DATA_R = 0x69 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Sign data using EdDSA</summary>
-        YHC_SIGN_EDDSA = 0x6a,
-        YHC_SIGN_EDDSA_R = 0x6a | YH_CMD_RESP_FLAG,
-
-        /// <summary>Blink the LED of the device</summary>
-        YHC_BLINK_DEVICE = 0x6b,
-        YHC_BLINK_DEVICE_R = 0x6b | YH_CMD_RESP_FLAG,
-
-        /// <summary>Replace the Authentication Key used to establish the current Session</summary>
-        YHC_CHANGE_AUTHENTICATION_KEY = 0x6c,
-        YHC_CHANGE_AUTHENTICATION_KEY_R = 0x6c | YH_CMD_RESP_FLAG,
-
-        /// <summary>Import a Symmetric Key into the device</summary>
-        YHC_PUT_SYMMETRIC_KEY = 0x6d,
-        YHC_PUT_SYMMETRIC_KEY_R = 0x6d | YH_CMD_RESP_FLAG,
-
-        /// <summary>Generate a Symmetric Key in the device</summary>
-        YHC_GENERATE_SYMMETRIC_KEY = 0x6e,
-        YHC_GENERATE_SYMMETRIC_KEY_R = 0x6e | YH_CMD_RESP_FLAG,
-
-        /// <summary>Decrypt data using a Symmetric Key with ECB</summary>
-        YHC_DECRYPT_ECB = 0x6f,
-        YHC_DECRYPT_ECB_R = 0x6f | YH_CMD_RESP_FLAG,
-
-        /// <summary>Encrypt data using a Symmetric Key with ECB</summary>
-        YHC_ENCRYPT_ECB = 0x70,
-        YHC_ENCRYPT_ECB_R = 0x70 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Decrypt data using a Symmetric Key with CBC</summary>
-        YHC_DECRYPT_CBC = 0x71,
-        YHC_DECRYPT_CBC_R = 0x71 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Encrypt data using a Symmetric Key with CBC</summary>
-        YHC_ENCRYPT_CBC = 0x72,
-        YHC_ENCRYPT_CBC_R = 0x72 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Import public RSA key as a Public Wrap Key</summary>
-        YHC_PUT_PUBLIC_WRAPKEY = 0x73,
-        YHC_PUT_PUBLIC_WRAPKEY_R = 0x73 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Export (a)symmetric key using a Public Wrap Key</summary>
-        YHC_GET_RSA_WRAPPED_KEY = 0x74,
-        YHC_GET_RSA_WRAPPED_KEY_R = 0x74 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Import (a)symmetric key after unwrapping in using and RSA wrap key</summary>
-        YHC_PUT_RSA_WRAPPED_KEY = 0x75,
-        YHC_PUT_RSA_WRAPPED_KEY_R = 0x75 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Wrap an object using an RSA Wrap Key</summary>
-        YHC_EXPORT_RSA_WRAPPED = 0x76,
-        YHC_EXPORT_RSA_WRAPPED_R = 0x76 | YH_CMD_RESP_FLAG,
-
-        /// <summary>Import an object after unwrapping in using and RSA Wrap Key</summary>
-        YHC_IMPORT_RSA_WRAPPED = 0x77,
-        YHC_IMPORT_RSA_WRAPPED_R = 0x77 | YH_CMD_RESP_FLAG,
-
-        /// <summary>The response byte returned from the device if the command resulted in an error</summary>
-        YHC_ERROR = 0x7f,
-    }
-
-    /// <summary>
     /// Object types
     /// </summary>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html"/>
@@ -660,178 +355,6 @@ internal static unsafe partial class yubihsm
     /// Max number of algorithms defined here
     /// </summary>
     public const int YH_MAX_ALGORITHM_COUNT = 0xff;
-
-    /// <summary>
-    /// Algorithms
-    /// </summary>
-    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Algorithm.html"/>
-    public enum yh_algorithm
-    {
-        /// <summary>rsa-pkcs1-sha1</summary>
-        YH_ALGO_RSA_PKCS1_SHA1 = 1,
-
-        /// <summary>rsa-pkcs1-sha256</summary>
-        YH_ALGO_RSA_PKCS1_SHA256 = 2,
-
-        /// <summary>rsa-pkcs1-sha384</summary>
-        YH_ALGO_RSA_PKCS1_SHA384 = 3,
-
-        /// <summary>rsa-pkcs1-sha512</summary>
-        YH_ALGO_RSA_PKCS1_SHA512 = 4,
-
-        /// <summary>rsa-pss-sha1</summary>
-        YH_ALGO_RSA_PSS_SHA1 = 5,
-
-        /// <summary>rsa-pss-sha256</summary>
-        YH_ALGO_RSA_PSS_SHA256 = 6,
-
-        /// <summary>rsa-pss-sha384</summary>
-        YH_ALGO_RSA_PSS_SHA384 = 7,
-
-        /// <summary>rsa-pss-sha512</summary>
-        YH_ALGO_RSA_PSS_SHA512 = 8,
-
-        /// <summary>rsa2048</summary>
-        YH_ALGO_RSA_2048 = 9,
-
-        /// <summary>rsa3072</summary>
-        YH_ALGO_RSA_3072 = 10,
-
-        /// <summary>rsa4096</summary>
-        YH_ALGO_RSA_4096 = 11,
-
-        /// <summary>ecp256</summary>
-        YH_ALGO_EC_P256 = 12,
-
-        /// <summary>ecp384</summary>
-        YH_ALGO_EC_P384 = 13,
-
-        /// <summary>ecp521</summary>
-        YH_ALGO_EC_P521 = 14,
-
-        /// <summary>eck256</summary>
-        YH_ALGO_EC_K256 = 15,
-
-        /// <summary>ecbp256</summary>
-        YH_ALGO_EC_BP256 = 16,
-
-        /// <summary>ecbp384</summary>
-        YH_ALGO_EC_BP384 = 17,
-
-        /// <summary>ecbp512</summary>
-        YH_ALGO_EC_BP512 = 18,
-
-        /// <summary>hmac-sha1</summary>
-        YH_ALGO_HMAC_SHA1 = 19,
-
-        /// <summary>hmac-sha256</summary>
-        YH_ALGO_HMAC_SHA256 = 20,
-
-        /// <summary>hmac-sha384</summary>
-        YH_ALGO_HMAC_SHA384 = 21,
-
-        /// <summary>hmac-sha512</summary>
-        YH_ALGO_HMAC_SHA512 = 22,
-
-        /// <summary>ecdsa-sha1</summary>
-        YH_ALGO_EC_ECDSA_SHA1 = 23,
-
-        /// <summary>ecdh</summary>
-        YH_ALGO_EC_ECDH = 24,
-
-        /// <summary>rsa-oaep-sha1</summary>
-        YH_ALGO_RSA_OAEP_SHA1 = 25,
-
-        /// <summary>rsa-oaep-sha256</summary>
-        YH_ALGO_RSA_OAEP_SHA256 = 26,
-
-        /// <summary>rsa-oaep-sha384</summary>
-        YH_ALGO_RSA_OAEP_SHA384 = 27,
-
-        /// <summary>rsa-oaep-sha512</summary>
-        YH_ALGO_RSA_OAEP_SHA512 = 28,
-
-        /// <summary>aes128-ccm-wrap</summary>
-        YH_ALGO_AES128_CCM_WRAP = 29,
-
-        /// <summary>opaque-data</summary>
-        YH_ALGO_OPAQUE_DATA = 30,
-
-        /// <summary>opaque-x509-certificate</summary>
-        YH_ALGO_OPAQUE_X509_CERTIFICATE = 31,
-
-        /// <summary>mgf1-sha1</summary>
-        YH_ALGO_MGF1_SHA1 = 32,
-
-        /// <summary>mgf1-sha256</summary>
-        YH_ALGO_MGF1_SHA256 = 33,
-
-        /// <summary>mgf1-sha384</summary>
-        YH_ALGO_MGF1_SHA384 = 34,
-
-        /// <summary>mgf1-sha512</summary>
-        YH_ALGO_MGF1_SHA512 = 35,
-
-        /// <summary>template-ssh</summary>
-        YH_ALGO_TEMPLATE_SSH = 36,
-
-        /// <summary>aes128-yubico-otp</summary>
-        YH_ALGO_AES128_YUBICO_OTP = 37,
-
-        /// <summary>aes128-yubico-authentication</summary>
-        YH_ALGO_AES128_YUBICO_AUTHENTICATION = 38,
-
-        /// <summary>aes192-yubico-otp</summary>
-        YH_ALGO_AES192_YUBICO_OTP = 39,
-
-        /// <summary>aes256-yubico-otp</summary>
-        YH_ALGO_AES256_YUBICO_OTP = 40,
-
-        /// <summary>aes192-ccm-wrap</summary>
-        YH_ALGO_AES192_CCM_WRAP = 41,
-
-        /// <summary>aes256-ccm-wrap</summary>
-        YH_ALGO_AES256_CCM_WRAP = 42,
-
-        /// <summary>ecdsa-sha256</summary>
-        YH_ALGO_EC_ECDSA_SHA256 = 43,
-
-        /// <summary>ecdsa-sha384</summary>
-        YH_ALGO_EC_ECDSA_SHA384 = 44,
-
-        /// <summary>ecdsa-sha512</summary>
-        YH_ALGO_EC_ECDSA_SHA512 = 45,
-
-        /// <summary>ed25519</summary>
-        YH_ALGO_EC_ED25519 = 46,
-
-        /// <summary>ecp224</summary>
-        YH_ALGO_EC_P224 = 47,
-
-        /// <summary>rsa-pkcs1-decrypt</summary>
-        YH_ALGO_RSA_PKCS1_DECRYPT = 48,
-
-        /// <summary>ec-p256-yubico-authentication</summary>
-        YH_ALGO_EC_P256_YUBICO_AUTHENTICATION = 49,
-
-        /// <summary>aes128</summary>
-        YH_ALGO_AES128 = 50,
-
-        /// <summary>aes192</summary>
-        YH_ALGO_AES192 = 51,
-
-        /// <summary>aes256</summary>
-        YH_ALGO_AES256 = 52,
-
-        /// <summary>aes-ecb</summary>
-        YH_ALGO_AES_ECB = 53,
-
-        /// <summary>aes-cbc</summary>
-        YH_ALGO_AES_CBC = 54,
-
-        /// <summary>aes-kwp</summary>
-        YH_ALGO_AES_KWP = 55,
-    }
 
     /// <summary>
     /// Global options
@@ -954,7 +477,7 @@ internal static unsafe partial class yubihsm
         /// <summary>
         /// What command was executed
         /// </summary>
-        /// <seealso cref="yh_cmd"/> 
+        /// <seealso cref="Command"/> 
         byte command;
 
         /// <summary>
@@ -980,7 +503,7 @@ internal static unsafe partial class yubihsm
         /// <summary>
         /// Command result
         /// </summary>
-        /// <seealso cref="yh_cmd"/> 
+        /// <seealso cref="Command"/> 
         byte result;
 
         /// <summary>
@@ -1029,7 +552,7 @@ internal static unsafe partial class yubihsm
         /// <summary>
         /// Object algorithm
         /// </summary>
-        yh_algorithm algorithm;
+        Algorithm algorithm;
 
         /// <summary>
         /// Object sequence
@@ -1112,62 +635,62 @@ internal static unsafe partial class yubihsm
         ("wrap-data", 0x25),
     ];
 
-    private static readonly (string name, yh_algorithm algorithm)[] yh_algorithms = [
-        ("aes128", yh_algorithm.YH_ALGO_AES128),
-        ("aes192", yh_algorithm.YH_ALGO_AES192),
-        ("aes256", yh_algorithm.YH_ALGO_AES256),
-        ("aes128-ccm-wrap", yh_algorithm.YH_ALGO_AES128_CCM_WRAP),
-        ("aes128-yubico-authentication", yh_algorithm.YH_ALGO_AES128_YUBICO_AUTHENTICATION),
-        ("aes128-yubico-otp", yh_algorithm.YH_ALGO_AES128_YUBICO_OTP),
-        ("aes192-ccm-wrap", yh_algorithm.YH_ALGO_AES192_CCM_WRAP),
-        ("aes192-yubico-otp", yh_algorithm.YH_ALGO_AES192_YUBICO_OTP),
-        ("aes256-ccm-wrap", yh_algorithm.YH_ALGO_AES256_CCM_WRAP),
-        ("aes256-yubico-otp", yh_algorithm.YH_ALGO_AES256_YUBICO_OTP),
-        ("aes-cbc", yh_algorithm.YH_ALGO_AES_CBC),
-        ("aes-ecb", yh_algorithm.YH_ALGO_AES_ECB),
-        ("aes-kwp", yh_algorithm.YH_ALGO_AES_KWP),
-        ("ecbp256", yh_algorithm.YH_ALGO_EC_BP256),
-        ("ecbp384", yh_algorithm.YH_ALGO_EC_BP384),
-        ("ecbp512", yh_algorithm.YH_ALGO_EC_BP512),
-        ("ecdh", yh_algorithm.YH_ALGO_EC_ECDH),
-        ("ecdsa-sha1", yh_algorithm.YH_ALGO_EC_ECDSA_SHA1),
-        ("ecdsa-sha256", yh_algorithm.YH_ALGO_EC_ECDSA_SHA256),
-        ("ecdsa-sha384", yh_algorithm.YH_ALGO_EC_ECDSA_SHA384),
-        ("ecdsa-sha512", yh_algorithm.YH_ALGO_EC_ECDSA_SHA512),
-        ("eck256", yh_algorithm.YH_ALGO_EC_K256),
-        ("ecp224", yh_algorithm.YH_ALGO_EC_P224),
-        ("ecp256", yh_algorithm.YH_ALGO_EC_P256),
-        ("ecp256-yubico-authentication", yh_algorithm.YH_ALGO_EC_P256_YUBICO_AUTHENTICATION),
-        ("ecp384", yh_algorithm.YH_ALGO_EC_P384),
-        ("ecp521", yh_algorithm.YH_ALGO_EC_P521),
-        ("ed25519", yh_algorithm.YH_ALGO_EC_ED25519),
-        ("hmac-sha1", yh_algorithm.YH_ALGO_HMAC_SHA1),
-        ("hmac-sha256", yh_algorithm.YH_ALGO_HMAC_SHA256),
-        ("hmac-sha384", yh_algorithm.YH_ALGO_HMAC_SHA384),
-        ("hmac-sha512", yh_algorithm.YH_ALGO_HMAC_SHA512),
-        ("mgf1-sha1", yh_algorithm.YH_ALGO_MGF1_SHA1),
-        ("mgf1-sha256", yh_algorithm.YH_ALGO_MGF1_SHA256),
-        ("mgf1-sha384", yh_algorithm.YH_ALGO_MGF1_SHA384),
-        ("mgf1-sha512", yh_algorithm.YH_ALGO_MGF1_SHA512),
-        ("opaque-data", yh_algorithm.YH_ALGO_OPAQUE_DATA),
-        ("opaque-x509-certificate", yh_algorithm.YH_ALGO_OPAQUE_X509_CERTIFICATE),
-        ("rsa-oaep-sha1", yh_algorithm.YH_ALGO_RSA_OAEP_SHA1),
-        ("rsa-oaep-sha256", yh_algorithm.YH_ALGO_RSA_OAEP_SHA256),
-        ("rsa-oaep-sha384", yh_algorithm.YH_ALGO_RSA_OAEP_SHA384),
-        ("rsa-oaep-sha512", yh_algorithm.YH_ALGO_RSA_OAEP_SHA512),
-        ("rsa-pkcs1-decrypt", yh_algorithm.YH_ALGO_RSA_PKCS1_DECRYPT),
-        ("rsa-pkcs1-sha1", yh_algorithm.YH_ALGO_RSA_PKCS1_SHA1),
-        ("rsa-pkcs1-sha256", yh_algorithm.YH_ALGO_RSA_PKCS1_SHA256),
-        ("rsa-pkcs1-sha384", yh_algorithm.YH_ALGO_RSA_PKCS1_SHA384),
-        ("rsa-pkcs1-sha512", yh_algorithm.YH_ALGO_RSA_PKCS1_SHA512),
-        ("rsa-pss-sha1", yh_algorithm.YH_ALGO_RSA_PSS_SHA1),
-        ("rsa-pss-sha256", yh_algorithm.YH_ALGO_RSA_PSS_SHA256),
-        ("rsa-pss-sha384", yh_algorithm.YH_ALGO_RSA_PSS_SHA384),
-        ("rsa-pss-sha512", yh_algorithm.YH_ALGO_RSA_PSS_SHA512),
-        ("rsa2048", yh_algorithm.YH_ALGO_RSA_2048),
-        ("rsa3072", yh_algorithm.YH_ALGO_RSA_3072),
-        ("rsa4096", yh_algorithm.YH_ALGO_RSA_4096),
-        ("template-ssh", yh_algorithm.YH_ALGO_TEMPLATE_SSH),
+    private static readonly (string name, Algorithm algorithm)[] Algorithms = [
+        ("aes128", Algorithm.Aes128),
+        ("aes192", Algorithm.Aes192),
+        ("aes256", Algorithm.Aes256),
+        ("aes128-ccm-wrap", Algorithm.Aes128CcmWrap),
+        ("aes128-yubico-authentication", Algorithm.Aes128YubicoAuthentication),
+        ("aes128-yubico-otp", Algorithm.Aes128YubicoOtp),
+        ("aes192-ccm-wrap", Algorithm.Aes192CcmWrap),
+        ("aes192-yubico-otp", Algorithm.Aes192YubicoOtp),
+        ("aes256-ccm-wrap", Algorithm.Aes256CcmWrap),
+        ("aes256-yubico-otp", Algorithm.Aes256YubicoOtp),
+        ("aes-cbc", Algorithm.AesCbc),
+        ("aes-ecb", Algorithm.AesEcb),
+        ("aes-kwp", Algorithm.AesKwp),
+        ("ecbp256", Algorithm.Ecbp256),
+        ("ecbp384", Algorithm.Ecbp384),
+        ("ecbp512", Algorithm.Ecbp512),
+        ("ecdh", Algorithm.Ecdh),
+        ("ecdsa-sha1", Algorithm.EcdsaSha1),
+        ("ecdsa-sha256", Algorithm.EcdsaSha256),
+        ("ecdsa-sha384", Algorithm.EcdsaSha384),
+        ("ecdsa-sha512", Algorithm.EcdsaSha512),
+        ("eck256", Algorithm.Eck256),
+        ("ecp224", Algorithm.Ecp224),
+        ("ecp256", Algorithm.Ecp256),
+        ("ecp256-yubico-authentication", Algorithm.ECP256YubicoAuthentication),
+        ("ecp384", Algorithm.Ecp384),
+        ("ecp521", Algorithm.Ecp521),
+        ("ed25519", Algorithm.Ed25519),
+        ("hmac-sha1", Algorithm.HmacSha1),
+        ("hmac-sha256", Algorithm.HmacSha256),
+        ("hmac-sha384", Algorithm.HmacSha384),
+        ("hmac-sha512", Algorithm.HmacSha512),
+        ("mgf1-sha1", Algorithm.Mgf1Sha1),
+        ("mgf1-sha256", Algorithm.Mgf1Sha256),
+        ("mgf1-sha384", Algorithm.Mgf1Sha384),
+        ("mgf1-sha512", Algorithm.Mgf1Sha512),
+        ("opaque-data", Algorithm.OpaqueData),
+        ("opaque-x509-certificate", Algorithm.OpaqueX509Certificate),
+        ("rsa-oaep-sha1", Algorithm.RsaOaepSha1),
+        ("rsa-oaep-sha256", Algorithm.RsaOaepSha256),
+        ("rsa-oaep-sha384", Algorithm.RsaOaepSha384),
+        ("rsa-oaep-sha512", Algorithm.RsaOaepSha512),
+        ("rsa-pkcs1-decrypt", Algorithm.RsaPkcs1Decrypt),
+        ("rsa-pkcs1-sha1", Algorithm.RsaPkcs1Sha1),
+        ("rsa-pkcs1-sha256", Algorithm.RsaPkcs1Sha256),
+        ("rsa-pkcs1-sha384", Algorithm.RsaPkcs1Sha384),
+        ("rsa-pkcs1-sha512", Algorithm.RsaPkcs1Sha512),
+        ("rsa-pss-sha1", Algorithm.RsaPssSha1),
+        ("rsa-pss-sha256", Algorithm.RsaPssSha256),
+        ("rsa-pss-sha384", Algorithm.RsaPssSha384),
+        ("rsa-pss-sha512", Algorithm.RsaPssSha512),
+        ("rsa2048", Algorithm.Rsa2048),
+        ("rsa3072", Algorithm.Rsa3072),
+        ("rsa4096", Algorithm.Rsa4096),
+        ("template-ssh", Algorithm.TemplateSsh),
     ];
 
     private static readonly (string name, yh_object_type type)[] yh_types = [
@@ -1215,7 +738,7 @@ internal static unsafe partial class yubihsm
 
     /// <summary>
     /// Set verbosity level when executing commands.
-    /// Default verbosity is <see cref="yh_verbosity.YH_VERB_QUIET"/>
+    /// Default verbosity is <see cref="Verbosity.Quiet"/>
     /// </summary>
     /// <remarks>
     /// This function may be called prior to global library initialization to set the debug level
@@ -1223,9 +746,9 @@ internal static unsafe partial class yubihsm
     /// <param name="connector">If not NULL, the verbosity of the specific connector will be set</param>
     /// <param name="verbosity">The desired level of debug output</param>
     /// <returns><see cref="yh_rc.YHR_SUCCESS"/></returns>
-    /// <seealso cref="yh_verbosity"/> 
+    /// <seealso cref="Verbosity"/> 
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_set_verbosity(SafeConnectorHandle connector, yh_verbosity verbosity);
+    public static partial yh_rc yh_set_verbosity(SafeConnectorHandle connector, Verbosity verbosity);
 
     /// <summary>
     /// Get verbosity level when executing commands
@@ -1233,9 +756,9 @@ internal static unsafe partial class yubihsm
     /// <param name="verbosity">The verbosity level</param>
     /// <returns><see cref="yh_rc.YHR_SUCCESS"/> if seccessful [sic].
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if verbosity is NULL</returns>
-    /// <seealso cref="yh_verbosity"/> 
+    /// <seealso cref="Verbosity"/> 
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_get_verbosity(out yh_verbosity verbosity);
+    public static partial yh_rc yh_get_verbosity(out Verbosity verbosity);
 
     /// <summary>
     /// Set file for debug output
@@ -1318,7 +841,7 @@ internal static unsafe partial class yubihsm
     /// Send a plain (unencrypted) message to the device through a connector
     /// </summary>
     /// <param name="connector">Connector to the device</param>
-    /// <param name="cmd">Command to send <see cref="yh_cmd"/></param>
+    /// <param name="cmd">Command to send <see cref="Command"/></param>
     /// <param name="data">Data to send</param>
     /// <param name="data_len">length of data to send</param>
     /// <param name="response_cmd">Response command</param>
@@ -1332,8 +855,8 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_send_plain_msg(SafeConnectorHandle connector,
-        yh_cmd cmd, ReadOnlySpan<byte> data, nuint data_len,
-        out yh_cmd response_cmd, Span<byte> response, out nuint response_len);
+        Command cmd, ReadOnlySpan<byte> data, nuint data_len,
+        out Command response_cmd, Span<byte> response, out nuint response_len);
 
     /// <summary>
     /// Send an encrypted message to the device over a session.
@@ -1350,8 +873,8 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/> 
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_send_secure_msg(SafeSessionHandle session,
-        yh_cmd cmd, ReadOnlySpan<byte> data, nuint data_len,
-        out yh_cmd response_cmd, Span<byte> response, out nuint response_len);
+        Command cmd, ReadOnlySpan<byte> data, nuint data_len,
+        out Command response_cmd, Span<byte> response, out nuint response_len);
 
     /// <summary>
     /// Create a session that uses an encryption key and a MAC key derived from a password
@@ -1492,7 +1015,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_device_pubkey(SafeConnectorHandle connector,
-        Span<byte> device_pubkey, out nuint device_pubkey_len, out yh_algorithm algorithm);
+        Span<byte> device_pubkey, out nuint device_pubkey_len, out Algorithm algorithm);
 
     /// <summary>
     /// Utility function that derives an ec-p256 key pair from a password using the following algoirthm.
@@ -1633,7 +1156,7 @@ internal static unsafe partial class yubihsm
     public static partial yh_rc yh_util_get_device_info(SafeConnectorHandle connector,
         out byte major, out byte minor, out byte patch, out uint serial,
         out byte log_total, out byte log_used,
-        Span<yh_algorithm> algorithms, out nuint n_algorithms);
+        Span<Algorithm> algorithms, out nuint n_algorithms);
 
     /// <summary>
     /// Get device version, part number (chip designator) as required by FIPS
@@ -1678,7 +1201,7 @@ internal static unsafe partial class yubihsm
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_list_objects(SafeSessionHandle session, ushort id,
         yh_object_type type, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm, ReadOnlySpan<byte> label,
+        Algorithm algorithm, ReadOnlySpan<byte> label,
         Span<yh_object_descriptor> objects, out nuint n_objects);
 
     /// <summary>
@@ -1713,7 +1236,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_public_key(SafeSessionHandle session, ushort id,
-        Span<byte> data, out nuint data_len, out yh_algorithm algorithm);
+        Span<byte> data, out nuint data_len, out Algorithm algorithm);
 
     /// <summary>
     /// Get the value of the public key with the specified Object ID and type
@@ -1732,7 +1255,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_public_key_ex(SafeSessionHandle session, yh_object_type type,
-        ushort id, Span<byte> data, out nuint data_len, out yh_algorithm algorithm);
+        ushort id, Span<byte> data, out nuint data_len, out Algorithm algorithm);
 
     /// <summary>
     /// Close a session
@@ -1792,7 +1315,7 @@ internal static unsafe partial class yubihsm
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_sign_pss(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len,
-        nuint salt_len, yh_algorithm mgf1Algo);
+        nuint salt_len, Algorithm mgf1Algo);
 
     /// <summary>
     /// Sign data using ECDSA
@@ -1875,17 +1398,17 @@ internal static unsafe partial class yubihsm
     /// <param name="label">Label of the key. Maximum length is <see cref="YH_OBJ_LABEL_LEN"/></param>
     /// <param name="domains">Domains to which the key belongs specified as an unsigned int. <see cref="yh_string_to_domains"/></param>
     /// <param name="capabilities">Capabilities of the key. <see cref="yh_string_to_capabilities"/></param>
-    /// <param name="algorithm">Algorithm of the key to import. Must be one of <see cref="yh_algorithm.YH_ALGO_AES128"/>, <see cref="yh_algorithm.YH_ALGO_AES192"/> or <see cref="yh_algorithm.YH_ALGO_AES256"/></param>
+    /// <param name="algorithm">Algorithm of the key to import. Must be one of <see cref="Algorithm.Aes128"/>, <see cref="Algorithm.Aes192"/> or <see cref="Algorithm.Aes256"/></param>
     /// <param name="key">The key to import</param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
-    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the <paramref name="algorithm"/> is not one of <see cref="yh_algorithm.YH_ALGO_AES128"/>, <see cref="yh_algorithm.YH_ALGO_AES192"/> or <see cref="yh_algorithm.YH_ALGO_AES256"/>.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the <paramref name="algorithm"/> is not one of <see cref="Algorithm.Aes128"/>, <see cref="Algorithm.Aes192"/> or <see cref="Algorithm.Aes256"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_aes_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm, ReadOnlySpan<byte> key);
+        Algorithm algorithm, ReadOnlySpan<byte> key);
 
     /// <summary>
     /// Import an RSA key into the device
@@ -1895,18 +1418,18 @@ internal static unsafe partial class yubihsm
     /// <param name="label">Label of the key. Maximum length is <see cref="YH_OBJ_LABEL_LEN"/></param>
     /// <param name="domains">Domains to which the key belongs specified as an unsigned int. <see cref="yh_string_to_domains"/></param>
     /// <param name="capabilities">Capabilities of the key. <see cref="yh_string_to_capabilities"/></param>
-    /// <param name="algorithm">Algorithm of the key to import. Must be one of <see cref="yh_algorithm.YH_ALGO_RSA_2048"/>, <see cref="yh_algorithm.YH_ALGO_RSA_3072"/> or <see cref="yh_algorithm.YH_ALGO_RSA_4096"/></param>
+    /// <param name="algorithm">Algorithm of the key to import. Must be one of <see cref="Algorithm.Rsa2048"/>, <see cref="Algorithm.Rsa3072"/> or <see cref="Algorithm.Rsa4096"/></param>
     /// <param name="p">P component of the RSA key to import</param>
     /// <param name="q">Q component of the RSA key to import</param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
-    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the algorithm is not one of <see cref="yh_algorithm.YH_ALGO_RSA_2048"/>, <see cref="yh_algorithm.YH_ALGO_RSA_3072"/> or <see cref="yh_algorithm.YH_ALGO_RSA_4096"/>
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the algorithm is not one of <see cref="Algorithm.Rsa2048"/>, <see cref="Algorithm.Rsa3072"/> or <see cref="Algorithm.Rsa4096"/>
     /// </returns>
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_rsa_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm, ReadOnlySpan<byte> p, ReadOnlySpan<byte> q);
+        Algorithm algorithm, ReadOnlySpan<byte> p, ReadOnlySpan<byte> q);
 
     /// <summary>
     /// Import an Elliptic Curve key into the device
@@ -1917,20 +1440,20 @@ internal static unsafe partial class yubihsm
     /// <param name="domains">Domains to which the key belongs specified as an unsigned int. <see cref="yh_string_to_domains"/></param>
     /// <param name="capabilities">Capabilities of the key. <see cref="yh_string_to_capabilities"/></param>
     /// <param name="algorithm">Algorithm of the key to import. Must be one of:
-    /// <see cref="yh_algorithm.YH_ALGO_EC_P224"/>, <see cref="yh_algorithm.YH_ALGO_EC_P256"/>, <see cref="yh_algorithm.YH_ALGO_EC_K256"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP256"/>,
-    /// <see cref="yh_algorithm.YH_ALGO_EC_P384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP512"/> or <see cref="yh_algorithm.YH_ALGO_EC_P521"/></param>
+    /// <see cref="Algorithm.Ecp224"/>, <see cref="Algorithm.Ecp256"/>, <see cref="Algorithm.Eck256"/>, <see cref="Algorithm.Ecbp256"/>,
+    /// <see cref="Algorithm.Ecp384"/>, <see cref="Algorithm.Ecbp384"/>, <see cref="Algorithm.Ecbp512"/> or <see cref="Algorithm.Ecp521"/></param>
     /// <param name="s">the EC key to import</param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the <paramref name="algorithm"/> is not one of
-    /// <see cref="yh_algorithm.YH_ALGO_EC_P224"/>, <see cref="yh_algorithm.YH_ALGO_EC_P256"/>, <see cref="yh_algorithm.YH_ALGO_EC_K256"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP256"/>,
-    /// <see cref="yh_algorithm.YH_ALGO_EC_P384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP512"/> or <see cref="yh_algorithm.YH_ALGO_EC_P521"/>
+    /// <see cref="Algorithm.Ecp224"/>, <see cref="Algorithm.Ecp256"/>, <see cref="Algorithm.Eck256"/>, <see cref="Algorithm.Ecbp256"/>,
+    /// <see cref="Algorithm.Ecp384"/>, <see cref="Algorithm.Ecbp384"/>, <see cref="Algorithm.Ecbp512"/> or <see cref="Algorithm.Ecp521"/>
     /// </returns>
     /// <seealso cref="yh_rc"/> 
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_ec_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm, ReadOnlySpan<byte> s);
+        Algorithm algorithm, ReadOnlySpan<byte> s);
 
     /// <summary>
     /// Import an ED key into the device
@@ -1940,17 +1463,17 @@ internal static unsafe partial class yubihsm
     /// <param name="label">Label of the key. Maximum length is <see cref="YH_OBJ_LABEL_LEN"/></param>
     /// <param name="domains">Domains to which the key belongs. <see cref="yh_string_to_domains"/></param>
     /// <param name="capabilities">Capabilities of the key. <see cref="yh_string_to_capabilities"/></param>
-    /// <param name="algorithm">Algorithm of the key to import. Must be <see cref="yh_algorithm.YH_ALGO_EC_ED25519"/></param>
+    /// <param name="algorithm">Algorithm of the key to import. Must be <see cref="Algorithm.Ed25519"/></param>
     /// <param name="k">the ED key to import</param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
-    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the <paramref name="algorithm"/> is not <see cref="yh_algorithm.YH_ALGO_EC_ED25519"/>.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the <paramref name="algorithm"/> is not <see cref="Algorithm.Ed25519"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_ed_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm, ReadOnlySpan<byte> k);
+        Algorithm algorithm, ReadOnlySpan<byte> k);
 
     /// <summary>
     /// Import an HMAC key into the device
@@ -1961,8 +1484,8 @@ internal static unsafe partial class yubihsm
     /// <param name="domains">Domains to which the key belongs. <see cref="yh_string_to_domains"/></param>
     /// <param name="capabilities">Capabilities of the key. <see cref="yh_string_to_capabilities"/></param>
     /// <param name="algorithm">Algorithm of the key to import. Must be one of:
-    /// <see cref="yh_algorithm.YH_ALGO_HMAC_SHA1"/>, <see cref="yh_algorithm.YH_ALGO_HMAC_SHA256"/>, <see cref="yh_algorithm.YH_ALGO_HMAC_SHA384"/>
-    /// or <see cref="yh_algorithm.YH_ALGO_HMAC_SHA512"/></param>
+    /// <see cref="Algorithm.HmacSha1"/>, <see cref="Algorithm.HmacSha256"/>, <see cref="Algorithm.HmacSha384"/>
+    /// or <see cref="Algorithm.HmacSha512"/></param>
     /// <param name="key">The HMAC key to import</param>
     /// <param name="key_len">Length of the HMAC key to import</param>
     /// <returns>
@@ -1973,7 +1496,7 @@ internal static unsafe partial class yubihsm
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_hmac_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm, ReadOnlySpan<byte> key, nuint key_len);
+        Algorithm algorithm, ReadOnlySpan<byte> key, nuint key_len);
 
     /// <summary>
     /// Generate an AES key in the device
@@ -1984,16 +1507,16 @@ internal static unsafe partial class yubihsm
     /// <param name="domains">Domains to which the key belongs. <see cref="yh_string_to_domains"/></param>
     /// <param name="capabilities">Capabilities of the key. <see cref="yh_string_to_capabilities"/></param>
     /// <param name="algorithm">Algorithm to use to generate the AES key. Supported algorithms:
-    /// <see cref="yh_algorithm.YH_ALGO_AES128"/>, <see cref="yh_algorithm.YH_ALGO_AES192"/> or <see cref="yh_algorithm.YH_ALGO_AES256"/>.</param>
+    /// <see cref="Algorithm.Aes128"/>, <see cref="Algorithm.Aes192"/> or <see cref="Algorithm.Aes256"/>.</param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
-    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the <paramref name="algorithm"/> is not one of <see cref="yh_algorithm.YH_ALGO_AES128"/>, <see cref="yh_algorithm.YH_ALGO_AES192"/> or <see cref="yh_algorithm.YH_ALGO_AES256"/>.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the <paramref name="algorithm"/> is not one of <see cref="Algorithm.Aes128"/>, <see cref="Algorithm.Aes192"/> or <see cref="Algorithm.Aes256"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_aes_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm);
+        Algorithm algorithm);
 
     /// <summary>
     /// Generate an RSA key in the device
@@ -2004,16 +1527,16 @@ internal static unsafe partial class yubihsm
     /// <param name="domains">Domains to which the key belongs. <see cref="yh_string_to_domains"/></param>
     /// <param name="capabilities">Capabilities of the key. <see cref="yh_string_to_capabilities"/></param>
     /// <param name="algorithm">Algorithm to use to generate the RSA key. Supported algorithms:
-    /// <see cref="yh_algorithm.YH_ALGO_RSA_2048"/>, <see cref="yh_algorithm.YH_ALGO_RSA_3072"/> and <see cref="yh_algorithm.YH_ALGO_RSA_4096"/></param>
+    /// <see cref="Algorithm.Rsa2048"/>, <see cref="Algorithm.Rsa3072"/> and <see cref="Algorithm.Rsa4096"/></param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
-    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the algorithm is not one of <see cref="yh_algorithm.YH_ALGO_RSA_2048"/>, <see cref="yh_algorithm.YH_ALGO_RSA_3072"/> and <see cref="yh_algorithm.YH_ALGO_RSA_4096"/>.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the algorithm is not one of <see cref="Algorithm.Rsa2048"/>, <see cref="Algorithm.Rsa3072"/> and <see cref="Algorithm.Rsa4096"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_rsa_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm);
+        Algorithm algorithm);
 
     /// <summary>
     /// Generate an Elliptic Curve key in the device
@@ -2024,21 +1547,21 @@ internal static unsafe partial class yubihsm
     /// <param name="domains">Domains to which the key belongs. <see cref="yh_string_to_domains"/></param>
     /// <param name="capabilities">Capabilities of the key <see cref="yh_string_to_capabilities"/></param>
     /// <param name="algorithm">Algorithm to use to generate the EC key. Supported algorithm:
-    /// <see cref="yh_algorithm.YH_ALGO_EC_P224"/>, <see cref="yh_algorithm.YH_ALGO_EC_P256"/>, <see cref="yh_algorithm.YH_ALGO_EC_K256"/>,
-    /// <see cref="yh_algorithm.YH_ALGO_EC_BP256"/>, <see cref="yh_algorithm.YH_ALGO_EC_P384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP512"/> and
-    /// <see cref="yh_algorithm.YH_ALGO_EC_P521"/>.</param>
+    /// <see cref="Algorithm.Ecp224"/>, <see cref="Algorithm.Ecp256"/>, <see cref="Algorithm.Eck256"/>,
+    /// <see cref="Algorithm.Ecbp256"/>, <see cref="Algorithm.Ecp384"/>, <see cref="Algorithm.Ecbp384"/>, <see cref="Algorithm.Ecbp512"/> and
+    /// <see cref="Algorithm.Ecp521"/>.</param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the algorithm is not one of
-    /// <see cref="yh_algorithm.YH_ALGO_EC_P224"/>, <see cref="yh_algorithm.YH_ALGO_EC_P256"/>, <see cref="yh_algorithm.YH_ALGO_EC_K256"/>,
-    /// <see cref="yh_algorithm.YH_ALGO_EC_BP256"/>, <see cref="yh_algorithm.YH_ALGO_EC_P384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP384"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP512"/> or
-    /// <see cref="yh_algorithm.YH_ALGO_EC_P521"/>.
+    /// <see cref="Algorithm.Ecp224"/>, <see cref="Algorithm.Ecp256"/>, <see cref="Algorithm.Eck256"/>,
+    /// <see cref="Algorithm.Ecbp256"/>, <see cref="Algorithm.Ecp384"/>, <see cref="Algorithm.Ecbp384"/>, <see cref="Algorithm.Ecbp512"/> or
+    /// <see cref="Algorithm.Ecp521"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_ec_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm);
+        Algorithm algorithm);
 
     /// <summary>
     /// Generate an ED key in the device
@@ -2048,16 +1571,16 @@ internal static unsafe partial class yubihsm
     /// <param name="label">Label for the key. Maximum length <see cref="YH_OBJ_LABEL_LEN"/></param>
     /// <param name="domains">Domains to which the key belongs. <see cref="yh_string_to_domains"/></param>
     /// <param name="capabilities">Capabilities of the ED key. <see cref="yh_string_to_capabilities"/></param>
-    /// <param name="algorithm">Algorithm to use to generate the ED key. Supported algorithm: <see cref="yh_algorithm.YH_ALGO_EC_ED25519"/></param>
+    /// <param name="algorithm">Algorithm to use to generate the ED key. Supported algorithm: <see cref="Algorithm.Ed25519"/></param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
-    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the algorithm is not <see cref="yh_algorithm.YH_ALGO_EC_ED25519"/>.
+    /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> input parameters are NULL or the algorithm is not <see cref="Algorithm.Ed25519"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_ed_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm);
+        Algorithm algorithm);
 
     /// <summary>
     /// Verify a generated HMAC
@@ -2088,7 +1611,7 @@ internal static unsafe partial class yubihsm
     /// <param name="domains">Domains to which the key belongs. <see cref="yh_string_to_domains"/></param>
     /// <param name="capabilities">Capabilities of the key. <see cref="yh_string_to_capabilities"/></param>
     /// <param name="algorithm">Algorithm to use to generate the HMAC key. Supported algorithms:
-    /// <see cref="yh_algorithm.YH_ALGO_HMAC_SHA1"/>, <see cref="yh_algorithm.YH_ALGO_HMAC_SHA256"/>, <see cref="yh_algorithm.YH_ALGO_HMAC_SHA384"/>, <see cref="yh_algorithm.YH_ALGO_HMAC_SHA512"/>
+    /// <see cref="Algorithm.HmacSha1"/>, <see cref="Algorithm.HmacSha256"/>, <see cref="Algorithm.HmacSha384"/>, <see cref="Algorithm.HmacSha512"/>
     /// </param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
@@ -2098,7 +1621,7 @@ internal static unsafe partial class yubihsm
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_hmac_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm);
+        Algorithm algorithm);
 
     /// <summary>
     /// Decrypt data that was encrypted using RSA-PKCS#1v1.5
@@ -2139,7 +1662,7 @@ internal static unsafe partial class yubihsm
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_decrypt_oaep(SafeSessionHandle session, ushort key_id,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len,
-        ReadOnlySpan<byte> label, nuint label_len, yh_algorithm mgf1Algo);
+        ReadOnlySpan<byte> label, nuint label_len, Algorithm mgf1Algo);
 
     /// <summary>
     /// Derive an ECDH key from a private EC key on the device and a provided public EC key
@@ -2237,9 +1760,9 @@ internal static unsafe partial class yubihsm
     /// <param name="wrap_key_id">Object ID of the Wrap Key to use to wrap the object</param>
     /// <param name="target_type">Type of the target key object</param>
     /// <param name="target_id">Object ID of the target key object</param>
-    /// <param name="aes">Algorithm of the ephemeral AES key. Can be <see cref="yh_algorithm.YH_ALGO_AES128"/>, <see cref="yh_algorithm.YH_ALGO_AES192"/>, or <see cref="yh_algorithm.YH_ALGO_AES256"/></param>
-    /// <param name="hash">Hash algorithm. One of <see cref="yh_algorithm.YH_ALGO_RSA_OAEP_SHA1"/>, <see cref="yh_algorithm.YH_ALGO_RSA_OAEP_SHA256"/>, <see cref="yh_algorithm.YH_ALGO_RSA_OAEP_SHA384"/>, or <see cref="yh_algorithm.YH_ALGO_RSA_OAEP_SHA512"/></param>
-    /// <param name="mgf1">MGF1 algorithm. One of <see cref="yh_algorithm.YH_ALGO_MGF1_SHA1"/>, <see cref="yh_algorithm.YH_ALGO_MGF1_SHA256"/>, <see cref="yh_algorithm.YH_ALGO_MGF1_SHA384"/>, or <see cref="yh_algorithm.YH_ALGO_MGF1_SHA512"/></param>
+    /// <param name="aes">Algorithm of the ephemeral AES key. Can be <see cref="Algorithm.Aes128"/>, <see cref="Algorithm.Aes192"/>, or <see cref="Algorithm.Aes256"/></param>
+    /// <param name="hash">Hash algorithm. One of <see cref="Algorithm.RsaOaepSha1"/>, <see cref="Algorithm.RsaOaepSha256"/>, <see cref="Algorithm.RsaOaepSha384"/>, or <see cref="Algorithm.RsaOaepSha512"/></param>
+    /// <param name="mgf1">MGF1 algorithm. One of <see cref="Algorithm.Mgf1Sha1"/>, <see cref="Algorithm.Mgf1Sha256"/>, <see cref="Algorithm.Mgf1Sha384"/>, or <see cref="Algorithm.Mgf1Sha512"/></param>
     /// <param name="oaep_label">Label for the MGF1 algorithm</param>
     /// <param name="oaep_label_len">Label length</param>
     /// <param name="out">Wrapped key object bytes</param>
@@ -2251,8 +1774,8 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_rsa_wrapped_key(SafeSessionHandle session, ushort wrap_key_id,
-        yh_object_type target_type, ushort target_id, yh_algorithm aes,
-        yh_algorithm hash, yh_algorithm mgf1,
+        yh_object_type target_type, ushort target_id, Algorithm aes,
+        Algorithm hash, Algorithm mgf1,
         ReadOnlySpan<byte> oaep_label, nuint oaep_label_len, Span<byte> @out, out nuint out_len);
 
     /// <summary>
@@ -2262,9 +1785,9 @@ internal static unsafe partial class yubihsm
     /// <param name="wrap_key_id">Object ID of the Wrap Key to use to wrap the object</param>
     /// <param name="target_type">Type of the target object</param>
     /// <param name="target_id">Object ID of the target object</param>
-    /// <param name="aes">Algorithm of the ephemeral AES key. Can be <see cref="yh_algorithm.YH_ALGO_AES128"/>, <see cref="yh_algorithm.YH_ALGO_AES192"/>, or <see cref="yh_algorithm.YH_ALGO_AES256"/></param>
-    /// <param name="hash">Hash algorithm. One of <see cref="yh_algorithm.YH_ALGO_RSA_OAEP_SHA1"/>, <see cref="yh_algorithm.YH_ALGO_RSA_OAEP_SHA256"/>, <see cref="yh_algorithm.YH_ALGO_RSA_OAEP_SHA384"/>, or <see cref="yh_algorithm.YH_ALGO_RSA_OAEP_SHA512"/></param>
-    /// <param name="mgf1">MGF1 algorithm. One of <see cref="yh_algorithm.YH_ALGO_MGF1_SHA1"/>, <see cref="yh_algorithm.YH_ALGO_MGF1_SHA256"/>, <see cref="yh_algorithm.YH_ALGO_MGF1_SHA384"/>, or <see cref="yh_algorithm.YH_ALGO_MGF1_SHA512"/></param>
+    /// <param name="aes">Algorithm of the ephemeral AES key. Can be <see cref="Algorithm.Aes128"/>, <see cref="Algorithm.Aes192"/>, or <see cref="Algorithm.Aes256"/></param>
+    /// <param name="hash">Hash algorithm. One of <see cref="Algorithm.RsaOaepSha1"/>, <see cref="Algorithm.RsaOaepSha256"/>, <see cref="Algorithm.RsaOaepSha384"/>, or <see cref="Algorithm.RsaOaepSha512"/></param>
+    /// <param name="mgf1">MGF1 algorithm. One of <see cref="Algorithm.Mgf1Sha1"/>, <see cref="Algorithm.Mgf1Sha256"/>, <see cref="Algorithm.Mgf1Sha384"/>, or <see cref="Algorithm.Mgf1Sha512"/></param>
     /// <param name="oaep_label">Label for the MGF1 algorithm</param>
     /// <param name="oaep_label_len">Label length</param>
     /// <param name="out">Wrapped object bytes</param>
@@ -2276,8 +1799,8 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_export_rsa_wrapped(SafeSessionHandle session, ushort wrap_key_id,
-        yh_object_type target_type, ushort target_id, yh_algorithm aes,
-        yh_algorithm hash, yh_algorithm mgf1,
+        yh_object_type target_type, ushort target_id, Algorithm aes,
+        Algorithm hash, Algorithm mgf1,
         ReadOnlySpan<byte> oaep_label, nuint oaep_label_len, Span<byte> @out, out nuint out_len);
 
     /// <summary>
@@ -2285,8 +1808,8 @@ internal static unsafe partial class yubihsm
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="wrapping_key_id">Object ID of the Wrap Key to use to unwrap the object</param>
-    /// <param name="hash">Hash algorithm. One of <see cref="yh_algorithm.YH_ALGO_RSA_OAEP_SHA1"/>, <see cref="yh_algorithm.YH_ALGO_RSA_OAEP_SHA256"/>, <see cref="yh_algorithm.YH_ALGO_RSA_OAEP_SHA384"/>, or <see cref="yh_algorithm.YH_ALGO_RSA_OAEP_SHA512"/></param>
-    /// <param name="mgf1">MGF1 algorithm. One of <see cref="yh_algorithm.YH_ALGO_MGF1_SHA1"/>, <see cref="yh_algorithm.YH_ALGO_MGF1_SHA256"/>, <see cref="yh_algorithm.YH_ALGO_MGF1_SHA384"/>, or <see cref="yh_algorithm.YH_ALGO_MGF1_SHA512"/></param>
+    /// <param name="hash">Hash algorithm. One of <see cref="Algorithm.RsaOaepSha1"/>, <see cref="Algorithm.RsaOaepSha256"/>, <see cref="Algorithm.RsaOaepSha384"/>, or <see cref="Algorithm.RsaOaepSha512"/></param>
+    /// <param name="mgf1">MGF1 algorithm. One of <see cref="Algorithm.Mgf1Sha1"/>, <see cref="Algorithm.Mgf1Sha256"/>, <see cref="Algorithm.Mgf1Sha384"/>, or <see cref="Algorithm.Mgf1Sha512"/></param>
     /// <param name="label">Label for the MGF1 algorithm</param>
     /// <param name="label_len">Label length</param>
     /// <param name="in">Wrapped object bytes</param>
@@ -2300,7 +1823,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_rsa_wrapped(SafeSessionHandle session, ushort wrapping_key_id,
-        yh_algorithm hash, yh_algorithm mgf1,
+        Algorithm hash, Algorithm mgf1,
         ReadOnlySpan<byte> label, nuint label_len,
         ReadOnlySpan<byte> @in, nuint in_len,
         out yh_object_type target_type, out ushort target_id);
@@ -2316,8 +1839,8 @@ internal static unsafe partial class yubihsm
     /// <param name="label">Label of object to import</param>
     /// <param name="domains">Domains of object to import</param>
     /// <param name="capabilities">Capabilities of object to import</param>
-    /// <param name="hash">Hash algorithm. One of <see cref="yh_algorithm.YH_ALGO_RSA_OAEP_SHA1"/>, <see cref="yh_algorithm.YH_ALGO_RSA_OAEP_SHA256"/>, <see cref="yh_algorithm.YH_ALGO_RSA_OAEP_SHA384"/>, or <see cref="yh_algorithm.YH_ALGO_RSA_OAEP_SHA512"/></param>
-    /// <param name="mgf1">MGF1 algorithm. One of <see cref="yh_algorithm.YH_ALGO_MGF1_SHA1"/>, <see cref="yh_algorithm.YH_ALGO_MGF1_SHA256"/>, <see cref="yh_algorithm.YH_ALGO_MGF1_SHA384"/>, or <see cref="yh_algorithm.YH_ALGO_MGF1_SHA512"/></param>
+    /// <param name="hash">Hash algorithm. One of <see cref="Algorithm.RsaOaepSha1"/>, <see cref="Algorithm.RsaOaepSha256"/>, <see cref="Algorithm.RsaOaepSha384"/>, or <see cref="Algorithm.RsaOaepSha512"/></param>
+    /// <param name="mgf1">MGF1 algorithm. One of <see cref="Algorithm.Mgf1Sha1"/>, <see cref="Algorithm.Mgf1Sha256"/>, <see cref="Algorithm.Mgf1Sha384"/>, or <see cref="Algorithm.Mgf1Sha512"/></param>
     /// <param name="oaep_label">Label for the MGF1 algorithm</param>
     /// <param name="oaep_label_len">Label length</param>
     /// <param name="in">Wrapped object bytes</param>
@@ -2330,8 +1853,8 @@ internal static unsafe partial class yubihsm
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_put_rsa_wrapped_key(
         SafeSessionHandle session, ushort wrapping_key_id, yh_object_type type,
-        ref ushort target_id, yh_algorithm algo, ReadOnlySpan<byte> label, ushort domains,
-        in yh_capabilities capabilities, yh_algorithm hash, yh_algorithm mgf1,
+        ref ushort target_id, Algorithm algo, ReadOnlySpan<byte> label, ushort domains,
+        in yh_capabilities capabilities, Algorithm hash, Algorithm mgf1,
         ReadOnlySpan<byte> oaep_label, nuint oaep_label_len, ReadOnlySpan<byte> @in, nuint in_len);
 
     /// <summary>
@@ -2342,21 +1865,21 @@ internal static unsafe partial class yubihsm
     /// <param name="label">Label of the Wrap Key. Maximum length is <see cref="YH_OBJ_LABEL_LEN"/></param>
     /// <param name="domains">Domains where the Wrap Key will be operating within. <see cref="yh_string_to_domains"/></param>
     /// <param name="capabilities">Capabilities of the Wrap Key. See <see cref="yh_string_to_capabilities"/></param>
-    /// <param name="algorithm">Algorithm of the Wrap Key. Supported algorithms: <see cref="yh_algorithm.YH_ALGO_AES128_CCM_WRAP"/>, <see cref="yh_algorithm.YH_ALGO_AES192_CCM_WRAP"/>, <see cref="yh_algorithm.YH_ALGO_AES256_CCM_WRAP"/>, <see cref="yh_algorithm.YH_ALGO_RSA_2048"/>, <see cref="yh_algorithm.YH_ALGO_RSA_3072"/>, and <see cref="yh_algorithm.YH_ALGO_RSA_4096"/></param>
+    /// <param name="algorithm">Algorithm of the Wrap Key. Supported algorithms: <see cref="Algorithm.Aes128CcmWrap"/>, <see cref="Algorithm.Aes192CcmWrap"/>, <see cref="Algorithm.Aes256CcmWrap"/>, <see cref="Algorithm.Rsa2048"/>, <see cref="Algorithm.Rsa3072"/>, and <see cref="Algorithm.Rsa4096"/></param>
     /// <param name="delegated_capabilities">Delegated capabilities of the Wrap Key. See <see cref="yh_string_to_capabilities"/></param>
     /// <param name="in">the Wrap Key to import</param>
     /// <param name="in_len">Length of the Wrap Key to import</param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL, <paramref name="in_len"/> is not what expected based on the algorithm
-    /// and if the <paramref name="algorithm"/> is not one of <see cref="yh_algorithm.YH_ALGO_AES128_CCM_WRAP"/>, <see cref="yh_algorithm.YH_ALGO_AES192_CCM_WRAP"/>, <see cref="yh_algorithm.YH_ALGO_AES256_CCM_WRAP"/>, <see cref="yh_algorithm.YH_ALGO_RSA_2048"/>, <see cref="yh_algorithm.YH_ALGO_RSA_3072"/>, or <see cref="yh_algorithm.YH_ALGO_RSA_4096"/>.
+    /// and if the <paramref name="algorithm"/> is not one of <see cref="Algorithm.Aes128CcmWrap"/>, <see cref="Algorithm.Aes192CcmWrap"/>, <see cref="Algorithm.Aes256CcmWrap"/>, <see cref="Algorithm.Rsa2048"/>, <see cref="Algorithm.Rsa3072"/>, or <see cref="Algorithm.Rsa4096"/>.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> will also be returned if the firmware versiion does not support RSA wrap keys.
     /// </returns>
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_wrap_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm, in yh_capabilities delegated_capabilities,
+        Algorithm algorithm, in yh_capabilities delegated_capabilities,
         ReadOnlySpan<byte> @in, nuint in_len);
 
     /// <summary>
@@ -2367,20 +1890,20 @@ internal static unsafe partial class yubihsm
     /// <param name="label">Label of the Wrap Key. Maximum length is <see cref="YH_OBJ_LABEL_LEN"/></param>
     /// <param name="domains">Domains where the Wrap Key will be operating within. <see cref="yh_string_to_domains"/></param>
     /// <param name="capabilities">Capabilities of the Wrap Key. See <see cref="yh_string_to_capabilities"/></param>
-    /// <param name="algorithm">Algorithm of the Public Wrap Key. Supported algorithms: <see cref="yh_algorithm.YH_ALGO_RSA_2048"/>, <see cref="yh_algorithm.YH_ALGO_RSA_3072"/>, and <see cref="yh_algorithm.YH_ALGO_RSA_4096"/></param>
+    /// <param name="algorithm">Algorithm of the Public Wrap Key. Supported algorithms: <see cref="Algorithm.Rsa2048"/>, <see cref="Algorithm.Rsa3072"/>, and <see cref="Algorithm.Rsa4096"/></param>
     /// <param name="delegated_capabilities">Delegated capabilities of the Wrap Key. See <see cref="yh_string_to_capabilities"/></param>
     /// <param name="in">the Public Wrap Key to import in PEM format</param>
     /// <param name="in_len">Length of the Wrap Key to import</param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL, <paramref name="in_len"/> is not what expected based on the algorithm
-    /// and if <paramref name="algorithm"/> is not one of <see cref="yh_algorithm.YH_ALGO_RSA_2048"/>, <see cref="yh_algorithm.YH_ALGO_RSA_3072"/>, or <see cref="yh_algorithm.YH_ALGO_RSA_4096"/>.
+    /// and if <paramref name="algorithm"/> is not one of <see cref="Algorithm.Rsa2048"/>, <see cref="Algorithm.Rsa3072"/>, or <see cref="Algorithm.Rsa4096"/>.
     /// </returns>
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_public_wrap_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm, in yh_capabilities delegated_capabilities,
+        Algorithm algorithm, in yh_capabilities delegated_capabilities,
         ReadOnlySpan<byte> @in, nuint in_len);
 
     /// <summary>
@@ -2401,7 +1924,7 @@ internal static unsafe partial class yubihsm
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_wrap_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm, in yh_capabilities delegated_capabilities);
+        Algorithm algorithm, in yh_capabilities delegated_capabilities);
 
     /// <summary>
     /// Get audit logs from the device.
@@ -2479,7 +2002,7 @@ internal static unsafe partial class yubihsm
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_opaque(SafeSessionHandle session, ref ushort object_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len);
+        Algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len);
 
     /// <summary>
     /// Get an <see cref="yh_object_type.YH_OPAQUE"/> object (like an X.509 certificate) from the device with an option to decompress the data
@@ -2520,7 +2043,7 @@ internal static unsafe partial class yubihsm
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_opaque_ex(SafeSessionHandle session, ref ushort object_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len,
+        Algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len,
         yh_compress_option compress, out nuint import_len);
 
     /// <summary>
@@ -2541,7 +2064,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_sign_ssh_certificate(SafeSessionHandle session, ushort key_id,
-        ushort template_id, yh_algorithm sig_algo,
+        ushort template_id, Algorithm sig_algo,
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
     /// <summary>
@@ -2665,7 +2188,7 @@ internal static unsafe partial class yubihsm
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_template(SafeSessionHandle session, ref ushort object_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len);
+        Algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len);
 
     /// <summary>
     /// Create a Yubico OTP AEAD using the provided data
@@ -2773,7 +2296,7 @@ internal static unsafe partial class yubihsm
     /// <param name="domains">Domains the AEAD Key will be operating within. <see cref="yh_string_to_domains"/></param>
     /// <param name="capabilities">Capabilities of the AEAD Key. <see cref="yh_string_to_capabilities"/></param>
     /// <param name="algorithm">Algorithm used to generate the AEAD Key. Supported algorithms:
-    /// <see cref="yh_algorithm.YH_ALGO_AES128_YUBICO_OTP"/>, <see cref="yh_algorithm.YH_ALGO_AES192_YUBICO_OTP"/>, and <see cref="yh_algorithm.YH_ALGO_AES256_YUBICO_OTP"/></param>
+    /// <see cref="Algorithm.Aes128YubicoOtp"/>, <see cref="Algorithm.Aes192YubicoOtp"/>, and <see cref="Algorithm.Aes256YubicoOtp"/></param>
     /// <param name="nonce_id">Nonce ID</param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
@@ -2783,7 +2306,7 @@ internal static unsafe partial class yubihsm
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_otp_aead_key(SafeSessionHandle session, ref ushort key_id,
         ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        yh_algorithm algorithm, uint nonce_id);
+        Algorithm algorithm, uint nonce_id);
 
     /// <summary>
     /// Get attestation of an Asymmetric Key in the form of an X.509 certificate
@@ -3157,83 +2680,83 @@ internal static unsafe partial class yubihsm
     /// Check if an algorithm is a supported Symmetric Key AES algorithm
     /// </summary>
     /// <remarks>
-    /// Supported AES algorithms: <see cref="yh_algorithm.YH_ALGO_AES128"/>, <see cref="yh_algorithm.YH_ALGO_AES192"/> and <see cref="yh_algorithm.YH_ALGO_AES256"/>
+    /// Supported AES algorithms: <see cref="Algorithm.Aes128"/>, <see cref="Algorithm.Aes192"/> and <see cref="Algorithm.Aes256"/>
     /// </remarks>
-    /// <param name="algorithm">Algorithm to check. <see cref="yh_algorithm"/></param>
+    /// <param name="algorithm">Algorithm to check. <see cref="Algorithm"/></param>
     /// <returns>True if the algorithm is one of the supported AES algorithms. False otherwise</returns>
     [LibraryImport(nameof(yubihsm))]
     [return: MarshalAs(UnmanagedType.U1)]
-    public static partial bool yh_is_aes(yh_algorithm algorithm);
+    public static partial bool yh_is_aes(Algorithm algorithm);
 
     /// <summary>
     /// Check if an algorithm is a supported RSA algorithm
     /// </summary>
     /// <remarks>
-    /// Supported RSA algorithms: <see cref="yh_algorithm.YH_ALGO_RSA_2048"/>, <see cref="yh_algorithm.YH_ALGO_RSA_3072"/> and <see cref="yh_algorithm.YH_ALGO_RSA_4096"/>
+    /// Supported RSA algorithms: <see cref="Algorithm.Rsa2048"/>, <see cref="Algorithm.Rsa3072"/> and <see cref="Algorithm.Rsa4096"/>
     /// </remarks>
-    /// <param name="algorithm">Algorithm to check. <see cref="yh_algorithm"/></param>
+    /// <param name="algorithm">Algorithm to check. <see cref="Algorithm"/></param>
     /// <returns>True if the algorithm is one of the supported RSA algorithms. False otherwise</returns>
     [LibraryImport(nameof(yubihsm))]
     [return: MarshalAs(UnmanagedType.U1)]
-    public static partial bool yh_is_rsa(yh_algorithm algorithm);
+    public static partial bool yh_is_rsa(Algorithm algorithm);
 
     /// <summary>
     /// Check if an algorithm is a supported Elliptic Curve algorithm
     /// </summary>
     /// <remarks>
-    /// Supported EC algorithms: <see cref="yh_algorithm.YH_ALGO_EC_P224"/>, <see cref="yh_algorithm.YH_ALGO_EC_P256"/>,
-    /// <see cref="yh_algorithm.YH_ALGO_EC_P384"/>, <see cref="yh_algorithm.YH_ALGO_EC_P521"/>, <see cref="yh_algorithm.YH_ALGO_EC_K256"/>,
-    /// <see cref="yh_algorithm.YH_ALGO_EC_BP256"/>, <see cref="yh_algorithm.YH_ALGO_EC_BP384"/> and <see cref="yh_algorithm.YH_ALGO_EC_BP512"/>
+    /// Supported EC algorithms: <see cref="Algorithm.Ecp224"/>, <see cref="Algorithm.Ecp256"/>,
+    /// <see cref="Algorithm.Ecp384"/>, <see cref="Algorithm.Ecp521"/>, <see cref="Algorithm.Eck256"/>,
+    /// <see cref="Algorithm.Ecbp256"/>, <see cref="Algorithm.Ecbp384"/> and <see cref="Algorithm.Ecbp512"/>
     /// </remarks>
-    /// <param name="algorithm">Algorithm to check. <see cref="yh_algorithm"/></param>
+    /// <param name="algorithm">Algorithm to check. <see cref="Algorithm"/></param>
     /// <returns>True if the algorithm is one of the supported EC algorithms. False otherwise</returns>
     [LibraryImport(nameof(yubihsm))]
     [return: MarshalAs(UnmanagedType.U1)]
-    public static partial bool yh_is_ec(yh_algorithm algorithm);
+    public static partial bool yh_is_ec(Algorithm algorithm);
 
     /// <summary>
     /// Check if an algorithm is a supported ED algorithm
     /// </summary>
     /// <remarks>
-    /// Supported ED algorithms: <see cref="yh_algorithm.YH_ALGO_EC_ED25519"/>
+    /// Supported ED algorithms: <see cref="Algorithm.Ed25519"/>
     /// </remarks>
-    /// <param name="algorithm">algorithm. <see cref="yh_algorithm"/></param>
-    /// <returns>True if the algorithm is <see cref="yh_algorithm.YH_ALGO_EC_ED25519"/>. False otherwise</returns>
+    /// <param name="algorithm">algorithm. <see cref="Algorithm"/></param>
+    /// <returns>True if the algorithm is <see cref="Algorithm.Ed25519"/>. False otherwise</returns>
     [LibraryImport(nameof(yubihsm))]
     [return: MarshalAs(UnmanagedType.U1)]
-    public static partial bool yh_is_ed(yh_algorithm algorithm);
+    public static partial bool yh_is_ed(Algorithm algorithm);
 
     /// <summary>
     /// Check if algorithm is a supported HMAC algorithm
     /// </summary>
     /// <remarks>
-    /// Supported HMAC algorithms: <see cref="yh_algorithm.YH_ALGO_HMAC_SHA1"/>, <see cref="yh_algorithm.YH_ALGO_HMAC_SHA256"/>,
-    /// <see cref="yh_algorithm.YH_ALGO_HMAC_SHA384"/> and <see cref="yh_algorithm.YH_ALGO_HMAC_SHA512"/>
+    /// Supported HMAC algorithms: <see cref="Algorithm.HmacSha1"/>, <see cref="Algorithm.HmacSha256"/>,
+    /// <see cref="Algorithm.HmacSha384"/> and <see cref="Algorithm.HmacSha512"/>
     /// </remarks>
-    /// <param name="algorithm">Algorithm to check. <see cref="yh_algorithm"/></param>
+    /// <param name="algorithm">Algorithm to check. <see cref="Algorithm"/></param>
     /// <returns>True if the algorithm is one of the supported HMAC algorithms. False otherwise</returns>
     [LibraryImport(nameof(yubihsm))]
     [return: MarshalAs(UnmanagedType.U1)]
-    public static partial bool yh_is_hmac(yh_algorithm algorithm);
+    public static partial bool yh_is_hmac(Algorithm algorithm);
 
     /// <summary>
     /// Get the expected key length of a key generated by the given algorithm
     /// </summary>
-    /// <param name="algorithm">Algorithm to check. <see cref="yh_algorithm"/></param>
+    /// <param name="algorithm">Algorithm to check. <see cref="Algorithm"/></param>
     /// <param name="result">Expected bitlength of a key generated by the algorithm</param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if <paramref name="result"/> is NULL or if
     /// the <paramref name="algorithm"/> is no supported by YubiHSM 2.
     /// </returns>
-    /// <seealso cref="yh_algorithm"/>
+    /// <seealso cref="Algorithm"/>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_get_key_bitlength(yh_algorithm algorithm, out nuint result);
+    public static partial yh_rc yh_get_key_bitlength(Algorithm algorithm, out nuint result);
 
     /// <summary>
     /// Convert an algorithm to its string representation
     /// </summary>
-    /// <param name="algo">Algorithm to convert. <see cref="yh_algorithm"/></param>
+    /// <param name="algo">Algorithm to convert. <see cref="Algorithm"/></param>
     /// <param name="result">The algorithm as a String. "Unknown" if the algorithm is not supported by YubiHSM 2.</param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
@@ -3241,12 +2764,12 @@ internal static unsafe partial class yubihsm
     /// </returns>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Algorithms.html">Algorithms</seealso>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_algo_to_string(yh_algorithm algo, out nint result);
+    public static partial yh_rc yh_algo_to_string(Algorithm algo, out nint result);
 
     /// <summary>
     /// Convert a string to an algorithm's numeric value
     /// </summary>
-    /// <param name="string">Algorithm as string. <see cref="yh_algorithm"/></param>
+    /// <param name="string">Algorithm as string. <see cref="Algorithm"/></param>
     /// <param name="algo">Algorithm numeric value</param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
@@ -3254,16 +2777,16 @@ internal static unsafe partial class yubihsm
     /// </returns>
     /// <example>
     /// <code>
-    /// yh_string_to_algo(NULL, out yh_algorithm algorithm) => YHR_INVALID_PARAMETERS
+    /// yh_string_to_algo(NULL, out Algorithm algorithm) => YHR_INVALID_PARAMETERS
     /// yh_string_to_algo("something"u8, NULL) => YHR_INVALID_PARAMETERS
-    /// yh_string_to_algo("something"u8, out yh_algorithm algorithm) => YHR_INVALID_PARAMETERS
-    /// yh_string_to_algo("rsa-pkcs1-sha1"u8, out yh_algorithm algorithm) => YH_ALGO_RSA_PKCS1_SHA1
-    /// yh_string_to_algo("rsa2048"u8, out yh_algorithm algorithm) => YH_ALGO_RSA_2048
+    /// yh_string_to_algo("something"u8, out Algorithm algorithm) => YHR_INVALID_PARAMETERS
+    /// yh_string_to_algo("rsa-pkcs1-sha1"u8, out Algorithm algorithm) => YH_ALGO_RSA_PKCS1_SHA1
+    /// yh_string_to_algo("rsa2048"u8, out Algorithm algorithm) => YH_ALGO_RSA_2048
     /// </code>
     /// </example>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Algorithms.html">Algorithms</seealso>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_string_to_algo(ReadOnlySpan<byte> @string, out yh_algorithm algo);
+    public static partial yh_rc yh_string_to_algo(ReadOnlySpan<byte> @string, out Algorithm algo);
 
     /// <summary>
     /// Convert a <see cref="yh_object_type"/> to its string representation

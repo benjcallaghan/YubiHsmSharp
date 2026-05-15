@@ -23,11 +23,11 @@ public sealed class YubiSession : IDisposable
     /// <seealso cref="YubiConnector.SendMessage"/>
     public Command SendMessage(Command request, ReadOnlySpan<byte> requestData, Span<byte> responseBuffer, out int responseLength)
     {
-        yh_rc err = yh_send_secure_msg(this.handle, (yh_cmd)request, requestData, (nuint)requestData.Length,
-            out yh_cmd responseCmd, responseBuffer, out nuint responseLen);
+        yh_rc err = yh_send_secure_msg(this.handle, request, requestData, (nuint)requestData.Length,
+            out Command responseCmd, responseBuffer, out nuint responseLen);
         YubiHsmException.ThrowIfError(err);
         responseLength = (int)responseLen;
-        return (Command)responseCmd;
+        return responseCmd;
     }
 
     /// <summary>
