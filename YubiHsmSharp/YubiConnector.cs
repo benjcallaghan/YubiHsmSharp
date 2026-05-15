@@ -451,6 +451,49 @@ public class YubiConnector : IDisposable
     }
 
     /// <summary>
+    /// Creates a new session using an encryption key and MAC key derived from a password.
+    /// </summary>
+    /// <param name="authKeyId">Object ID of the Authentication Key used to authentication the session</param>
+    /// <param name="password">The password to derive the keys from</param>
+    /// <param name="recreateSession">If true, the session will be recreated if expired. This caches the password in memory.</param>
+    /// <returns>The created session</returns>
+    public YubiSession CreateSession(ushort authKeyId, ReadOnlySpan<byte> password, bool recreateSession = false)
+    {
+        yh_rc err = yh_create_session_derived(this.handle, authKeyId, password, (nuint)password.Length, recreateSession, out SafeSessionHandle sessionHandle);
+        YubiHsmException.ThrowIfError(err);
+        return new YubiSession(sessionHandle);
+    }
+
+    /// <summary>
+    /// Creates a new session using the provided encryption key and MAC key.
+    /// </summary>
+    /// <param name="authKeyId">Object ID of the Authentication Key used to authentication the session</param>
+    /// <param name="encryptionKey">The encryption key</param>
+    /// <param name="macKey">The MAC key</param>
+    /// <param name="recreateSession">If true, the session will be recreated if expired. This caches the keys in memory.</param>
+    /// <returns>The created session</returns>
+    public YubiSession CreateSession(ushort authKeyId, ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> macKey, bool recreateSession = false)
+    {
+        yh_rc err = yh_create_session(this.handle, authKeyId, encryptionKey, (nuint)encryptionKey.Length, macKey, (nuint)macKey.Length, recreateSession, out SafeSessionHandle sessionHandle);
+        YubiHsmException.ThrowIfError(err);
+        return new YubiSession(sessionHandle);
+    }
+
+    /// <summary>
+    /// Creates a new session using encryption keys from a platform-specific key store.
+    /// </summary>
+    /// <param name="authKeyId">Object ID of the Authentication Key used to authentication the session</param>
+    /// <param name="utf8EncryptionKeyName">The name of the encryption key in the key store, UTF-8 encoded and null-terminated</param>
+    /// <param name="utf8MacKeyName">The name of the MAC key in the key store, UTF-8 encoded and null-terminated</param>
+    /// <returns>The created session</returns>
+    public YubiSession CreateSession(ushort authKeyId, ReadOnlySpan<byte> utf8EncryptionKeyName, ReadOnlySpan<byte> utf8MacKeyName)
+    {
+        yh_rc err = yh_create_session_ex(this.handle, authKeyId, utf8EncryptionKeyName, utf8MacKeyName, out SafeSessionHandle sessionHandle);
+        YubiHsmException.ThrowIfError(err);
+        return new YubiSession(sessionHandle);
+    }
+
+    /// <summary>
     /// Disconnect from the device and clean up resources associated with this connector.
     /// </summary>
     public void Dispose()
