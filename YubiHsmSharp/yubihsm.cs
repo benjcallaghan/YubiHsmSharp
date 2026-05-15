@@ -1567,7 +1567,7 @@ internal static unsafe partial class yubihsm
     /// </returns>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_destroy_session(ref SafeSessionHandle session);
+    public static partial yh_rc yh_destroy_session(ref nint session);
 
     /// <summary>
     /// Deprecated - use yh_begin_create_session instead

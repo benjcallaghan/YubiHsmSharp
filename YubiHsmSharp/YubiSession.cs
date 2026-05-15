@@ -30,6 +30,9 @@ public sealed class YubiSession : IDisposable
         return (Command)responseCmd;
     }
 
+    /// <summary>
+    /// Frees data associated with the session.
+    /// </summary>
     public void Dispose()
     {
         this.handle.Dispose();
@@ -40,10 +43,11 @@ internal class SafeSessionHandle : SafeHandle
 {
     public SafeSessionHandle() : base(IntPtr.Zero, true) { }
 
-    public override bool IsInvalid => throw new NotImplementedException();
+    public override bool IsInvalid => this.handle == IntPtr.Zero;
 
     protected override bool ReleaseHandle()
     {
-        throw new NotImplementedException();
+        yh_rc err = yh_destroy_session(ref this.handle);
+        return err == yh_rc.YHR_SUCCESS;
     }
 }
