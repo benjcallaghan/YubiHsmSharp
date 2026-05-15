@@ -3,7 +3,7 @@ namespace YubiHsmSharp;
 /// <summary>
 /// Represents an authenticated and encrypted session with a YubiHSM device.
 /// </summary>
-public class YubiSession : IDisposable
+public sealed class YubiSession : IDisposable
 {
     private readonly SafeSessionHandle handle;
 

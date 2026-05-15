@@ -482,7 +482,7 @@ public enum Algorithm
 /// <summary>
 /// Represents a (pending) connection to a YubiHSM device.
 /// </summary>
-public class YubiConnector : IDisposable
+public sealed class YubiConnector : IDisposable
 {
     private static readonly SafeConnectorHandle NullConnectorHandle = new();
 

@@ -6,7 +6,7 @@ namespace YubiHsmSharp;
 /// Represents the YubiHSM module. This class should be instantiated once per application,
 /// and should be disposed when the application is finished using the module.
 /// </summary>
-public class YubiModule : IDisposable
+public sealed class YubiModule : IDisposable
 {
     private readonly SafeModuleHandle handle;
 
