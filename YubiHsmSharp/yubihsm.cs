@@ -1541,7 +1541,7 @@ internal static unsafe partial class yubihsm
     /// <param name="authkey_id">Object ID of the Asymmetric Authentication Key used to authenticate the session</param>
     /// <param name="privkey">Private key of the client, used to derive the session encryption key and authenticate the client</param>
     /// <param name="privkey_len">Length of the private key</param>
-    /// <param name="device_pubkey">Public key of the device, used to derrive the session encryption key and authenticate the device</param>
+    /// <param name="device_pubkey">Public key of the device, used to derive the session encryption key and authenticate the device</param>
     /// <param name="device_pubkey_len">Length of the device public key</param>
     /// <param name="session">created session</param>
     /// <returns>

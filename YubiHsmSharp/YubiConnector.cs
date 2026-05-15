@@ -665,6 +665,24 @@ public sealed class YubiConnector : IDisposable
         return new YubiSession(sessionHandle);
     }
 
+    /// <summary>
+    /// Creates a new session using an asymmetric key pair.
+    /// </summary>
+    /// <param name="authKeyId">Object ID of the Asymmetric Authentication Key used to authenticate the session</param>
+    /// <param name="clientPrivateKey">The private key of the client</param>
+    /// <param name="devicePublicKey">The public key of the device</param>
+    /// <returns>The created session</returns>
+    public YubiSession CreateSessionAsymmetric(ushort authKeyId, ReadOnlySpan<byte> clientPrivateKey, ReadOnlySpan<byte> devicePublicKey)
+    {
+        // FIXME: Is the public key parameter necessary?
+        // yh_create_session_asym currently requires both the client private key and device public key,
+        // but the device public key could be retrieved from the device using yh_util_get_device_pubkey.
+        // Additionally, the yubihsm shell does NOT ask for the public key.
+        yh_rc err = yh_create_session_asym(this.handle, authKeyId, clientPrivateKey, (nuint)clientPrivateKey.Length, devicePublicKey, (nuint)devicePublicKey.Length, out SafeSessionHandle sessionHandle);
+        YubiHsmException.ThrowIfError(err);
+        return new YubiSession(sessionHandle);
+    }
+
     // TODO: yh_begin_create_session and yh_finish_create_session for external authentication
 
     /// <summary>
