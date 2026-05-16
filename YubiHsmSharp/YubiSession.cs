@@ -422,6 +422,17 @@ public sealed class YubiSession : IDisposable
     }
 
     /// <summary>
+    /// Deletes an object with the given ID and type.
+    /// </summary>
+    /// <param name="id">The ID of the object to delete.</param>
+    /// <param name="type">The type of the object to delete.</param>
+    public void DeleteObject(ushort id, ObjectType type)
+    {
+        yh_rc err = yh_util_delete_object(this.handle, id, type);
+        YubiHsmException.ThrowIfError(err);
+    }
+
+    /// <summary>
     /// Frees data associated with the session.
     /// </summary>
     public void Dispose()
