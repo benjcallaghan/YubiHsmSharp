@@ -61,7 +61,7 @@ namespace YubiHsmSharp;
 /// </code>
 /// </example>
 /// <seealso>yubihsm.h</seealso> 
-internal static unsafe partial class yubihsm
+internal static partial class yubihsm
 {
     /// <summary>
     /// Length of context array for authentication
@@ -553,7 +553,7 @@ internal static unsafe partial class yubihsm
     /// <see cref="yh_rc.YHR_CONNECTION_ERROR"/> if failed to set the option.
     /// </returns>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_set_connector_option(SafeConnectorHandle connector, yh_connector_option opt, void* val);
+    public unsafe static partial yh_rc yh_set_connector_option(SafeConnectorHandle connector, yh_connector_option opt, void* val);
 
     /// <summary>
     /// Connect to the device through the specified connector
@@ -710,7 +710,7 @@ internal static unsafe partial class yubihsm
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_begin_create_session(SafeConnectorHandle connector, ushort authkey_id,
-        out byte* context, Span<byte> host_challenge, out nuint host_challenge_len,
+        out nint context, Span<byte> host_challenge, out nuint host_challenge_len,
         Span<byte> card_cryptogram, out nuint card_cryptogram_len, out SafeSessionHandle session);
 
     /// <summary>
@@ -840,7 +840,7 @@ internal static unsafe partial class yubihsm
     [LibraryImport(nameof(yubihsm))]
     [Obsolete("Use yh_begin_create_session instead")]
     public static partial yh_rc yh_begin_create_session_ext(SafeConnectorHandle connector, ushort authkey_id,
-        out byte* context, Span<byte> card_cryptogram, nuint card_cryptogram_len, out SafeSessionHandle session);
+        out nint context, Span<byte> card_cryptogram, nuint card_cryptogram_len, out SafeSessionHandle session);
 
     /// <summary>
     /// Deprecated - use yh_finish_create_session instead
