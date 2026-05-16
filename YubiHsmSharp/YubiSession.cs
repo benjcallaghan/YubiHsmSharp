@@ -364,6 +364,50 @@ public sealed class YubiSession : IDisposable
     }
 
     /// <summary>
+    /// Verifies an HMAC signature.
+    /// </summary>
+    /// <param name="keyId">The ID of the HMAC key to use.</param>
+    /// <param name="signature">The HMAC signature to verify.</param>
+    /// <param name="data">The data to verify.</param>
+    /// <returns>true if the signature is valid, false otherwise.</returns>
+    public bool VerifyHmac(ushort keyId, ReadOnlySpan<byte> signature, ReadOnlySpan<byte> data)
+    {
+        yh_rc err = yh_util_verify_hmac(this.handle, keyId, signature, (nuint)signature.Length, data, (nuint)data.Length, out bool verified);
+        YubiHsmException.ThrowIfError(err);
+        return verified;
+    }
+
+    /// <summary>
+    /// Decrypts data using RSA-PKCS#1v1.5
+    /// </summary>
+    /// <param name="keyId">The ID of the RSA key to use.</param>
+    /// <param name="ciphertext">The ciphertext to decrypt.</param>
+    /// <param name="plaintext">The buffer to store the decrypted plaintext.</param>
+    /// <param name="plaintextLength">The length of the decrypted plaintext.</param>
+    public void DecryptPkcs1v15(ushort keyId, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext, out int plaintextLength)
+    {
+        yh_rc err = yh_util_decrypt_pkcs1v1_5(this.handle, keyId, ciphertext, (nuint)ciphertext.Length, plaintext, out nuint plaintextLen);
+        YubiHsmException.ThrowIfError(err);
+        plaintextLength = (int)plaintextLen;
+    }
+
+    /// <summary>
+    /// Decrypts data using RSA-OAEP
+    /// </summary>
+    /// <param name="keyId">The ID of the RSA key to use.</param>
+    /// <param name="ciphertext">The ciphertext to decrypt.</param>
+    /// <param name="plaintext">The buffer to store the decrypted plaintext.</param>
+    /// <param name="plaintextLength">The length of the decrypted plaintext.</param>
+    /// <param name="label">Hash of OAEP label.</param>
+    /// <param name="maskGenerationFunction">The algorithm for generating the mask.</param>
+    public void DecryptOaep(ushort keyId, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext, out int plaintextLength, ReadOnlySpan<byte> label, Algorithm maskGenerationFunction)
+    {
+        yh_rc err = yh_util_decrypt_oaep(this.handle, keyId, ciphertext, (nuint)ciphertext.Length, plaintext, out nuint plaintextLen, label, (nuint)label.Length, maskGenerationFunction);
+        YubiHsmException.ThrowIfError(err);
+        plaintextLength = (int)plaintextLen;
+    }
+
+    /// <summary>
     /// Frees data associated with the session.
     /// </summary>
     public void Dispose()
