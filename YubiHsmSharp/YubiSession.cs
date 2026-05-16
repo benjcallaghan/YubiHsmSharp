@@ -738,6 +738,73 @@ public sealed class YubiSession : IDisposable
     }
 
     /// <summary>
+    /// Imports an <see cref="ObjectType.AuthenticationKey"/> into the device.
+    /// </summary>
+    /// <param name="label">The label of the authentication key, UTF-8 encoded and null-terminated.</param>
+    /// <param name="domains">The domains to which the key belongs.</param>
+    /// <param name="capabilities">The capabilities of the authentication key.</param>
+    /// <param name="delegataedCapabilities">The delegated capabilities of the authentication key.</param>
+    /// <param name="encryptionKey">The buffer containing the encryption key to import.</param>
+    /// <param name="macKey">The buffer containing the MAC key to import.</param>
+    /// <param name="keyId">The ID of the authentication key. 0 if the ID should be assigned by the device.</param>
+    /// <returns>The ID of the imported authentication key.</returns>
+    public ushort ImportAuthenticationKey(ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
+        in Capabilities delegataedCapabilities, ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> macKey, ushort keyId = 0)
+    {
+        yh_rc err = yh_util_import_authentication_key(this.handle, ref keyId, label, domains, in capabilities,
+            in delegataedCapabilities, encryptionKey, (nuint)encryptionKey.Length, macKey, (nuint)macKey.Length);
+        YubiHsmException.ThrowIfError(err);
+        return keyId;
+    }
+
+    /// <summary>
+    /// Imports an <see cref="ObjectType.AuthenticationKey"/> into the device, with the encryption and MAC keys derived from a password.
+    /// </summary>
+    /// <param name="label">The label of the authentication key, UTF-8 encoded and null-terminated.</param>
+    /// <param name="domains">The domains to which the key belongs.</param>
+    /// <param name="capabilities">The capabilities of the authentication key.</param>
+    /// <param name="delegataedCapabilities">The delegated capabilities of the authentication key.</param>
+    /// <param name="password">The password from which to derive the encryption and MAC keys.</param>
+    /// <param name="keyId">The ID of the authentication key. 0 if the ID should be assigned by the device.</param>
+    /// <returns>The ID of the imported authentication key.</returns>
+    public ushort ImportAuthenticationKey(ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
+        in Capabilities delegataedCapabilities, ReadOnlySpan<byte> password, ushort keyId = 0)
+    {
+        yh_rc err = yh_util_import_authentication_key_derived(this.handle, ref keyId, label, domains, in capabilities,
+            in delegataedCapabilities, password, (nuint)password.Length);
+        YubiHsmException.ThrowIfError(err);
+        return keyId;
+    }
+
+    /// <summary>
+    /// Replaces the long lived encryption key and MAC key associated with an <see cref="ObjectType.AuthenticationKey"/>.
+    /// </summary>
+    /// <param name="keyId">The ID of the authentication key to change.</param>
+    /// <param name="encryptionKey">The buffer containing the new encryption key.</param>
+    /// <param name="macKey">The buffer containing the new MAC key.</param>
+    /// <returns>The ID of the changed authentication key.</returns>
+    public ushort ChangeAuthenticationKey(ushort keyId, ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> macKey)
+    {
+        yh_rc err = yh_util_change_authentication_key(this.handle, ref keyId,
+            encryptionKey, (nuint)encryptionKey.Length, macKey, (nuint)macKey.Length);
+        YubiHsmException.ThrowIfError(err);
+        return keyId;
+    }
+
+    /// <summary>
+    /// Replaces the long lived encryption key and MAC key associated with an <see cref="ObjectType.AuthenticationKey"/> with keys derived from a password.
+    /// </summary>
+    /// <param name="keyId">The ID of the authentication key to change.</param>
+    /// <param name="password">The password from which to derive the new encryption and MAC keys.</param>
+    /// <returns>The ID of the changed authentication key.</returns>
+    public ushort ChangeAuthenticationKey(ushort keyId, ReadOnlySpan<byte> password)
+    {
+        yh_rc err = yh_util_change_authentication_key_derived(this.handle, ref keyId, password, (nuint)password.Length);
+        YubiHsmException.ThrowIfError(err);
+        return keyId;
+    }
+
+    /// <summary>
     /// Frees data associated with the session.
     /// </summary>
     public void Dispose()
