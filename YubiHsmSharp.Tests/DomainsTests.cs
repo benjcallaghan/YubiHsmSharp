@@ -33,7 +33,7 @@ public class DomainsTests
     [InlineData("0x8888", 0x8888)]
     [InlineData("all", 0xffff)]
     [InlineData("2:4", 10)]
-    public void From_WithValidData_ProducesValidNumeric(string input, ushort output)
+    public void From_WithValidString_ProducesValidNumeric(string input, ushort output)
     {
         // Arrange
         Span<byte> inputBytes = stackalloc byte[input.Length + 1];
@@ -53,7 +53,7 @@ public class DomainsTests
     [InlineData(0x8001, "1:16")]
     [InlineData(0, "")]
     [InlineData(0xffff, "1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16")]
-    public void ToString_WithValidDomains_ProducesValidString(ushort input, string output)
+    public void ToString_WithValidNumeric_ProducesValidString(ushort input, string output)
     {
         // Arrange
         Domains domains = new(input);

@@ -45,12 +45,12 @@ public struct Capabilities
     /// <returns>A string representation of the capabilities.</returns>
     public readonly override string ToString()
     {
-        const int maxCapabilities = 56;
-        Span<nint> stringPtrs = stackalloc nint[maxCapabilities];
-        yh_rc err = yh_capabilities_to_strings(in this, stringPtrs, out nuint stringsLen);
+        nuint stringsLength = 57;
+        Span<nint> stringPtrs = stackalloc nint[(int)stringsLength];
+        yh_rc err = yh_capabilities_to_strings(in this, stringPtrs, ref stringsLength);
         YubiHsmException.ThrowIfError(err);
 
-        stringPtrs = stringPtrs[..(int)stringsLen];
+        stringPtrs = stringPtrs[..(int)stringsLength];
         StringBuilder builder = new();
 
         foreach (nint ptr in stringPtrs)
