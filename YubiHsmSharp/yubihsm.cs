@@ -2604,7 +2604,7 @@ internal static unsafe partial class yubihsm
     [LibraryImport(nameof(yubihsm))]
     [return: MarshalAs(UnmanagedType.U1)]
     public static partial bool yh_verify_logs(Span<LogEntry> logs, nuint n_items,
-        in LogEntry last_previous_log);
+        ref LogEntry last_previous_log);
 
     /// <summary>
     /// Convert a string to a domain's numeric value

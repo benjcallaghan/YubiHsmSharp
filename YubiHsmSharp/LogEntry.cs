@@ -84,6 +84,18 @@ public readonly struct LogEntry
             YH_LOG_DIGEST_SIZE
         );
     private readonly LogDigest digest;
+
+    /// <summary>
+    /// Verify an array of log entries.
+    /// </summary>
+    /// <param name="logs">Log entries to verify.</param>
+    /// <param name="previousLog">Optional log entry before the first entry.</param>
+    /// <returns>True if verification succeeds. False otherwise.</returns>
+    public static bool Verify(Span<LogEntry> logs, in LogEntry? previousLog = null)
+    {
+        LogEntry previousLogLocal = previousLog ?? Unsafe.NullRef<LogEntry>();
+        return yh_verify_logs(logs, (nuint)logs.Length, ref previousLogLocal);
+    }
 }
 
 [InlineArray(YH_LOG_DIGEST_SIZE)]
