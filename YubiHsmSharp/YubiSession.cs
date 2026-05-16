@@ -433,6 +433,53 @@ public sealed class YubiSession : IDisposable
     }
 
     /// <summary>
+    /// Exports an object with the given ID and type wrapped by a wrapping key.
+    /// </summary>
+    /// <param name="wrappingKeyId">The ID of the wrapping key to use.</param>
+    /// <param name="targetType">The type of the object to export.</param>
+    /// <param name="targetId">The ID of the object to export.</param>
+    /// <param name="wrappedKey">The buffer to store the wrapped key.</param>
+    /// <param name="wrappedKeyLength">The length of the wrapped key.</param>
+    /// <seealso cref="ImportWrapped"/>
+    public void ExportWrapped(ushort wrappingKeyId, ObjectType targetType, ushort targetId, Span<byte> wrappedKey, out int wrappedKeyLength)
+    {
+        yh_rc err = yh_util_export_wrapped(this.handle, wrappingKeyId, targetType, targetId, wrappedKey, out nuint wrappedKeyLen);
+        YubiHsmException.ThrowIfError(err);
+        wrappedKeyLength = (int)wrappedKeyLen;
+    }
+
+    /// <summary>
+    /// Exports an object with the given ID and type wrapped by a wrapping key, with an option to include the ED25519 seed.
+    /// </summary>
+    /// <param name="wrappingKeyId">The ID of the wrapping key to use.</param>
+    /// <param name="targetType">The type of the object to export.</param>
+    /// <param name="targetId">The ID of the object to export.</param>
+    /// <param name="includeSeed">A value indicating whether to include the ED25519 seed.</param>
+    /// <param name="wrappedKey">The buffer to store the wrapped key.</param>
+    /// <param name="wrappedKeyLength">The length of the wrapped key.</param>
+    /// <seealso cref="ImportWrapped"/>
+    public void ExportWrapped(ushort wrappingKeyId, ObjectType targetType, ushort targetId, bool includeSeed, Span<byte> wrappedKey, out int wrappedKeyLength)
+    {
+        yh_rc err = yh_util_export_wrapped_ex(this.handle, wrappingKeyId, targetType, targetId, includeSeed, wrappedKey, out nuint wrappedKeyLen);
+        YubiHsmException.ThrowIfError(err);
+        wrappedKeyLength = (int)wrappedKeyLen;
+    }
+
+    /// <summary>
+    /// Import a wrapped object into the device.
+    /// </summary>
+    /// <param name="wrappingKeyId">The ID of the wrapping key to use.</param>
+    /// <param name="wrappedKey">The buffer containing the wrapped key.</param>
+    /// <returns>A tuple containing the type and ID of the imported object.</returns>
+    /// <seealso cref="ExportWrapped(ushort, ObjectType, ushort, bool, Span{byte}, out int)"/>
+    public (ObjectType targetType, ushort targetId) ImportWrapped(ushort wrappingKeyId, ReadOnlySpan<byte> wrappedKey)
+    {
+        yh_rc err = yh_util_import_wrapped(this.handle, wrappingKeyId, wrappedKey, (nuint)wrappedKey.Length, out ObjectType targetType, out ushort targetId);
+        YubiHsmException.ThrowIfError(err);
+        return (targetType, targetId);
+    }
+
+    /// <summary>
     /// Frees data associated with the session.
     /// </summary>
     public void Dispose()

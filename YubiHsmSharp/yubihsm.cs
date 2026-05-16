@@ -1559,7 +1559,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_export_wrapped_ex(SafeSessionHandle session, ushort wrapping_key_id,
-        ObjectType target_type, ushort target_id, byte format, Span<byte> @out, out nuint out_len);
+        ObjectType target_type, ushort target_id, [MarshalAs(UnmanagedType.U1)] bool format, Span<byte> @out, out nuint out_len);
 
     /// <summary>
     /// Import a wrapped object into the device. The object should have been previously exported by <see cref="yh_util_export_wrapped"/>
