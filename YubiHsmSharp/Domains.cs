@@ -23,4 +23,33 @@ namespace YubiHsmSharp;
 public readonly struct Domains
 {
     private readonly ushort domains;
+
+    /// <summary>
+    /// Convert a string to a domain's numeric value.
+    /// </summary>
+    /// <remarks>
+    /// The domains string can contain one or several domains separated by ',', ':', or '|'.
+    /// Each domain can be written in decimal or hex format.
+    /// </remarks>
+    /// <param name="utf8String">String of domains, UTF-8 encoded and null-terminated.</param>
+    /// <returns>The parsed domains as an unsigned int.</returns>
+    public static Domains From(ReadOnlySpan<byte> utf8String)
+    {
+        yh_rc err = yh_string_to_domains(utf8String, out Domains result);
+        YubiHsmException.ThrowIfError(err);
+        return result;
+    }
+
+    /// <summary>
+    /// Converts domains to its string representation.
+    /// </summary>
+    /// <returns>The string representation of the domains.</returns>
+    public override string ToString()
+    {
+        const int maxLength = 38;
+        Span<byte> bytes = stackalloc byte[maxLength];
+        yh_rc err = yh_domains_to_string(this, bytes, maxLength);
+        YubiHsmException.ThrowIfError(err);
+        return Marshal.PtrToStringUTF8(bytes.GetPinnableReference()) ?? String.Empty;
+    }
 }
