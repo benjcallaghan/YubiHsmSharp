@@ -84,6 +84,41 @@ public sealed class YubiModule : IDisposable
     }
 
     /// <summary>
+    /// Pads data using PKCS #7 padding.
+    /// </summary>
+    /// <param name="data">Data to be padded. The buffer must be oversized to accommodate the padding.</param>
+    /// <param name="currentLength">The current length of the data.</param>
+    /// <param name="blockSize">The block size for padding.</param>
+    /// <returns>The length of the padded data.</returns>
+    public int PadPkcs7(Span<byte> data, int currentLength, byte blockSize)
+    {
+        Debug.Assert(this.handle != null, "YubiModule must be initialized before padding data.");
+
+        nuint length = (nuint)currentLength;
+        yh_rc err = yh_util_pad_pkcs7(data, ref length, (nuint)data.Length, blockSize);
+        return (int)length;
+    }
+
+    /// <summary>
+    /// Unpad data that has PKCS #7 padding.
+    /// </summary>
+    /// <remarks>
+    /// Unpadding unauthenticated ciphertext provides a padding oracle.
+    /// </remarks>
+    /// <param name="data">Data to be unpadded.</param>
+    /// <param name="blockSize">The block size for unpadding.</param>
+    /// <returns>The length of the un padded data.</returns>
+    public int UnpadPkcs7(Span<byte> data, byte blockSize)
+    {
+        Debug.Assert(this.handle != null, "YubiModule must be initialized before unpadding data.");
+
+        nuint length = (nuint)data.Length;
+        yh_rc err = yh_util_unpad_pkcs7(data, ref length, blockSize);
+        YubiHsmException.ThrowIfError(err);
+        return (int)length;
+    }
+
+    /// <summary>
     /// Cleans up the YubiHSM module.
     /// </summary>
     public void Dispose()
