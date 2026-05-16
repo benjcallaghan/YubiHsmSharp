@@ -36,6 +36,37 @@ public sealed class YubiConnector : IDisposable
     }
 
     /// <summary>
+    /// Gets whether the connector has a device connected.
+    /// </summary>
+    public bool HasDevice => yh_connector_has_device(this.handle);
+
+    /// <summary>
+    /// Gets the connector version.
+    /// </summary>
+    public (byte major, byte minor, byte patch) Version
+    {
+        get
+        {
+            yh_rc err = yh_get_connector_version(this.handle, out byte major, out byte minor, out byte patch);
+            YubiHsmException.ThrowIfError(err);
+            return (major, minor, patch);
+        }
+    }
+
+    /// <summary>
+    /// Gets the connector address, UTF-8 encoded.
+    /// </summary>
+    public unsafe ReadOnlySpan<byte> Address
+    {
+        get
+        {
+            yh_rc err = yh_get_connector_address(this.handle, out nint address);
+            YubiHsmException.ThrowIfError(err);
+            return MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)address);
+        }
+    }
+
+    /// <summary>
     /// Sets the verbosity level for this connector instance.
     /// This value overrides the global verbosity for this connector,
     /// but it does not affect other connectors.
