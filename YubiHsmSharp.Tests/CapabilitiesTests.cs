@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace YubiHsmSharp.Tests;
@@ -29,8 +30,8 @@ public class CapabilitiesTests
     public void From_WithValidString_ProducesValidNumeric(string input, string hexOutput)
     {
         // Arrange
-        Span<byte> inputBytes = stackalloc byte[input.Length + 1];
-        int inputLength = Encoding.UTF8.GetBytes(input, inputBytes);
+        Span<sbyte> inputBytes = stackalloc sbyte[input.Length + 1];
+        int inputLength = Encoding.UTF8.GetBytes(input, MemoryMarshal.Cast<sbyte, byte>(inputBytes));
         inputBytes[^1] = 0; // Null-terminated
         Assert.Equal(input.Length, inputLength); // All values fit within ASCII.
 
@@ -46,21 +47,21 @@ public class CapabilitiesTests
     public void CanParseCheckAndPrintCapabilities()
     {
         // Parse
-        ReadOnlySpan<byte> input = "sign-pkcs:decrypt-pkcs:export-wrapped:set-option:get-pseudo-random:sign-hmac:verify-hmac:get-log-entries"u8;
+        ReadOnlySpan<sbyte> input = MemoryMarshal.Cast<byte, sbyte>("sign-pkcs:decrypt-pkcs:export-wrapped:set-option:get-pseudo-random:sign-hmac:verify-hmac:get-log-entries"u8);
         Capabilities capabilities = Capabilities.From(input);
 
         // Check
-        Assert.False(capabilities.CheckCapability("something"u8));
-        Assert.False(capabilities.CheckCapability("sign-pss"u8));
-        Assert.True(capabilities.CheckCapability("sign-pkcs"u8));
-        Assert.True(capabilities.CheckCapability("decrypt-pkcs"u8));
-        Assert.True(capabilities.CheckCapability("export-wrapped"u8));
-        Assert.True(capabilities.CheckCapability("set-option"u8));
-        Assert.True(capabilities.CheckCapability("get-pseudo-random"u8));
-        Assert.True(capabilities.CheckCapability("sign-hmac"u8));
-        Assert.True(capabilities.CheckCapability("verify-hmac"u8));
-        Assert.True(capabilities.CheckCapability("get-log-entries"u8));
-        Assert.True(capabilities.CheckCapability("verify-hmac:get-log-entries"u8));
+        Assert.False(capabilities.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("something"u8)));
+        Assert.False(capabilities.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("sign-pss"u8)));
+        Assert.True(capabilities.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("sign-pkcs"u8)));
+        Assert.True(capabilities.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("decrypt-pkcs"u8)));
+        Assert.True(capabilities.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("export-wrapped"u8)));
+        Assert.True(capabilities.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("set-option"u8)));
+        Assert.True(capabilities.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("get-pseudo-random"u8)));
+        Assert.True(capabilities.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("sign-hmac"u8)));
+        Assert.True(capabilities.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("verify-hmac"u8)));
+        Assert.True(capabilities.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("get-log-entries"u8)));
+        Assert.True(capabilities.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("verify-hmac:get-log-entries"u8)));
 
         // Print
         string output = capabilities.ToString();
@@ -78,24 +79,24 @@ public class CapabilitiesTests
     public void CanMergeAndFilter()
     {
         // Arrange
-        Capabilities c1 = Capabilities.From("sign-pkcs,sign-pss"u8);
-        Capabilities c2 = Capabilities.From("decrypt-pkcs,decrypt-oaep"u8);
-        Capabilities c3 = Capabilities.From("sign-pss,decrypt-oaep"u8);
+        Capabilities c1 = Capabilities.From(MemoryMarshal.Cast<byte, sbyte>("sign-pkcs,sign-pss"u8));
+        Capabilities c2 = Capabilities.From(MemoryMarshal.Cast<byte, sbyte>("decrypt-pkcs,decrypt-oaep"u8));
+        Capabilities c3 = Capabilities.From(MemoryMarshal.Cast<byte, sbyte>("sign-pss,decrypt-oaep"u8));
 
         // Merge
         Capabilities res = c1.Merge(in c2);
-        Assert.True(res.CheckCapability("sign-pkcs"u8));
-        Assert.True(res.CheckCapability("sign-pss"u8));
-        Assert.True(res.CheckCapability("decrypt-pkcs"u8));
-        Assert.True(res.CheckCapability("decrypt-oaep"u8));
-        Assert.False(res.CheckCapability("sign-hmac"u8));
+        Assert.True(res.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("sign-pkcs"u8)));
+        Assert.True(res.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("sign-pss"u8)));
+        Assert.True(res.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("decrypt-pkcs"u8)));
+        Assert.True(res.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("decrypt-oaep"u8)));
+        Assert.False(res.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("sign-hmac"u8)));
 
         // Filter
         res = res.Filter(in c3);
-        Assert.False(res.CheckCapability("sign-pkcs"u8));
-        Assert.True(res.CheckCapability("sign-pss"u8));
-        Assert.False(res.CheckCapability("decrypt-pkcs"u8));
-        Assert.True(res.CheckCapability("decrypt-oaep"u8));
-        Assert.False(res.CheckCapability("sign-hmac"u8));
+        Assert.False(res.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("sign-pkcs"u8)));
+        Assert.True(res.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("sign-pss"u8)));
+        Assert.False(res.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("decrypt-pkcs"u8)));
+        Assert.True(res.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("decrypt-oaep"u8)));
+        Assert.False(res.CheckCapability(MemoryMarshal.Cast<byte, sbyte>("sign-hmac"u8)));
     }
 }

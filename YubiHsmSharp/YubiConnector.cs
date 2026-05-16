@@ -56,13 +56,13 @@ public sealed class YubiConnector : IDisposable
     /// <summary>
     /// Gets the connector address, UTF-8 encoded.
     /// </summary>
-    public unsafe ReadOnlySpan<byte> Address
+    public unsafe ReadOnlySpan<sbyte> Address
     {
         get
         {
             yh_rc err = yh_get_connector_address(this.handle, out nint address);
             YubiHsmException.ThrowIfError(err);
-            return MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)address);
+            return MemoryMarshal.Cast<byte, sbyte>(MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)address));
         }
     }
 
@@ -210,7 +210,7 @@ public sealed class YubiConnector : IDisposable
     /// <param name="utf8EncryptionKeyName">The name of the encryption key in the key store, UTF-8 encoded and null-terminated</param>
     /// <param name="utf8MacKeyName">The name of the MAC key in the key store, UTF-8 encoded and null-terminated</param>
     /// <returns>The created session</returns>
-    public YubiSession CreateSession(ushort authKeyId, ReadOnlySpan<byte> utf8EncryptionKeyName, ReadOnlySpan<byte> utf8MacKeyName)
+    public YubiSession CreateSession(ushort authKeyId, ReadOnlySpan<sbyte> utf8EncryptionKeyName, ReadOnlySpan<sbyte> utf8MacKeyName)
     {
         yh_rc err = yh_create_session_ex(this.handle, authKeyId, utf8EncryptionKeyName, utf8MacKeyName, out SafeSessionHandle sessionHandle);
         YubiHsmException.ThrowIfError(err);
@@ -266,7 +266,7 @@ public sealed class YubiConnector : IDisposable
     /// </summary>
     /// <param name="utf8PartNumber">A buffer to store the part number (chip designator), UTF-8 encoded</param>
     /// <returns>The length of the part number</returns>
-    public int GetPartNumber(Span<byte> utf8PartNumber)
+    public int GetPartNumber(Span<sbyte> utf8PartNumber)
     {
         yh_rc err = yh_util_get_partnumber(this.handle, utf8PartNumber, out nuint partNumberLen);
         YubiHsmException.ThrowIfError(err);
