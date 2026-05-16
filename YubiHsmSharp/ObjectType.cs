@@ -61,3 +61,35 @@ public enum ObjectType
     /// never exists in device and is mostly here for PKCS#11.</summary>
     WrapKeyPublic = WrapKey | 0x80,
 }
+
+/// <summary>
+/// A set of extension methods for <see cref="ObjectType"/>.
+/// </summary>
+public static class ObjectTypeExtensions
+{
+    extension(ObjectType type)
+    {
+        /// <summary>
+        /// Converts the object type to its string representation.
+        /// </summary>
+        /// <returns>The string representation of the type.</returns>
+        public string ToString()
+        {
+            yh_rc err = yh_type_to_string(type, out nint result);
+            YubiHsmException.ThrowIfError(err);
+            return Marshal.PtrToStringUTF8(result) ?? String.Empty;
+        }
+
+        /// <summary>
+        /// Converts a string to a type's numeric value.
+        /// </summary>
+        /// <param name="utf8String">Type as a string, UTF-8 encoded and null-terminated.</param>
+        /// <returns>The numeric value of the object type.</returns>
+        public static ObjectType From(ReadOnlySpan<byte> utf8String)
+        {
+            yh_rc err = yh_string_to_type(utf8String, out ObjectType result);
+            YubiHsmException.ThrowIfError(err);
+            return result;
+        }
+    }
+}
