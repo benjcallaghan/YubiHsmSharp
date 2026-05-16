@@ -70,6 +70,37 @@ public sealed class YubiSession : IDisposable
     }
 
     /// <summary>
+    /// Gets the value of the public key with the given ID.
+    /// </summary>
+    /// <param name="id">The ID of the public key to retrieve.</param>
+    /// <param name="publicKey">The buffer to receive the public key value.</param>
+    /// <param name="publicKeyLength">The length of the received public key.</param>
+    /// <returns>The algorithm of the public key.</returns>
+    public Algorithm GetPublicKey(ushort id, Span<byte> publicKey, out int publicKeyLength)
+    {
+        yh_rc err = yh_util_get_public_key(this.handle, id, publicKey, out nuint publicKeyLen, out Algorithm algorithm);
+        YubiHsmException.ThrowIfError(err);
+        publicKeyLength = (int)publicKeyLen;
+        return algorithm;
+    }
+
+    /// <summary>
+    /// Gets the value of the public key with the given ID and type.
+    /// </summary>
+    /// <param name="type">The type of the public key to retrieve.</param>
+    /// <param name="id">The ID of the public key to retrieve.</param>
+    /// <param name="publicKey">The buffer to receive the public key value.</param>
+    /// <param name="publicKeyLength">The length of the received public key.</param>
+    /// <returns>The algorithm of the public key.</returns>
+    public Algorithm GetPublicKey(ObjectType type, ushort id, Span<byte> publicKey, out int publicKeyLength)
+    {
+        yh_rc err = yh_util_get_public_key_ex(this.handle, type, id, publicKey, out nuint publicKeyLen, out Algorithm algorithm);
+        YubiHsmException.ThrowIfError(err);
+        publicKeyLength = (int)publicKeyLen;
+        return algorithm;
+    }
+
+    /// <summary>
     /// Frees data associated with the session.
     /// </summary>
     public void Dispose()
