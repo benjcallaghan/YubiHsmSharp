@@ -1027,7 +1027,7 @@ internal static unsafe partial class yubihsm
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Label.html">Labels</seealso>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_list_objects(SafeSessionHandle session, ushort id,
-        ObjectType type, ushort domains, in Capabilities capabilities,
+        ObjectType type, Domains domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> label,
         Span<ObjectDescriptor> objects, out nuint n_objects);
 
@@ -1234,7 +1234,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_aes_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> key);
 
     /// <summary>
@@ -1255,7 +1255,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_rsa_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> p, ReadOnlySpan<byte> q);
 
     /// <summary>
@@ -1279,7 +1279,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/> 
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_ec_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> s);
 
     /// <summary>
@@ -1299,7 +1299,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_ed_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> k);
 
     /// <summary>
@@ -1322,7 +1322,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_hmac_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> key, nuint key_len);
 
     /// <summary>
@@ -1342,7 +1342,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_aes_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm);
 
     /// <summary>
@@ -1362,7 +1362,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_rsa_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm);
 
     /// <summary>
@@ -1387,7 +1387,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_ec_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm);
 
     /// <summary>
@@ -1406,7 +1406,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_ed_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm);
 
     /// <summary>
@@ -1447,7 +1447,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_hmac_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm);
 
     /// <summary>
@@ -1680,7 +1680,7 @@ internal static unsafe partial class yubihsm
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_put_rsa_wrapped_key(
         SafeSessionHandle session, ushort wrapping_key_id, ObjectType type,
-        ref ushort target_id, Algorithm algo, ReadOnlySpan<byte> label, ushort domains,
+        ref ushort target_id, Algorithm algo, ReadOnlySpan<byte> label, Domains domains,
         in Capabilities capabilities, Algorithm hash, Algorithm mgf1,
         ReadOnlySpan<byte> oaep_label, nuint oaep_label_len, ReadOnlySpan<byte> @in, nuint in_len);
 
@@ -1705,7 +1705,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_wrap_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm, in Capabilities delegated_capabilities,
         ReadOnlySpan<byte> @in, nuint in_len);
 
@@ -1729,7 +1729,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_public_wrap_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm, in Capabilities delegated_capabilities,
         ReadOnlySpan<byte> @in, nuint in_len);
 
@@ -1750,7 +1750,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_wrap_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm, in Capabilities delegated_capabilities);
 
     /// <summary>
@@ -1828,7 +1828,7 @@ internal static unsafe partial class yubihsm
     /// </returns>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_opaque(SafeSessionHandle session, ref ushort object_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len);
 
     /// <summary>
@@ -1869,7 +1869,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_opaque_ex(SafeSessionHandle session, ref ushort object_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len,
         yh_compress_option compress, out nuint import_len);
 
@@ -1915,7 +1915,7 @@ internal static unsafe partial class yubihsm
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html">Authentication Key</seealso>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_authentication_key(
-        SafeSessionHandle session, ref ushort key_id, ReadOnlySpan<byte> label, ushort domains,
+        SafeSessionHandle session, ref ushort key_id, ReadOnlySpan<byte> label, Domains domains,
         in Capabilities capabilities, in Capabilities delegated_capabilities,
         ReadOnlySpan<byte> key_enc, nuint key_enc_len,
         ReadOnlySpan<byte> key_mac, nuint key_mac_len);
@@ -1938,7 +1938,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_authentication_key_derived(
-        SafeSessionHandle session, ref ushort key_id, ReadOnlySpan<byte> label, ushort domains,
+        SafeSessionHandle session, ref ushort key_id, ReadOnlySpan<byte> label, Domains domains,
         in Capabilities capabilities, in Capabilities delegated_capabilities,
         ReadOnlySpan<byte> password, nuint password_len);
 
@@ -2014,7 +2014,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_template(SafeSessionHandle session, ref ushort object_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len);
 
     /// <summary>
@@ -2111,7 +2111,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_otp_aead_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         uint nonce_id, ReadOnlySpan<byte> @in, nuint in_len);
 
     /// <summary>
@@ -2132,7 +2132,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_otp_aead_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm, uint nonce_id);
 
     /// <summary>
@@ -2721,7 +2721,7 @@ internal static unsafe partial class yubihsm
     /// </example>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Domain.html">Domains</seealso>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_string_to_domains(ReadOnlySpan<byte> domains, out ushort result);
+    public static partial yh_rc yh_string_to_domains(ReadOnlySpan<byte> domains, out Domains result);
 
     /// <summary>
     /// Convert domains parameter to its String representation
@@ -2741,7 +2741,7 @@ internal static unsafe partial class yubihsm
     /// </example>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Domain.html">Domains</seealso>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_domains_to_string(ushort domains, Span<byte> @string, nuint max_len);
+    public static partial yh_rc yh_domains_to_string(Domains domains, Span<byte> @string, nuint max_len);
 
 #if FUZZING
     [LibraryImport(nameof(libyubihsm))]

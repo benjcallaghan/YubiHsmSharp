@@ -46,8 +46,8 @@ public readonly struct ObjectDescriptor
     /// <summary>
     /// Object domains
     /// </summary>
-    public readonly ushort Domains => this.domains;
-    private readonly ushort domains;
+    public readonly Domains Domains => this.domains;
+    private readonly Domains domains;
 
     /// <summary>
     /// Object type

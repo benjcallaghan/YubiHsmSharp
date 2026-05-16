@@ -46,7 +46,7 @@ public sealed class YubiSession : IDisposable
         out int objectsLength,
         ushort id = 0,
         ObjectType type = 0,
-        ushort domains = 0,
+        Domains domains = default,
         in Capabilities capabilities = default,
         Algorithm algorithm = 0,
         ReadOnlySpan<byte> label = default)
