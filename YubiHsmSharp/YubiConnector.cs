@@ -133,16 +133,14 @@ public sealed class YubiConnector : IDisposable
     /// <param name="request">The command to send.</param>
     /// <param name="requestData">The request data to send.</param>
     /// <param name="responseBuffer">The buffer to receive the response.</param>
-    /// <param name="responseLength">The length of the received response.</param>
-    /// <returns>The response command.</returns>
+    /// <returns>A tuple containing the response command and the length of the response data.</returns>
     /// <seealso cref="YubiSession.SendMessage"/> 
-    public Command SendMessage(Command request, ReadOnlySpan<byte> requestData, Span<byte> responseBuffer, out int responseLength)
+    public (Command response, int responseLength) SendMessage(Command request, ReadOnlySpan<byte> requestData, Span<byte> responseBuffer)
     {
         yh_rc err = yh_send_plain_msg(this.handle, request, requestData, (nuint)requestData.Length,
             out Command responseCmd, responseBuffer, out nuint responseLen);
         YubiHsmException.ThrowIfError(err);
-        responseLength = (int)responseLen;
-        return responseCmd;
+        return (responseCmd, (int)responseLen);
     }
 
     /// <summary>
@@ -211,15 +209,13 @@ public sealed class YubiConnector : IDisposable
     /// <summary>
     /// Gets the value and algorithm of the device public key.
     /// </summary>
-    /// <param name="responseBuffer">Buffer to store the public key value</param>
-    /// <param name="responseLength">Output parameter for the length of the public key value</param>
-    /// <returns>The algorithm of the device public key</returns>
-    public Algorithm GetDevicePublicKey(Span<byte> responseBuffer, out int responseLength)
+    /// <param name="publicKey">Buffer to store the public key value</param>
+    /// <returns>A tuple containing the algorithm of the device public key and its length</returns>
+    public (Algorithm algorithm, int publicKeyLength) GetDevicePublicKey(Span<byte> publicKey)
     {
-        yh_rc err = yh_util_get_device_pubkey(this.handle, responseBuffer, out nuint responseLen, out Algorithm alg);
+        yh_rc err = yh_util_get_device_pubkey(this.handle, publicKey, out nuint responseLen, out Algorithm alg);
         YubiHsmException.ThrowIfError(err);
-        responseLength = (int)responseLen;
-        return alg;
+        return (alg, (int)responseLen);
     }
 
     /// <summary>
@@ -238,12 +234,12 @@ public sealed class YubiConnector : IDisposable
     /// Gets the device version, part number (chip designator) as required by FIPS.
     /// </summary>
     /// <param name="utf8PartNumber">A buffer to store the part number (chip designator), UTF-8 encoded</param>
-    /// <param name="partNumberLength">The length of the part number</param>
-    public void GetPartNumber(Span<byte> utf8PartNumber, out int partNumberLength)
+    /// <returns>The length of the part number</returns>
+    public int GetPartNumber(Span<byte> utf8PartNumber)
     {
         yh_rc err = yh_util_get_partnumber(this.handle, utf8PartNumber, out nuint partNumberLen);
         YubiHsmException.ThrowIfError(err);
-        partNumberLength = (int)partNumberLen;
+        return (int)partNumberLen;
     }
 
     /// <summary>

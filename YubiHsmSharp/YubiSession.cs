@@ -18,32 +18,29 @@ public sealed class YubiSession : IDisposable
     /// <param name="request">The command to send.</param>
     /// <param name="requestData">The request data to send.</param>
     /// <param name="responseBuffer">The buffer to receive the response.</param>
-    /// <param name="responseLength">The length of the received response.</param>
-    /// <returns>The response command.</returns>
+    /// <returns>A tuple containing the response command and its length.</returns>
     /// <seealso cref="YubiConnector.SendMessage"/>
-    public Command SendMessage(Command request, ReadOnlySpan<byte> requestData, Span<byte> responseBuffer, out int responseLength)
+    public (Command response, int responseLength) SendMessage(Command request, ReadOnlySpan<byte> requestData, Span<byte> responseBuffer)
     {
         yh_rc err = yh_send_secure_msg(this.handle, request, requestData, (nuint)requestData.Length,
             out Command responseCmd, responseBuffer, out nuint responseLen);
         YubiHsmException.ThrowIfError(err);
-        responseLength = (int)responseLen;
-        return responseCmd;
+        return (responseCmd, (int)responseLen);
     }
 
     /// <summary>
     /// Lists objects accessible from the session
     /// </summary>
     /// <param name="objects">The buffer to receive the object descriptors.</param>
-    /// <param name="objectsLength">The number of objects returned.</param>
     /// <param name="id">The ID of the object to list (0 for all).</param>
     /// <param name="type">The type of the object to list (0 for all).</param>
     /// <param name="domains">The domains of the object to list (0 for all).</param>
     /// <param name="capabilities">The capabilities of the object to list (default for all).</param>
     /// <param name="algorithm">The algorithm of the object to list (0 for all).</param>
     /// <param name="label">The label of the object to list (default for all).</param>
-    public void ListObjects(
+    /// <returns>The number of objects returned.</returns>
+    public int ListObjects(
         Span<ObjectDescriptor> objects,
-        out int objectsLength,
         ushort id = 0,
         ObjectType type = 0,
         Domains domains = default,
@@ -53,7 +50,7 @@ public sealed class YubiSession : IDisposable
     {
         yh_rc err = yh_util_list_objects(this.handle, id, type, domains, in capabilities, algorithm, label, objects, out nuint n_objects);
         YubiHsmException.ThrowIfError(err);
-        objectsLength = (int)n_objects;
+        return (int)n_objects;
     }
 
     /// <summary>
@@ -74,14 +71,12 @@ public sealed class YubiSession : IDisposable
     /// </summary>
     /// <param name="id">The ID of the public key to retrieve.</param>
     /// <param name="publicKey">The buffer to receive the public key value.</param>
-    /// <param name="publicKeyLength">The length of the received public key.</param>
-    /// <returns>The algorithm of the public key.</returns>
-    public Algorithm GetPublicKey(ushort id, Span<byte> publicKey, out int publicKeyLength)
+    /// <returns>A tuple containing the algorithm of the public key and its length.</returns>
+    public (Algorithm algorithm, int publicKeyLength) GetPublicKey(ushort id, Span<byte> publicKey)
     {
         yh_rc err = yh_util_get_public_key(this.handle, id, publicKey, out nuint publicKeyLen, out Algorithm algorithm);
         YubiHsmException.ThrowIfError(err);
-        publicKeyLength = (int)publicKeyLen;
-        return algorithm;
+        return (algorithm, (int)publicKeyLen);
     }
 
     /// <summary>
@@ -90,14 +85,12 @@ public sealed class YubiSession : IDisposable
     /// <param name="type">The type of the public key to retrieve.</param>
     /// <param name="id">The ID of the public key to retrieve.</param>
     /// <param name="publicKey">The buffer to receive the public key value.</param>
-    /// <param name="publicKeyLength">The length of the received public key.</param>
-    /// <returns>The algorithm of the public key.</returns>
-    public Algorithm GetPublicKey(ObjectType type, ushort id, Span<byte> publicKey, out int publicKeyLength)
+    /// <returns>A tuple containing the algorithm of the public key and its length.</returns>
+    public (Algorithm algorithm, int publicKeyLength) GetPublicKey(ObjectType type, ushort id, Span<byte> publicKey)
     {
         yh_rc err = yh_util_get_public_key_ex(this.handle, type, id, publicKey, out nuint publicKeyLen, out Algorithm algorithm);
         YubiHsmException.ThrowIfError(err);
-        publicKeyLength = (int)publicKeyLen;
-        return algorithm;
+        return (algorithm, (int)publicKeyLen);
     }
 
     /// <summary>
@@ -111,12 +104,12 @@ public sealed class YubiSession : IDisposable
     /// <param name="hashed">true if the data is only hashed; otherwise, false.</param>
     /// <param name="data">The data to sign.</param>
     /// <param name="signature">The buffer to receive the signature.</param>
-    /// <param name="signatureLength">The length of the received signature.</param>
-    public void SignPkcs1v15(ushort keyId, bool hashed, ReadOnlySpan<byte> data, Span<byte> signature, out int signatureLength)
+    /// <returns>The length of the signature.</returns>
+    public int SignPkcs1v15(ushort keyId, bool hashed, ReadOnlySpan<byte> data, Span<byte> signature)
     {
         yh_rc err = yh_util_sign_pkcs1v1_5(this.handle, keyId, hashed, data, (nuint)data.Length, signature, out nuint signatureLen);
         YubiHsmException.ThrowIfError(err);
-        signatureLength = (int)signatureLen;
+        return (int)signatureLen;
     }
 
     /// <summary>
@@ -128,16 +121,16 @@ public sealed class YubiSession : IDisposable
     /// <param name="keyId">The ID of the signing key.</param>
     /// <param name="data">The data to sign.</param>
     /// <param name="signature">The buffer to receive the signature.</param>
-    /// <param name="signatureLength">The length of the received signature.</param>
     /// <param name="saltLength">The length of the salt.</param>
     /// <param name="maskGenerationFunction">The algorithm for mask generation.</param>
-    public void SignPss(ushort keyId, ReadOnlySpan<byte> data, Span<byte> signature, out int signatureLength,
+    /// <returns>The length of the signature.</returns>
+    public int SignPss(ushort keyId, ReadOnlySpan<byte> data, Span<byte> signature,
         int saltLength, Algorithm maskGenerationFunction)
     {
         yh_rc err = yh_util_sign_pss(this.handle, keyId, data, (nuint)data.Length, signature, out nuint signatureLen,
             (nuint)saltLength, maskGenerationFunction);
         YubiHsmException.ThrowIfError(err);
-        signatureLength = (int)signatureLen;
+        return (int)signatureLen;
     }
 
     /// <summary>
@@ -149,12 +142,12 @@ public sealed class YubiSession : IDisposable
     /// <param name="keyId">The ID of the signing key.</param>
     /// <param name="data">The data to sign.</param>
     /// <param name="signature">The buffer to receive the signature.</param>
-    /// <param name="signatureLength">The length of the received signature.</param>
-    public void SignEcdsa(ushort keyId, ReadOnlySpan<byte> data, Span<byte> signature, out int signatureLength)
+    /// <returns>The length of the signature.</returns>
+    public int SignEcdsa(ushort keyId, ReadOnlySpan<byte> data, Span<byte> signature)
     {
         yh_rc err = yh_util_sign_ecdsa(this.handle, keyId, data, (nuint)data.Length, signature, out nuint signatureLen);
         YubiHsmException.ThrowIfError(err);
-        signatureLength = (int)signatureLen;
+        return (int)signatureLen;
     }
 
     /// <summary>
@@ -163,12 +156,12 @@ public sealed class YubiSession : IDisposable
     /// <param name="keyId">The ID of the signing key.</param>
     /// <param name="data">The data to sign.</param>
     /// <param name="signature">The buffer to receive the signature.</param>
-    /// <param name="signatureLength">The length of the received signature.</param>
-    public void SignEddsa(ushort keyId, ReadOnlySpan<byte> data, Span<byte> signature, out int signatureLength)
+    /// <returns>The length of the signature.</returns>
+    public int SignEddsa(ushort keyId, ReadOnlySpan<byte> data, Span<byte> signature)
     {
         yh_rc err = yh_util_sign_eddsa(this.handle, keyId, data, (nuint)data.Length, signature, out nuint signatureLen);
         YubiHsmException.ThrowIfError(err);
-        signatureLength = (int)signatureLen;
+        return (int)signatureLen;
     }
 
     /// <summary>
@@ -177,24 +170,24 @@ public sealed class YubiSession : IDisposable
     /// <param name="keyId">The ID of the signing key.</param>
     /// <param name="data">The data to sign.</param>
     /// <param name="signature">The buffer to receive the signature.</param>
-    /// <param name="signatureLength">The length of the received signature.</param>
-    public void SignHmac(ushort keyId, ReadOnlySpan<byte> data, Span<byte> signature, out int signatureLength)
+    /// <returns>The length of the signature.</returns>
+    public int SignHmac(ushort keyId, ReadOnlySpan<byte> data, Span<byte> signature)
     {
         yh_rc err = yh_util_sign_hmac(this.handle, keyId, data, (nuint)data.Length, signature, out nuint signatureLen);
         YubiHsmException.ThrowIfError(err);
-        signatureLength = (int)signatureLen;
+        return (int)signatureLen;
     }
 
     /// <summary>
     /// Get a fixed number of psuedo-random bytes from the device.
     /// </summary>
     /// <param name="random">The buffer to receive the random bytes.</param>
-    /// <param name="randomLength">The length of the received random bytes.</param>
-    public void GetPseudoRandom(Span<byte> random, out int randomLength)
+    /// <returns>The length of the received random bytes.</returns>
+    public int GetPseudoRandom(Span<byte> random)
     {
         yh_rc err = yh_util_get_pseudo_random(this.handle, (nuint)random.Length, random, out nuint randomLen);
         YubiHsmException.ThrowIfError(err);
-        randomLength = (int)randomLen;
+        return (int)randomLen;
     }
 
     /// <summary>
@@ -383,12 +376,12 @@ public sealed class YubiSession : IDisposable
     /// <param name="keyId">The ID of the RSA key to use.</param>
     /// <param name="ciphertext">The ciphertext to decrypt.</param>
     /// <param name="plaintext">The buffer to store the decrypted plaintext.</param>
-    /// <param name="plaintextLength">The length of the decrypted plaintext.</param>
-    public void DecryptPkcs1v15(ushort keyId, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext, out int plaintextLength)
+    /// <returns>The length of the decrypted plaintext.</returns>
+    public int DecryptPkcs1v15(ushort keyId, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext)
     {
         yh_rc err = yh_util_decrypt_pkcs1v1_5(this.handle, keyId, ciphertext, (nuint)ciphertext.Length, plaintext, out nuint plaintextLen);
         YubiHsmException.ThrowIfError(err);
-        plaintextLength = (int)plaintextLen;
+        return (int)plaintextLen;
     }
 
     /// <summary>
@@ -397,14 +390,14 @@ public sealed class YubiSession : IDisposable
     /// <param name="keyId">The ID of the RSA key to use.</param>
     /// <param name="ciphertext">The ciphertext to decrypt.</param>
     /// <param name="plaintext">The buffer to store the decrypted plaintext.</param>
-    /// <param name="plaintextLength">The length of the decrypted plaintext.</param>
     /// <param name="label">Hash of OAEP label.</param>
     /// <param name="maskGenerationFunction">The algorithm for generating the mask.</param>
-    public void DecryptOaep(ushort keyId, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext, out int plaintextLength, ReadOnlySpan<byte> label, Algorithm maskGenerationFunction)
+    /// <returns>The length of the decrypted plaintext.</returns>
+    public int DecryptOaep(ushort keyId, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext, ReadOnlySpan<byte> label, Algorithm maskGenerationFunction)
     {
         yh_rc err = yh_util_decrypt_oaep(this.handle, keyId, ciphertext, (nuint)ciphertext.Length, plaintext, out nuint plaintextLen, label, (nuint)label.Length, maskGenerationFunction);
         YubiHsmException.ThrowIfError(err);
-        plaintextLength = (int)plaintextLen;
+        return (int)plaintextLen;
     }
 
     /// <summary>
@@ -413,12 +406,12 @@ public sealed class YubiSession : IDisposable
     /// <param name="keyId">The ID of the EC private key to use.</param>
     /// <param name="publicKey">The public key for the ECDH agreement.</param>
     /// <param name="sharedSecret">The buffer to store the derived shared secret.</param>
-    /// <param name="sharedSecretLength">The length of the derived shared secret.</param>
-    public void DeriveEcdh(ushort keyId, ReadOnlySpan<byte> publicKey, Span<byte> sharedSecret, out int sharedSecretLength)
+    /// <returns>The length of the derived shared secret.</returns>
+    public int DeriveEcdh(ushort keyId, ReadOnlySpan<byte> publicKey, Span<byte> sharedSecret)
     {
         yh_rc err = yh_util_derive_ecdh(this.handle, keyId, publicKey, (nuint)publicKey.Length, sharedSecret, out nuint sharedSecretLen);
         YubiHsmException.ThrowIfError(err);
-        sharedSecretLength = (int)sharedSecretLen;
+        return (int)sharedSecretLen;
     }
 
     /// <summary>
@@ -439,13 +432,13 @@ public sealed class YubiSession : IDisposable
     /// <param name="targetType">The type of the object to export.</param>
     /// <param name="targetId">The ID of the object to export.</param>
     /// <param name="wrappedKey">The buffer to store the wrapped key.</param>
-    /// <param name="wrappedKeyLength">The length of the wrapped key.</param>
+    /// <returns>The length of the wrapped key.</returns>
     /// <seealso cref="ImportWrapped"/>
-    public void ExportWrapped(ushort wrappingKeyId, ObjectType targetType, ushort targetId, Span<byte> wrappedKey, out int wrappedKeyLength)
+    public int ExportWrapped(ushort wrappingKeyId, ObjectType targetType, ushort targetId, Span<byte> wrappedKey)
     {
         yh_rc err = yh_util_export_wrapped(this.handle, wrappingKeyId, targetType, targetId, wrappedKey, out nuint wrappedKeyLen);
         YubiHsmException.ThrowIfError(err);
-        wrappedKeyLength = (int)wrappedKeyLen;
+        return (int)wrappedKeyLen;
     }
 
     /// <summary>
@@ -456,13 +449,13 @@ public sealed class YubiSession : IDisposable
     /// <param name="targetId">The ID of the object to export.</param>
     /// <param name="includeSeed">A value indicating whether to include the ED25519 seed.</param>
     /// <param name="wrappedKey">The buffer to store the wrapped key.</param>
-    /// <param name="wrappedKeyLength">The length of the wrapped key.</param>
+    /// <returns>The length of the wrapped key.</returns>
     /// <seealso cref="ImportWrapped"/>
-    public void ExportWrapped(ushort wrappingKeyId, ObjectType targetType, ushort targetId, bool includeSeed, Span<byte> wrappedKey, out int wrappedKeyLength)
+    public int ExportWrapped(ushort wrappingKeyId, ObjectType targetType, ushort targetId, bool includeSeed, Span<byte> wrappedKey)
     {
         yh_rc err = yh_util_export_wrapped_ex(this.handle, wrappingKeyId, targetType, targetId, includeSeed, wrappedKey, out nuint wrappedKeyLen);
         YubiHsmException.ThrowIfError(err);
-        wrappedKeyLength = (int)wrappedKeyLen;
+        return (int)wrappedKeyLen;
     }
 
     /// <summary>
@@ -471,7 +464,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="wrappingKeyId">The ID of the wrapping key to use.</param>
     /// <param name="wrappedKey">The buffer containing the wrapped key.</param>
     /// <returns>A tuple containing the type and ID of the imported object.</returns>
-    /// <seealso cref="ExportWrapped(ushort, ObjectType, ushort, bool, Span{byte}, out int)"/>
+    /// <seealso cref="ExportWrapped(ushort, ObjectType, ushort, bool, Span{byte})"/>
     public (ObjectType targetType, ushort targetId) ImportWrapped(ushort wrappingKeyId, ReadOnlySpan<byte> wrappedKey)
     {
         yh_rc err = yh_util_import_wrapped(this.handle, wrappingKeyId, wrappedKey, (nuint)wrappedKey.Length, out ObjectType targetType, out ushort targetId);
