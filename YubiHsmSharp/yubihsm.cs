@@ -2363,7 +2363,7 @@ internal static unsafe partial class yubihsm
     /// </returns>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_capabilities_to_strings(in Capabilities num,
-        out nint result, out nuint n_result);
+        Span<nint> result, out nuint n_result);
 
     /// <summary>
     /// Check if a capability is set
