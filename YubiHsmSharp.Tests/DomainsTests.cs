@@ -47,4 +47,21 @@ public class DomainsTests
         // Assert
         Assert.Equal(output, domains.RawValue);
     }
+
+    [Theory]
+    [InlineData(1, "1")]
+    [InlineData(0x8001, "1:16")]
+    [InlineData(0, "")]
+    [InlineData(0xffff, "1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16")]
+    public void ToString_WithValidDomains_ProducesValidString(ushort input, string output)
+    {
+        // Arrange
+        Domains domains = new(input);
+
+        // Act
+        string result = domains.ToString();
+
+        // Assert
+        Assert.Equal(output, result);
+    }
 }

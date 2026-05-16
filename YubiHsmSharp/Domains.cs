@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
+using System.Diagnostics;
+using System.Text;
+
 namespace YubiHsmSharp;
 
 /// <summary>
@@ -22,6 +25,15 @@ namespace YubiHsmSharp;
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct Domains
 {
+    /// <summary>
+    /// Constructs a collection of domains from a raw numeric value.
+    /// </summary>
+    /// <param name="rawValue">The raw numeric bit flags of the domains collection.</param>
+    public Domains(ushort rawValue)
+    {
+        this.domains = rawValue;
+    }
+
     /// <summary>
     /// Gets the raw numeric representation of the domains.
     /// </summary>
@@ -50,10 +62,13 @@ public readonly struct Domains
     /// <returns>The string representation of the domains.</returns>
     public override string ToString()
     {
-        const int maxLength = 38;
+        const int maxLength = 40;
         Span<byte> bytes = stackalloc byte[maxLength];
         yh_rc err = yh_domains_to_string(this, bytes, maxLength);
         YubiHsmException.ThrowIfError(err);
-        return Marshal.PtrToStringUTF8(bytes.GetPinnableReference()) ?? String.Empty;
+        
+        int terminator = bytes.IndexOf((byte)0);
+        Debug.Assert(terminator != -1, "The null terminator must be present in result.");
+        return Encoding.UTF8.GetString(bytes[..terminator]);
     }
 }
