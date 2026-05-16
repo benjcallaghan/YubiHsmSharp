@@ -22,6 +22,10 @@ namespace YubiHsmSharp;
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct Domains
 {
+    /// <summary>
+    /// Gets the raw numeric representation of the domains.
+    /// </summary>
+    public readonly ushort RawValue => this.domains;
     private readonly ushort domains;
 
     /// <summary>
