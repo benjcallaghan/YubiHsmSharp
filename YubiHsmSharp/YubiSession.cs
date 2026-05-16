@@ -186,6 +186,18 @@ public sealed class YubiSession : IDisposable
     }
 
     /// <summary>
+    /// Get a fixed number of psuedo-random bytes from the device.
+    /// </summary>
+    /// <param name="random">The buffer to receive the random bytes.</param>
+    /// <param name="randomLength">The length of the received random bytes.</param>
+    public void GetPseudoRandom(Span<byte> random, out int randomLength)
+    {
+        yh_rc err = yh_util_get_pseudo_random(this.handle, (nuint)random.Length, random, out nuint randomLen);
+        YubiHsmException.ThrowIfError(err);
+        randomLength = (int)randomLen;
+    }
+
+    /// <summary>
     /// Frees data associated with the session.
     /// </summary>
     public void Dispose()
