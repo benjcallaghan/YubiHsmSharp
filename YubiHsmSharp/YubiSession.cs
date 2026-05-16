@@ -408,6 +408,20 @@ public sealed class YubiSession : IDisposable
     }
 
     /// <summary>
+    /// Derives a shared secret using ECDH key agreement.
+    /// </summary>
+    /// <param name="keyId">The ID of the EC private key to use.</param>
+    /// <param name="publicKey">The public key for the ECDH agreement.</param>
+    /// <param name="sharedSecret">The buffer to store the derived shared secret.</param>
+    /// <param name="sharedSecretLength">The length of the derived shared secret.</param>
+    public void DeriveEcdh(ushort keyId, ReadOnlySpan<byte> publicKey, Span<byte> sharedSecret, out int sharedSecretLength)
+    {
+        yh_rc err = yh_util_derive_ecdh(this.handle, keyId, publicKey, (nuint)publicKey.Length, sharedSecret, out nuint sharedSecretLen);
+        YubiHsmException.ThrowIfError(err);
+        sharedSecretLength = (int)sharedSecretLen;
+    }
+
+    /// <summary>
     /// Frees data associated with the session.
     /// </summary>
     public void Dispose()
