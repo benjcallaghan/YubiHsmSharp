@@ -428,15 +428,15 @@ public sealed class YubiSession : IDisposable
     /// <summary>
     /// Exports an object with the given ID and type wrapped by a wrapping key.
     /// </summary>
-    /// <param name="wrappingKeyId">The ID of the wrapping key to use.</param>
+    /// <param name="wrapKeyId">The ID of the wrapping key to use.</param>
     /// <param name="targetType">The type of the object to export.</param>
     /// <param name="targetId">The ID of the object to export.</param>
     /// <param name="wrappedKey">The buffer to store the wrapped key.</param>
     /// <returns>The length of the wrapped key.</returns>
     /// <seealso cref="ImportWrapped"/>
-    public int ExportWrapped(ushort wrappingKeyId, ObjectType targetType, ushort targetId, Span<byte> wrappedKey)
+    public int ExportWrapped(ushort wrapKeyId, ObjectType targetType, ushort targetId, Span<byte> wrappedKey)
     {
-        yh_rc err = yh_util_export_wrapped(this.handle, wrappingKeyId, targetType, targetId, wrappedKey, out nuint wrappedKeyLen);
+        yh_rc err = yh_util_export_wrapped(this.handle, wrapKeyId, targetType, targetId, wrappedKey, out nuint wrappedKeyLen);
         YubiHsmException.ThrowIfError(err);
         return (int)wrappedKeyLen;
     }
@@ -444,16 +444,16 @@ public sealed class YubiSession : IDisposable
     /// <summary>
     /// Exports an object with the given ID and type wrapped by a wrapping key, with an option to include the ED25519 seed.
     /// </summary>
-    /// <param name="wrappingKeyId">The ID of the wrapping key to use.</param>
+    /// <param name="wrapKeyId">The ID of the wrapping key to use.</param>
     /// <param name="targetType">The type of the object to export.</param>
     /// <param name="targetId">The ID of the object to export.</param>
     /// <param name="includeSeed">A value indicating whether to include the ED25519 seed.</param>
     /// <param name="wrappedKey">The buffer to store the wrapped key.</param>
     /// <returns>The length of the wrapped key.</returns>
     /// <seealso cref="ImportWrapped"/>
-    public int ExportWrapped(ushort wrappingKeyId, ObjectType targetType, ushort targetId, bool includeSeed, Span<byte> wrappedKey)
+    public int ExportWrapped(ushort wrapKeyId, ObjectType targetType, ushort targetId, bool includeSeed, Span<byte> wrappedKey)
     {
-        yh_rc err = yh_util_export_wrapped_ex(this.handle, wrappingKeyId, targetType, targetId, includeSeed, wrappedKey, out nuint wrappedKeyLen);
+        yh_rc err = yh_util_export_wrapped_ex(this.handle, wrapKeyId, targetType, targetId, includeSeed, wrappedKey, out nuint wrappedKeyLen);
         YubiHsmException.ThrowIfError(err);
         return (int)wrappedKeyLen;
     }
@@ -461,15 +461,106 @@ public sealed class YubiSession : IDisposable
     /// <summary>
     /// Import a wrapped object into the device.
     /// </summary>
-    /// <param name="wrappingKeyId">The ID of the wrapping key to use.</param>
+    /// <param name="wrapKeyId">The ID of the wrapping key to use.</param>
     /// <param name="wrappedKey">The buffer containing the wrapped key.</param>
     /// <returns>A tuple containing the type and ID of the imported object.</returns>
     /// <seealso cref="ExportWrapped(ushort, ObjectType, ushort, bool, Span{byte})"/>
-    public (ObjectType targetType, ushort targetId) ImportWrapped(ushort wrappingKeyId, ReadOnlySpan<byte> wrappedKey)
+    public (ObjectType targetType, ushort targetId) ImportWrapped(ushort wrapKeyId, ReadOnlySpan<byte> wrappedKey)
     {
-        yh_rc err = yh_util_import_wrapped(this.handle, wrappingKeyId, wrappedKey, (nuint)wrappedKey.Length, out ObjectType targetType, out ushort targetId);
+        yh_rc err = yh_util_import_wrapped(this.handle, wrapKeyId, wrappedKey, (nuint)wrappedKey.Length, out ObjectType targetType, out ushort targetId);
         YubiHsmException.ThrowIfError(err);
         return (targetType, targetId);
+    }
+
+    /// <summary>
+    /// Exports key material using an RSA wrap key. Metadata is not included. Only asymmetric and symmetric key objects are valid targets.
+    /// </summary>
+    /// <param name="wrapKeyId">The ID of the wrapping key to use.</param>
+    /// <param name="targetType">The type of the object to export.</param>
+    /// <param name="targetId">The ID of the object to export.</param>
+    /// <param name="aes">The (ephemeral) AES algorithm to use.</param>
+    /// <param name="hash">The hash algorithm to use.</param>
+    /// <param name="maskGenerationFunction">The mask generation function to use.</param>
+    /// <param name="oaepLabel">The OAEP label.</param>
+    /// <param name="wrappedKey">The buffer to store the wrapped key.</param>
+    /// <returns>The length of the wrapped key.</returns>
+    /// <seealso cref="PutRsaWrappedKey"/> 
+    public int GetRsaWrappedKey(ushort wrapKeyId, ObjectType targetType, ushort targetId,
+        Algorithm aes, Algorithm hash, Algorithm maskGenerationFunction, ReadOnlySpan<byte> oaepLabel, Span<byte> wrappedKey)
+    {
+        yh_rc err = yh_util_get_rsa_wrapped_key(this.handle, wrapKeyId, targetType, targetId,
+            aes, hash, maskGenerationFunction, oaepLabel, (nuint)oaepLabel.Length, wrappedKey, out nuint wrappedKeyLen);
+        YubiHsmException.ThrowIfError(err);
+        return (int)wrappedKeyLen;
+    }
+
+    /// <summary>
+    /// Exports an object using an RSA wrap key. The wrapped object contains all metadata.
+    /// </summary>
+    /// <param name="wrapKeyId">The ID of the wrapping key to use.</param>
+    /// <param name="targetType">The type of the object to export.</param>
+    /// <param name="targetId">The ID of the object to export.</param>
+    /// <param name="aes">The (ephemeral) AES algorithm to use.</param>
+    /// <param name="hash">The hash algorithm to use.</param>
+    /// <param name="maskGenerationFunction">The mask generation function to use.</param>
+    /// <param name="oaepLabel">The OAEP label.</param>
+    /// <param name="wrappedKey">The buffer to store the wrapped key.</param>
+    /// <returns>The length of the wrapped key.</returns>
+    /// <seealso cref="ImportRsaWrapped"/> 
+    public int ExportRsaWrapped(ushort wrapKeyId, ObjectType targetType, ushort targetId,
+        Algorithm aes, Algorithm hash, Algorithm maskGenerationFunction, ReadOnlySpan<byte> oaepLabel, Span<byte> wrappedKey)
+    {
+        yh_rc err = yh_util_export_rsa_wrapped(this.handle, wrapKeyId, targetType, targetId,
+            aes, hash, maskGenerationFunction, oaepLabel, (nuint)oaepLabel.Length, wrappedKey, out nuint wrappedKeyLen);
+        YubiHsmException.ThrowIfError(err);
+        return (int)wrappedKeyLen;
+    }
+
+    /// <summary>
+    /// Imports an object using an RSA wrap key.
+    /// </summary>
+    /// <param name="wrapKeyId">The ID of the wrapping key to use.</param>
+    /// <param name="hash">The hash algorithm to use.</param>
+    /// <param name="maskGenerationFunction">The mask generation function to use.</param>
+    /// <param name="oaepLabel">The OAEP label.</param>
+    /// <param name="wrappedKey">The buffer containing the wrapped key.</param>
+    /// <returns>A tuple containing the type and ID of the imported object.</returns>
+    /// <seealso cref="ExportRsaWrapped"/>
+    public (ObjectType targetType, ushort targetId) ImportRsaWrapped(ushort wrapKeyId,
+        Algorithm hash, Algorithm maskGenerationFunction, ReadOnlySpan<byte> oaepLabel, ReadOnlySpan<byte> wrappedKey)
+    {
+        yh_rc err = yh_util_import_rsa_wrapped(this.handle, wrapKeyId,
+            hash, maskGenerationFunction, oaepLabel, (nuint)oaepLabel.Length, wrappedKey, (nuint)wrappedKey.Length,
+            out ObjectType targetType, out ushort targetId);
+        YubiHsmException.ThrowIfError(err);
+        return (targetType, targetId);
+    }
+
+    /// <summary>
+    /// Imports key material using an RSA wrap key.
+    /// </summary>
+    /// <param name="wrapKeyId">The ID of the wrapping key to use.</param>
+    /// <param name="targetType">The type of the object to import.</param>
+    /// <param name="algorithm">The algorithm of the object to import.</param>
+    /// <param name="label">The label for the object.</param>
+    /// <param name="domains">The domains to which the object belongs.</param>
+    /// <param name="capabilities">The capabilities of the object.</param>
+    /// <param name="hash">The hash algorithm to use.</param>
+    /// <param name="maskGenerationFunction">The mask generation function to use.</param>
+    /// <param name="oaepLabel">The OAEP label.</param>
+    /// <param name="wrappedKey">The buffer containing the wrapped key.</param>
+    /// <param name="targetId">The ID of the object to import. 0 if the ID should be assigned by the device.</param>
+    /// <returns>The ID of the imported object.</returns>
+    /// <seealso cref="GetRsaWrappedKey"/>
+    public ushort PutRsaWrappedKey(ushort wrapKeyId, ObjectType targetType, Algorithm algorithm, ReadOnlySpan<byte> label,
+        Domains domains, in Capabilities capabilities, Algorithm hash, Algorithm maskGenerationFunction,
+        ReadOnlySpan<byte> oaepLabel, ReadOnlySpan<byte> wrappedKey, ushort targetId = 0)
+    {
+        yh_rc err = yh_util_put_rsa_wrapped_key(this.handle, wrapKeyId, targetType, ref targetId, algorithm,
+            label, domains, in capabilities, hash, maskGenerationFunction, oaepLabel, (nuint)oaepLabel.Length,
+            wrappedKey, (nuint)wrappedKey.Length);
+        YubiHsmException.ThrowIfError(err);
+        return targetId;
     }
 
     /// <summary>
