@@ -805,6 +805,38 @@ public sealed class YubiSession : IDisposable
     }
 
     /// <summary>
+    /// Gets a <see cref="ObjectType.Template"/> from the device.
+    /// </summary>
+    /// <param name="templateId">The ID of the template to retrieve.</param>
+    /// <param name="template">The buffer to store the retrieved template.</param>
+    /// <returns>The length of the retrieved template.</returns>
+    public int GetTemplate(ushort templateId, Span<byte> template)
+    {
+        yh_rc err = yh_util_get_template(this.handle, templateId, template, out nuint templateLen);
+        YubiHsmException.ThrowIfError(err);
+        return (int)templateLen;
+    }
+
+    /// <summary>
+    /// Imports a <see cref="ObjectType.Template"/> into the device.
+    /// </summary>
+    /// <param name="label">The label for the template, UTF-8 encoded and null-terminated.</param>
+    /// <param name="domains">The domains to which the template belongs.</param>
+    /// <param name="capabilities">The capabilities associated with the template.</param>
+    /// <param name="algorithm">The algorithm used by the template.</param>
+    /// <param name="template">The buffer containing the template data.</param>
+    /// <param name="templateId">The ID of the template to import.</param>
+    /// <returns>The ID of the imported template.</returns>
+    public ushort ImportTemplate(ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
+        Algorithm algorithm, ReadOnlySpan<byte> template, ushort templateId = 0)
+    {
+        yh_rc err = yh_util_import_template(this.handle, ref templateId, label, domains,
+            in capabilities, algorithm, template, (nuint)template.Length);
+        YubiHsmException.ThrowIfError(err);
+        return templateId;
+    }
+
+    /// <summary>
     /// Frees data associated with the session.
     /// </summary>
     public void Dispose()
