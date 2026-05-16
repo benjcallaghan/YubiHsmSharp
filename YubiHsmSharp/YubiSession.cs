@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace YubiHsmSharp;
 
 /// <summary>
@@ -10,6 +12,52 @@ public sealed class YubiSession : IDisposable
     internal YubiSession(SafeSessionHandle handle)
     {
         this.handle = handle;
+    }
+
+    /// <summary>
+    /// Gets or sets the status of Force Audit mode, which prevents the device from performing
+    /// additional operations when the log store is full.
+    /// </summary>
+    public DeviceOption ForceAudit
+    {
+        get
+        {
+            Span<byte> option = stackalloc byte[1];
+            yh_rc err = yh_util_get_option(this.handle, yh_option.YH_OPTION_FORCE_AUDIT, option, out nuint optionLen);
+            YubiHsmException.ThrowIfError(err);
+            Debug.Assert(optionLen == 1);
+            return (DeviceOption)option[0];
+        }
+        set
+        {
+            Span<byte> option = [(byte)value];
+            yh_rc err = yh_util_set_option(this.handle, yh_option.YH_OPTION_FORCE_AUDIT, 1, option);
+            YubiHsmException.ThrowIfError(err);
+        }
+    }
+
+    // TODO: Command Audit
+    // TODO: Algorithm Toggle
+
+    /// <summary>
+    /// Gets or sets the status of FIPS mode. Changing this value can only be done on an empty YubiHSM 2.
+    /// </summary>
+    public DeviceOption FipsMode
+    {
+        get
+        {
+            Span<byte> option = stackalloc byte[1];
+            yh_rc err = yh_util_get_option(this.handle, yh_option.YH_OPTION_FIPS_MODE, option, out nuint optionLen);
+            YubiHsmException.ThrowIfError(err);
+            Debug.Assert(optionLen == 1);
+            return (DeviceOption)option[0];
+        }
+        set
+        {
+            Span<byte> option = [(byte)value];
+            yh_rc err = yh_util_set_option(this.handle, yh_option.YH_OPTION_FIPS_MODE, 1, option);
+            YubiHsmException.ThrowIfError(err);
+        }
     }
 
     /// <summary>
@@ -929,6 +977,20 @@ public sealed class YubiSession : IDisposable
         yh_rc err = yh_util_generate_otp_aead_key(this.handle, ref keyId, label, domains, in capabilities, algorithm, nonceId);
         YubiHsmException.ThrowIfError(err);
         return keyId;
+    }
+
+    /// <summary>
+    /// Gets attestation of an Asymmetric Key in the form of an X.509 certificate.
+    /// </summary>
+    /// <param name="keyId">The ID of the Asymmetric Key to attest.</param>
+    /// <param name="attestationId">The ID of the key used to sign the attestation.</param>
+    /// <param name="certificate">The buffer to store the generated certificate.</param>
+    /// <returns>The length of the generated certificate.</returns>
+    public int SignAttestationCertificate(ushort keyId, ushort attestationId, Span<byte> certificate)
+    {
+        yh_rc err = yh_util_sign_attestation_certificate(this.handle, keyId, attestationId, certificate, out nuint certLen);
+        YubiHsmException.ThrowIfError(err);
+        return (int)certLen;
     }
 
     /// <summary>
