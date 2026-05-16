@@ -61,6 +61,19 @@ public sealed class YubiSession : IDisposable
     }
 
     /// <summary>
+    /// Gets the session ID.
+    /// </summary>
+    public byte SessionId
+    {
+        get
+        {
+            yh_rc err = yh_get_session_id(this.handle, out byte sessionId);
+            YubiHsmException.ThrowIfError(err);
+            return sessionId;
+        }
+    }
+
+    /// <summary>
     /// Sends an encrypted message to the device over this session.
     /// </summary>
     /// <param name="request">The command to send.</param>
@@ -1091,6 +1104,26 @@ public sealed class YubiSession : IDisposable
             plaintext, out nuint plaintextLen);
         YubiHsmException.ThrowIfError(err);
         return (int)plaintextLen;
+    }
+
+    /// <summary>
+    /// Blink the LED of the device to identify it.
+    /// </summary>
+    /// <param name="duration">The duration for which to blink the LED.</param>
+    public void BlinkDevice(TimeSpan duration)
+    {
+        yh_rc err = yh_util_blink_device(this.handle, (byte)duration.TotalSeconds);
+        YubiHsmException.ThrowIfError(err);
+    }
+
+    /// <summary>
+    /// Factory reset the device. Resets and reboots the device, deletes all Objects
+    /// and restores the default <see cref="ObjectType.AuthenticationKey"/>.
+    /// </summary>
+    public void ResetDevice()
+    {
+        yh_rc err = yh_util_reset_device(this.handle);
+        YubiHsmException.ThrowIfError(err);
     }
 
     /// <summary>
