@@ -181,26 +181,6 @@ internal static unsafe partial class yubihsm
     public const int YH_EC_P256_PRIVKEY_LEN = 32;
     public const int YH_EC_P256_PUBKEY_LEN = 65;
 
-    // Reference to a connector
-    // typedef struct yh_connector yh_connector;
-    // Opaque struct replaced with SafeConnectorHandle
-
-    // Reference to a session
-    // typedef struct yh_session yh_session;
-    // Opaque struct replaced with SafeSessionHandle
-
-    /// <summary>
-    /// Capabilities representation
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct yh_capabilities
-    {
-        /// <summary>
-        /// Capabilities is represented as an 8 byte byte array.
-        /// </summary>
-        fixed byte capabilities[YH_CAPABILITIES_LEN];
-    }
-
     /// <summary>
     /// Return codes.
     /// </summary>
@@ -303,52 +283,6 @@ internal static unsafe partial class yubihsm
 
         /// <summary>Returned value when an algorithm is disabled</summary>
         YHR_DEVICE_ALGORITHM_DISABLED = -31,
-    }
-
-    /// <summary>
-    /// Object types
-    /// </summary>
-    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html"/>
-    public enum yh_object_type
-    {
-        /// <summary>Opaque Object is an unchecked kind of Object, normally used to store
-        /// raw data in the device</summary>
-        YH_OPAQUE = 0x01,
-
-        /// <summary>Authentication Key is used to establish Sessions with a device</summary>
-        YH_AUTHENTICATION_KEY = 0x02,
-
-        /// <summary>Asymmetric Key is the private key of an asymmetric key-pair</summary>
-        YH_ASYMMETRIC_KEY = 0x03,
-
-        /// <summary>Wrap Key is a secret key used to wrap and unwrap Objects during the
-        /// export and import process</summary>
-        YH_WRAP_KEY = 0x04,
-
-        /// <summary>HMAC Key is a secret key used when computing and verifying HMAC signatures</summary>
-        YH_HMAC_KEY = 0x05,
-
-        /// <summary>Template is a binary object used for example to validate SSH certificate
-        /// requests</summary>
-        YH_TEMPLATE = 0x06,
-
-        /// <summary>OTP AEAD Key is a secret key used to decrypt Yubico OTP values</summary>
-        YH_OTP_AEAD_KEY = 0x07,
-
-        /// <summary>Symmetric Key is a secret key used for encryption and decryption.</summary>
-        YH_SYMMETRIC_KEY = 0x08,
-
-        /// <summary>Public Wrap Key is a public key used to wrap Objects during the
-        /// export process</summary>
-        YH_PUBLIC_WRAP_KEY = 0x09,
-
-        /// <summary>Public Key is the public key of an asymmetric key-pair. The public key
-        /// never exists in device and is mostly here for PKCS#11.</summary>
-        YH_PUBLIC_KEY = YH_ASYMMETRIC_KEY | 0x80,
-
-        /// <summary>Wrap Key public is the public key of an asymmetric wrap key. The public key
-        /// never exists in device and is mostly here for PKCS#11.</summary>
-        YH_WRAP_KEY_PUBLIC = YH_WRAP_KEY | 0x80,
     }
 
     /// <summary>
@@ -470,65 +404,6 @@ internal static unsafe partial class yubihsm
         fixed byte digest[YH_LOG_DIGEST_SIZE];
     }
 
-    /// <summary>
-    /// Object descriptor
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct yh_object_descriptor
-    {
-        /// <summary>
-        /// Object capabilities
-        /// </summary>
-        /// <seealso cref="yh_capabilities"/> 
-        yh_capabilities capabilities;
-
-        /// <summary>
-        /// Object ID
-        /// </summary>
-        ushort id;
-
-        /// <summary>
-        /// Object length
-        /// </summary>
-        ushort len;
-
-        /// <summary>
-        /// Object domains
-        /// </summary>
-        ushort domains;
-
-        /// <summary>
-        /// Object type
-        /// </summary>
-        yh_object_type type;
-
-        /// <summary>
-        /// Object algorithm
-        /// </summary>
-        Algorithm algorithm;
-
-        /// <summary>
-        /// Object sequence
-        /// </summary>
-        byte sequence;
-
-        /// <summary>
-        /// Object origin
-        /// </summary>
-        byte origin;
-
-        /// <summary>
-        /// Object label. The label consists of raw bytes and is not restricted to
-        /// printable characters or valid UTF-8 glyphs.
-        /// </summary>
-        fixed byte label[YH_OBJ_LABEL_LEN + 1];
-
-        /// <summary>
-        /// Object delegated capabilities.
-        /// </summary>
-        yh_capabilities delegated_capabilities;
-    }
-
     private static readonly (string name, int bit)[] yh_capability = [
         ("change-authentication-key", 0x2e),
         ("create-otp-aead", 0x1e),
@@ -646,16 +521,16 @@ internal static unsafe partial class yubihsm
         ("template-ssh", Algorithm.TemplateSsh),
     ];
 
-    private static readonly (string name, yh_object_type type)[] yh_types = [
-        ("authentication-key", yh_object_type.YH_AUTHENTICATION_KEY),
-        ("asymmetric-key", yh_object_type.YH_ASYMMETRIC_KEY),
-        ("hmac-key", yh_object_type.YH_HMAC_KEY),
-        ("opaque", yh_object_type.YH_OPAQUE),
-        ("otp-aead-key", yh_object_type.YH_OTP_AEAD_KEY),
-        ("public-wrap-key", yh_object_type.YH_PUBLIC_WRAP_KEY),
-        ("symmetric-key", yh_object_type.YH_SYMMETRIC_KEY),
-        ("template", yh_object_type.YH_TEMPLATE),
-        ("wrap-key", yh_object_type.YH_WRAP_KEY),
+    private static readonly (string name, ObjectType type)[] yh_types = [
+        ("authentication-key", ObjectType.AuthenticationKey),
+        ("asymmetric-key", ObjectType.AsymmetricKey),
+        ("hmac-key", ObjectType.HmacKey),
+        ("opaque", ObjectType.Opaque),
+        ("otp-aead-key", ObjectType.OtpAeadKey),
+        ("public-wrap-key", ObjectType.PublicWrapKey),
+        ("symmetric-key", ObjectType.SymmetricKey),
+        ("template", ObjectType.Template),
+        ("wrap-key", ObjectType.WrapKey),
     ];
 
     private static readonly (string name, yh_option option)[] yh_options = [
@@ -1132,9 +1007,9 @@ internal static unsafe partial class yubihsm
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="id">Object ID to filter by (0 to not filter by ID)</param>
-    /// <param name="type">Object type to filter by (0 to not filter by type). <see cref="yh_object_type"/></param>
+    /// <param name="type">Object type to filter by (0 to not filter by type). <see cref="ObjectType"/></param>
     /// <param name="domains">Domains to filter by (0 to not filter by domain)</param>
-    /// <param name="capabilities">Capabilities to filter by (0 to not filter by capabilities). <see cref="yh_capabilities"/></param>
+    /// <param name="capabilities">Capabilities to filter by (0 to not filter by capabilities). <see cref="Capabilities"/></param>
     /// <param name="algorithm">Algorithm to filter by (0 to not filter by algorithm)</param>
     /// <param name="label">Label to filter by</param>
     /// <param name="objects">Array of objects returned</param>
@@ -1152,16 +1027,16 @@ internal static unsafe partial class yubihsm
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Label.html">Labels</seealso>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_list_objects(SafeSessionHandle session, ushort id,
-        yh_object_type type, ushort domains, in yh_capabilities capabilities,
+        ObjectType type, ushort domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> label,
-        Span<yh_object_descriptor> objects, out nuint n_objects);
+        Span<ObjectDescriptor> objects, out nuint n_objects);
 
     /// <summary>
     /// Get metadata of the object with the specified Object ID and Type
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="id">Object ID of the object to get</param>
-    /// <param name="type">Object type. <see cref="yh_object_type"/></param>
+    /// <param name="type">Object type. <see cref="ObjectType"/></param>
     /// <param name="object">Object information</param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful
@@ -1170,7 +1045,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_object_info(SafeSessionHandle session, ushort id,
-        yh_object_type type, out yh_object_descriptor @object);
+        ObjectType type, out ObjectDescriptor @object);
 
     /// <summary>
     /// Get the value of the public key with the specified Object ID
@@ -1206,7 +1081,7 @@ internal static unsafe partial class yubihsm
     /// </returns>
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_util_get_public_key_ex(SafeSessionHandle session, yh_object_type type,
+    public static partial yh_rc yh_util_get_public_key_ex(SafeSessionHandle session, ObjectType type,
         ushort id, Span<byte> data, out nuint data_len, out Algorithm algorithm);
 
     /// <summary>
@@ -1359,7 +1234,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_aes_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> key);
 
     /// <summary>
@@ -1380,7 +1255,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_rsa_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> p, ReadOnlySpan<byte> q);
 
     /// <summary>
@@ -1404,7 +1279,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/> 
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_ec_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> s);
 
     /// <summary>
@@ -1424,7 +1299,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_ed_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> k);
 
     /// <summary>
@@ -1447,7 +1322,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_hmac_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> key, nuint key_len);
 
     /// <summary>
@@ -1467,7 +1342,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_aes_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
         Algorithm algorithm);
 
     /// <summary>
@@ -1487,7 +1362,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_rsa_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
         Algorithm algorithm);
 
     /// <summary>
@@ -1512,7 +1387,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_ec_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
         Algorithm algorithm);
 
     /// <summary>
@@ -1531,7 +1406,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_ed_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
         Algorithm algorithm);
 
     /// <summary>
@@ -1572,7 +1447,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_hmac_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
         Algorithm algorithm);
 
     /// <summary>
@@ -1639,7 +1514,7 @@ internal static unsafe partial class yubihsm
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="id">Object ID of the object to delete</param>
-    /// <param name="type">Type of object to delete <see cref="yh_object_type"/></param>
+    /// <param name="type">Type of object to delete <see cref="ObjectType"/></param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if <paramref name="session"/> is NULL.
@@ -1647,14 +1522,14 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_delete_object(SafeSessionHandle session, ushort id,
-        yh_object_type type);
+        ObjectType type);
 
     /// <summary>
     /// Export an object under wrap from the device
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="wrapping_key_id">Object ID of the Wrap Key to use to wrap the object</param>
-    /// <param name="target_type">Type of the object to be exported. <see cref="yh_object_type"/></param>
+    /// <param name="target_type">Type of the object to be exported. <see cref="ObjectType"/></param>
     /// <param name="target_id">Object ID of the object to be exported</param>
     /// <param name="out">Wrapped data</param>
     /// <param name="out_len">Length of wrapped data</param>
@@ -1665,14 +1540,14 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_export_wrapped(SafeSessionHandle session, ushort wrapping_key_id,
-        yh_object_type target_type, ushort target_id, Span<byte> @out, out nuint out_len);
+        ObjectType target_type, ushort target_id, Span<byte> @out, out nuint out_len);
 
     /// <summary>
     /// Export an object under wrap from the device with the option to include the ED25519 seed
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="wrapping_key_id">Object ID of the Wrap Key to use to wrap the object</param>
-    /// <param name="target_type">Type of the object to be exported. <see cref="yh_object_type"/></param>
+    /// <param name="target_type">Type of the object to be exported. <see cref="ObjectType"/></param>
     /// <param name="target_id">Object ID of the object to be exported</param>
     /// <param name="format">Format option (0=legacy, 1=include ED25519 seed)</param>
     /// <param name="out">Wrapped data</param>
@@ -1684,7 +1559,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_export_wrapped_ex(SafeSessionHandle session, ushort wrapping_key_id,
-        yh_object_type target_type, ushort target_id, byte format, Span<byte> @out, out nuint out_len);
+        ObjectType target_type, ushort target_id, byte format, Span<byte> @out, out nuint out_len);
 
     /// <summary>
     /// Import a wrapped object into the device. The object should have been previously exported by <see cref="yh_util_export_wrapped"/>
@@ -1702,7 +1577,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_wrapped(SafeSessionHandle session, ushort wrapping_key_id,
-        ReadOnlySpan<byte> @in, nuint in_len, out yh_object_type target_type, out ushort target_id);
+        ReadOnlySpan<byte> @in, nuint in_len, out ObjectType target_type, out ushort target_id);
 
     /// <summary>
     /// Export a (a)symmetric key material using an RSA wrap key, meta data or properties, like domains and capabilities, are not included.
@@ -1726,7 +1601,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_rsa_wrapped_key(SafeSessionHandle session, ushort wrap_key_id,
-        yh_object_type target_type, ushort target_id, Algorithm aes,
+        ObjectType target_type, ushort target_id, Algorithm aes,
         Algorithm hash, Algorithm mgf1,
         ReadOnlySpan<byte> oaep_label, nuint oaep_label_len, Span<byte> @out, out nuint out_len);
 
@@ -1751,7 +1626,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_export_rsa_wrapped(SafeSessionHandle session, ushort wrap_key_id,
-        yh_object_type target_type, ushort target_id, Algorithm aes,
+        ObjectType target_type, ushort target_id, Algorithm aes,
         Algorithm hash, Algorithm mgf1,
         ReadOnlySpan<byte> oaep_label, nuint oaep_label_len, Span<byte> @out, out nuint out_len);
 
@@ -1778,14 +1653,14 @@ internal static unsafe partial class yubihsm
         Algorithm hash, Algorithm mgf1,
         ReadOnlySpan<byte> label, nuint label_len,
         ReadOnlySpan<byte> @in, nuint in_len,
-        out yh_object_type target_type, out ushort target_id);
+        out ObjectType target_type, out ushort target_id);
 
     /// <summary>
     /// Import an (a)symmetric key using an RSA wrap key
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="wrapping_key_id">Object ID of the Wrap Key to use to unwrap the object</param>
-    /// <param name="type">Type of object to import. One of <see cref="yh_object_type.YH_SYMMETRIC_KEY"/> or <see cref="yh_object_type.YH_ASYMMETRIC_KEY"/></param>
+    /// <param name="type">Type of object to import. One of <see cref="ObjectType.SymmetricKey"/> or <see cref="ObjectType.AsymmetricKey"/></param>
     /// <param name="target_id">Object ID of object to import</param>
     /// <param name="algo">Key algorithm of object to import</param>
     /// <param name="label">Label of object to import</param>
@@ -1804,9 +1679,9 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_put_rsa_wrapped_key(
-        SafeSessionHandle session, ushort wrapping_key_id, yh_object_type type,
+        SafeSessionHandle session, ushort wrapping_key_id, ObjectType type,
         ref ushort target_id, Algorithm algo, ReadOnlySpan<byte> label, ushort domains,
-        in yh_capabilities capabilities, Algorithm hash, Algorithm mgf1,
+        in Capabilities capabilities, Algorithm hash, Algorithm mgf1,
         ReadOnlySpan<byte> oaep_label, nuint oaep_label_len, ReadOnlySpan<byte> @in, nuint in_len);
 
     /// <summary>
@@ -1830,8 +1705,8 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_wrap_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        Algorithm algorithm, in yh_capabilities delegated_capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        Algorithm algorithm, in Capabilities delegated_capabilities,
         ReadOnlySpan<byte> @in, nuint in_len);
 
     /// <summary>
@@ -1854,8 +1729,8 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_public_wrap_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        Algorithm algorithm, in yh_capabilities delegated_capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        Algorithm algorithm, in Capabilities delegated_capabilities,
         ReadOnlySpan<byte> @in, nuint in_len);
 
     /// <summary>
@@ -1875,8 +1750,8 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_wrap_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
-        Algorithm algorithm, in yh_capabilities delegated_capabilities);
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
+        Algorithm algorithm, in Capabilities delegated_capabilities);
 
     /// <summary>
     /// Get audit logs from the device.
@@ -1921,7 +1796,7 @@ internal static unsafe partial class yubihsm
     public static partial yh_rc yh_util_set_log_index(SafeSessionHandle session, ushort index);
 
     /// <summary>
-    /// Get an <see cref="yh_object_type.YH_OPAQUE"/> object (like an X.509 certificate) from the device
+    /// Get an <see cref="ObjectType.Opaque"/> object (like an X.509 certificate) from the device
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="object_id">Object ID of the Opaque object</param>
@@ -1937,7 +1812,7 @@ internal static unsafe partial class yubihsm
         Span<byte> @out, out nuint out_len);
 
     /// <summary>
-    /// Import an <see cref="yh_object_type.YH_OPAQUE"/> object into the device
+    /// Import an <see cref="ObjectType.Opaque"/> object into the device
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="object_id">Object ID of the Opaque object. 0 if the Object ID should be generated by the device</param>
@@ -1953,11 +1828,11 @@ internal static unsafe partial class yubihsm
     /// </returns>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_opaque(SafeSessionHandle session, ref ushort object_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len);
 
     /// <summary>
-    /// Get an <see cref="yh_object_type.YH_OPAQUE"/> object (like an X.509 certificate) from the device with an option to decompress the data
+    /// Get an <see cref="ObjectType.Opaque"/> object (like an X.509 certificate) from the device with an option to decompress the data
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="object_id">Object ID of the Opaque object</param>
@@ -1975,7 +1850,7 @@ internal static unsafe partial class yubihsm
         Span<byte> @out, out nuint out_len, out nuint stored_len, [MarshalAs(UnmanagedType.U1)] bool try_decompress);
 
     /// <summary>
-    /// Import an <see cref="yh_object_type.YH_OPAQUE"/> object into the device with an option to compress the data before import
+    /// Import an <see cref="ObjectType.Opaque"/> object into the device with an option to compress the data before import
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="object_id">Object ID of the Opaque object. 0 if the Object ID should be generated by the device</param>
@@ -1994,7 +1869,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_opaque_ex(SafeSessionHandle session, ref ushort object_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len,
         yh_compress_option compress, out nuint import_len);
 
@@ -2020,7 +1895,7 @@ internal static unsafe partial class yubihsm
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
     /// <summary>
-    /// Import an <see cref="yh_object_type.YH_AUTHENTICATION_KEY"/> into the device
+    /// Import an <see cref="ObjectType.AuthenticationKey"/> into the device
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the imported key. 0 if the Object ID should be generated by the device</param>
@@ -2041,12 +1916,12 @@ internal static unsafe partial class yubihsm
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_authentication_key(
         SafeSessionHandle session, ref ushort key_id, ReadOnlySpan<byte> label, ushort domains,
-        in yh_capabilities capabilities, in yh_capabilities delegated_capabilities,
+        in Capabilities capabilities, in Capabilities delegated_capabilities,
         ReadOnlySpan<byte> key_enc, nuint key_enc_len,
         ReadOnlySpan<byte> key_mac, nuint key_mac_len);
 
     /// <summary>
-    /// Import an <see cref="yh_object_type.YH_AUTHENTICATION_KEY"/> with long lived keys derived from a password
+    /// Import an <see cref="ObjectType.AuthenticationKey"/> with long lived keys derived from a password
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the key. 0 if the Object ID should be generated by the device</param>
@@ -2064,11 +1939,11 @@ internal static unsafe partial class yubihsm
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_authentication_key_derived(
         SafeSessionHandle session, ref ushort key_id, ReadOnlySpan<byte> label, ushort domains,
-        in yh_capabilities capabilities, in yh_capabilities delegated_capabilities,
+        in Capabilities capabilities, in Capabilities delegated_capabilities,
         ReadOnlySpan<byte> password, nuint password_len);
 
     /// <summary>
-    /// Replace the long lived encryption key and MAC key associated with an <see cref="yh_object_type.YH_AUTHENTICATION_KEY"/> in the device
+    /// Replace the long lived encryption key and MAC key associated with an <see cref="ObjectType.AuthenticationKey"/> in the device
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the key to replace</param>
@@ -2088,7 +1963,7 @@ internal static unsafe partial class yubihsm
         ReadOnlySpan<byte> key_mac, nuint key_mac_len);
 
     /// <summary>
-    /// Replace the long lived encryption key and MAC key associated with an <see cref="yh_object_type.YH_AUTHENTICATION_KEY"/> in the device
+    /// Replace the long lived encryption key and MAC key associated with an <see cref="ObjectType.AuthenticationKey"/> in the device
     /// with keys derived from a password
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
@@ -2106,7 +1981,7 @@ internal static unsafe partial class yubihsm
         ref ushort key_id, ReadOnlySpan<byte> password, nuint password_len);
 
     /// <summary>
-    /// Get a <see cref="yh_object_type.YH_TEMPLATE"/> object from the device
+    /// Get a <see cref="ObjectType.Template"/> object from the device
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="object_id">Object ID of the Template to get</param>
@@ -2122,7 +1997,7 @@ internal static unsafe partial class yubihsm
         Span<byte> @out, out nuint out_len);
 
     /// <summary>
-    /// Import a <see cref="yh_object_type.YH_TEMPLATE"/> object into the device
+    /// Import a <see cref="ObjectType.Template"/> object into the device
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="object_id">Object ID of the Template. 0 if the Object ID should be generated by the device</param>
@@ -2139,7 +2014,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_template(SafeSessionHandle session, ref ushort object_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len);
 
     /// <summary>
@@ -2199,7 +2074,7 @@ internal static unsafe partial class yubihsm
         out ushort useCtr, out byte sessionCtr, out byte tstph, out ushort tstpl);
 
     /// <summary>
-    /// Rewrap an OTP AEAD from one <see cref="yh_object_type.YH_OTP_AEAD_KEY"/> to another
+    /// Rewrap an OTP AEAD from one <see cref="ObjectType.OtpAeadKey"/> to another
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="id_from">Object ID of the AEAD Key to wrap from</param>
@@ -2219,7 +2094,7 @@ internal static unsafe partial class yubihsm
         Span<byte> aead_out, out nuint out_len);
 
     /// <summary>
-    /// Import an <see cref="yh_object_type.YH_OTP_AEAD_KEY"/> used for Yubico OTP Decryption
+    /// Import an <see cref="ObjectType.OtpAeadKey"/> used for Yubico OTP Decryption
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the AEAD Key. 0 if the Object ID should be generated by the device</param>
@@ -2236,11 +2111,11 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_import_otp_aead_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
         uint nonce_id, ReadOnlySpan<byte> @in, nuint in_len);
 
     /// <summary>
-    /// Generate an <see cref="yh_object_type.YH_OTP_AEAD_KEY"/> for Yubico OTP decryption in the device
+    /// Generate an <see cref="ObjectType.OtpAeadKey"/> for Yubico OTP decryption in the device
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the AEAD Key. 0 if the Object ID should be generated by the device</param>
@@ -2257,7 +2132,7 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_generate_otp_aead_key(SafeSessionHandle session, ref ushort key_id,
-        ReadOnlySpan<byte> label, ushort domains, in yh_capabilities capabilities,
+        ReadOnlySpan<byte> label, ushort domains, in Capabilities capabilities,
         Algorithm algorithm, uint nonce_id);
 
     /// <summary>
@@ -2329,7 +2204,7 @@ internal static unsafe partial class yubihsm
         out ushort free_pages, out ushort page_size);
 
     /// <summary>
-    /// Encrypt (wrap) data using a <see cref="yh_object_type.YH_WRAP_KEY"/>.
+    /// Encrypt (wrap) data using a <see cref="ObjectType.WrapKey"/>.
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the Wrap Key to use</param>
@@ -2347,7 +2222,7 @@ internal static unsafe partial class yubihsm
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
     /// <summary>
-    /// Decrypt (unwrap) data using a <see cref="yh_object_type.YH_WRAP_KEY"/>.
+    /// Decrypt (unwrap) data using a <see cref="ObjectType.WrapKey"/>.
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the Wrap Key to use</param>
@@ -2364,7 +2239,7 @@ internal static unsafe partial class yubihsm
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
     /// <summary>
-    /// Encrypt data using a AES <see cref="yh_object_type.YH_SYMMETRIC_KEY"/> in ECB mode
+    /// Encrypt data using a AES <see cref="ObjectType.SymmetricKey"/> in ECB mode
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the Symmetric Key to use</param>
@@ -2381,7 +2256,7 @@ internal static unsafe partial class yubihsm
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
     /// <summary>
-    /// Decrypt data using a AES <see cref="yh_object_type.YH_SYMMETRIC_KEY"/> in ECB mode
+    /// Decrypt data using a AES <see cref="ObjectType.SymmetricKey"/> in ECB mode
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the Symmetric Key to use</param>
@@ -2398,7 +2273,7 @@ internal static unsafe partial class yubihsm
         ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
     /// <summary>
-    /// Encrypt data using an AES <see cref="yh_object_type.YH_SYMMETRIC_KEY"/> in CBC mode
+    /// Encrypt data using an AES <see cref="ObjectType.SymmetricKey"/> in CBC mode
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the Symmetric Key to use</param>
@@ -2416,7 +2291,7 @@ internal static unsafe partial class yubihsm
         ReadOnlySpan<byte> iv, ReadOnlySpan<byte> @in, nuint in_len, Span<byte> @out, out nuint out_len);
 
     /// <summary>
-    /// Decrypt data using an AES <see cref="yh_object_type.YH_SYMMETRIC_KEY"/> in CBC mode
+    /// Decrypt data using an AES <see cref="ObjectType.SymmetricKey"/> in CBC mode
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <param name="key_id">Object ID of the Symmetric Key to use</param>
@@ -2479,7 +2354,7 @@ internal static unsafe partial class yubihsm
     public static partial yh_rc yh_util_blink_device(SafeSessionHandle session, byte seconds);
 
     /// <summary>
-    /// Factory reset the device. Resets and reboots the device, deletes all Objects and restores the default <see cref="yh_object_type.YH_AUTHENTICATION_KEY"/>.
+    /// Factory reset the device. Resets and reboots the device, deletes all Objects and restores the default <see cref="ObjectType.AuthenticationKey"/>.
     /// </summary>
     /// <param name="session">Authenticated session to use</param>
     /// <returns>
@@ -2542,7 +2417,7 @@ internal static unsafe partial class yubihsm
     /// Convert capability string to byte array
     /// </summary>
     /// <param name="capability">String of capabilities separated by ',', ':' or '|'</param>
-    /// <param name="result">Array of <see cref="yh_capabilities"/></param>
+    /// <param name="result">Array of <see cref="Capabilities"/></param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
@@ -2559,12 +2434,12 @@ internal static unsafe partial class yubihsm
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Capability.html">Capability</seealso> 
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_string_to_capabilities(ReadOnlySpan<byte> capability,
-        out yh_capabilities result);
+        out Capabilities result);
 
     /// <summary>
-    /// Convert an array of <see cref="yh_capabilities"/> into strings separated by ','
+    /// Convert an array of <see cref="Capabilities"/> into strings separated by ','
     /// </summary>
-    /// <param name="num">Array of <see cref="yh_capabilities"/></param>
+    /// <param name="num">Array of <see cref="Capabilities"/></param>
     /// <param name="result">Array of the capabilies as strings</param>
     /// <param name="n_result">Number of elements in result</param>
     /// <returns>
@@ -2573,13 +2448,13 @@ internal static unsafe partial class yubihsm
     /// <see cref="yh_rc.YHR_BUFFER_TOO_SMALL"/> if <paramref name="n_result"/> is too small.
     /// </returns>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_capabilities_to_strings(in yh_capabilities num,
+    public static partial yh_rc yh_capabilities_to_strings(in Capabilities num,
         out nint result, out nuint n_result);
 
     /// <summary>
     /// Check if a capability is set
     /// </summary>
-    /// <param name="capabilities">Array of <see cref="yh_capabilities"/></param>
+    /// <param name="capabilities">Array of <see cref="Capabilities"/></param>
     /// <param name="capability">Capability to check as a string</param>
     /// <returns>True if the <paramref name="capability"/> is in <paramref name="capabilities"/>. False otherwise</returns>
     /// <example>
@@ -2594,39 +2469,39 @@ internal static unsafe partial class yubihsm
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Capability.html">Capability</seealso>
     [LibraryImport(nameof(yubihsm))]
     [return: MarshalAs(UnmanagedType.U1)]
-    public static partial bool yh_check_capability(in yh_capabilities capabilities,
+    public static partial bool yh_check_capability(in Capabilities capabilities,
         ReadOnlySpan<byte> capability);
 
     /// <summary>
     /// Merge two sets of capabilities. The resulting set of capabilities contain all capabilities from both arrays
     /// </summary>
-    /// <param name="a">Array of <see cref="yh_capabilities"/></param>
-    /// <param name="b">Array of <see cref="yh_capabilities"/></param>
-    /// <param name="result">Resulting array of <see cref="yh_capabilities"/></param>
+    /// <param name="a">Array of <see cref="Capabilities"/></param>
+    /// <param name="b">Array of <see cref="Capabilities"/></param>
+    /// <param name="result">Resulting array of <see cref="Capabilities"/></param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Capability.html">Capability</seealso>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_merge_capabilities(in yh_capabilities a, in yh_capabilities b,
-        out yh_capabilities result);
+    public static partial yh_rc yh_merge_capabilities(in Capabilities a, in Capabilities b,
+        out Capabilities result);
 
     /// <summary>
     /// Filter one set of capabilities with another. The resulting set of capabilities contains only the capabilities
     /// that exist in both sets of input capabilities
     /// </summary>
-    /// <param name="capabilities">Array of <see cref="yh_capabilities"/></param>
-    /// <param name="filter">Array of <see cref="yh_capabilities"/></param>
-    /// <param name="result">Resulting array of <see cref="yh_capabilities"/></param>
+    /// <param name="capabilities">Array of <see cref="Capabilities"/></param>
+    /// <param name="filter">Array of <see cref="Capabilities"/></param>
+    /// <param name="result">Resulting array of <see cref="Capabilities"/></param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Capability.html">Capability</seealso>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_filter_capabilities(in yh_capabilities capabilities,
-        in yh_capabilities filter, out yh_capabilities result);
+    public static partial yh_rc yh_filter_capabilities(in Capabilities capabilities,
+        in Capabilities filter, out Capabilities result);
 
     /// <summary>
     /// Check if an algorithm is a supported Symmetric Key AES algorithm
@@ -2741,9 +2616,9 @@ internal static unsafe partial class yubihsm
     public static partial yh_rc yh_string_to_algo(ReadOnlySpan<byte> @string, out Algorithm algo);
 
     /// <summary>
-    /// Convert a <see cref="yh_object_type"/> to its string representation
+    /// Convert a <see cref="ObjectType"/> to its string representation
     /// </summary>
-    /// <param name="type">Type to convert <see cref="yh_object_type"/></param>
+    /// <param name="type">Type to convert <see cref="ObjectType"/></param>
     /// <param name="result">The type as a String. "Unknown" if the type was not recognized</param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
@@ -2759,12 +2634,12 @@ internal static unsafe partial class yubihsm
     /// </example>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html">Object</seealso>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_type_to_string(yh_object_type type, out nint result);
+    public static partial yh_rc yh_type_to_string(ObjectType type, out nint result);
 
     /// <summary>
     /// Convert a string to a type's numeric value
     /// </summary>
-    /// <param name="string">Type as a String. <see cref="yh_object_type"/></param>
+    /// <param name="string">Type as a String. <see cref="ObjectType"/></param>
     /// <param name="type">Type numeric value</param>
     /// <returns>
     /// <see cref="yh_rc.YHR_SUCCESS"/> if successful.
@@ -2781,7 +2656,7 @@ internal static unsafe partial class yubihsm
     /// </example>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html">Object</seealso>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_string_to_type(ReadOnlySpan<byte> @string, out yh_object_type type);
+    public static partial yh_rc yh_string_to_type(ReadOnlySpan<byte> @string, out ObjectType type);
 
     /// <summary>
     /// Convert a string to an option's numeric value
