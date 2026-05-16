@@ -994,6 +994,18 @@ public sealed class YubiSession : IDisposable
     }
 
     /// <summary>
+    /// Reports currently free storage.
+    /// </summary>
+    /// <returns>Information about the free storage.</returns>
+    public StorageInfo GetStorageInfo()
+    {
+        yh_rc err = yh_util_get_storage_info(this.handle, out ushort totalRecords, out ushort freeRecords,
+            out ushort totalPages, out ushort freePages, out ushort pageSize);
+        YubiHsmException.ThrowIfError(err);
+        return new StorageInfo(totalRecords, freeRecords, totalPages, freePages, pageSize);
+    }
+
+    /// <summary>
     /// Frees data associated with the session.
     /// </summary>
     public void Dispose()
