@@ -1006,6 +1006,94 @@ public sealed class YubiSession : IDisposable
     }
 
     /// <summary>
+    /// Encrypts (wraps) data using a <see cref="ObjectType.WrapKey"/>.
+    /// </summary>
+    /// <param name="keyId">The ID of the wrap key.</param>
+    /// <param name="data">The data to wrap.</param>
+    /// <param name="wrappedData">The buffer to store the wrapped data.</param>
+    /// <returns>The length of the wrapped data.</returns>
+    public int WrapData(ushort keyId, ReadOnlySpan<byte> data, Span<byte> wrappedData)
+    {
+        yh_rc err = yh_util_wrap_data(this.handle, keyId, data, (nuint)data.Length, wrappedData, out nuint wrappedDataLen);
+        YubiHsmException.ThrowIfError(err);
+        return (int)wrappedDataLen;
+    }
+
+    /// <summary>
+    /// Decrypts (unwraps) data using a <see cref="ObjectType.WrapKey"/>.
+    /// </summary>
+    /// <param name="keyId">The ID of the wrap key.</param>
+    /// <param name="wrappedData">The data to unwrap.</param>
+    /// <param name="data">The buffer to store the unwrapped data.</param>
+    /// <returns>The length of the unwrapped data.</returns>
+    public int UnwrapData(ushort keyId, ReadOnlySpan<byte> wrappedData, Span<byte> data)
+    {
+        yh_rc err = yh_util_unwrap_data(this.handle, keyId, wrappedData, (nuint)wrappedData.Length, data, out nuint dataLen);
+        YubiHsmException.ThrowIfError(err);
+        return (int)dataLen;
+    }
+
+    /// <summary>
+    /// Encrypts data using an AES <see cref="ObjectType.SymmetricKey"/> in ECB mode.
+    /// </summary>
+    /// <param name="keyId">The ID of the AES key.</param>
+    /// <param name="plaintext">The data to encrypt.</param>
+    /// <param name="ciphertext">The buffer to store the encrypted data.</param>
+    /// <returns>The length of the encrypted data.</returns>
+    public int EncryptAesEcb(ushort keyId, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext)
+    {
+        yh_rc err = yh_util_encrypt_aes_ecb(this.handle, keyId, plaintext, (nuint)plaintext.Length, ciphertext, out nuint ciphertextLen);
+        YubiHsmException.ThrowIfError(err);
+        return (int)ciphertextLen;
+    }
+
+    /// <summary>
+    /// Decrypts data using an AES <see cref="ObjectType.SymmetricKey"/> in ECB mode.
+    /// </summary>
+    /// <param name="keyId">The ID of the AES key.</param>
+    /// <param name="ciphertext">The data to decrypt.</param>
+    /// <param name="plaintext">The buffer to store the decrypted data.</param>
+    /// <returns>The length of the decrypted data.</returns>
+    public int DecryptAesEcb(ushort keyId, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext)
+    {
+        yh_rc err = yh_util_decrypt_aes_ecb(this.handle, keyId, ciphertext, (nuint)ciphertext.Length, plaintext, out nuint plaintextLen);
+        YubiHsmException.ThrowIfError(err);
+        return (int)plaintextLen;
+    }
+
+    /// <summary>
+    /// Encrypt data using an AES <see cref="ObjectType.SymmetricKey"/> in CBC mode.
+    /// </summary>
+    /// <param name="keyId">The ID of the AES key.</param>
+    /// <param name="iv">The 16-byte initialization vector.</param>
+    /// <param name="plaintext">The data to encrypt.</param>
+    /// <param name="ciphertext">The buffer to store the encrypted data.</param>
+    /// <returns>The length of the encrypted data.</returns>
+    public int EncryptAesCbc(ushort keyId, ReadOnlySpan<byte> iv, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext)
+    {
+        yh_rc err = yh_util_encrypt_aes_cbc(this.handle, keyId, iv, plaintext, (nuint)plaintext.Length,
+            ciphertext, out nuint ciphertextLen);
+        YubiHsmException.ThrowIfError(err);
+        return (int)ciphertextLen;
+    }
+
+    /// <summary>
+    /// Decrypt data using an AES <see cref="ObjectType.SymmetricKey"/> in CBC mode.
+    /// </summary>
+    /// <param name="keyId">The ID of the AES key.</param>
+    /// <param name="iv">The 16-byte initialization vector.</param>
+    /// <param name="ciphertext">The data to decrypt.</param>
+    /// <param name="plaintext">The buffer to store the decrypted data.</param>
+    /// <returns>The length of the decrypted data.</returns>
+    public int DecryptAesCbc(ushort keyId, ReadOnlySpan<byte> iv, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext)
+    {
+        yh_rc err = yh_util_decrypt_aes_cbc(this.handle, keyId, iv, ciphertext, (nuint)ciphertext.Length,
+            plaintext, out nuint plaintextLen);
+        YubiHsmException.ThrowIfError(err);
+        return (int)plaintextLen;
+    }
+
+    /// <summary>
     /// Frees data associated with the session.
     /// </summary>
     public void Dispose()
