@@ -564,6 +564,65 @@ public sealed class YubiSession : IDisposable
     }
 
     /// <summary>
+    /// Imports a Wrap Key into the device.
+    /// </summary>
+    /// <param name="label">The label for the wrap key, UTF-8 encoded and null-terminated.</param>
+    /// <param name="domains">The domains to which the wrap key belongs.</param>
+    /// <param name="capabilities">The capabilities of the wrap key.</param>
+    /// <param name="algorithm">The algorithm of the wrap key.</param>
+    /// <param name="delegatedCapabilities">The delegated capabilities of the wrap key.</param>
+    /// <param name="key">The buffer containing the wrap key material.</param>
+    /// <param name="keyId">The ID of the wrap key. 0 if the ID should be assigned by the device.</param>
+    /// <returns>The ID of the imported wrap key.</returns>
+    public ushort ImportWrapKey(ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
+        Algorithm algorithm, in Capabilities delegatedCapabilities, ReadOnlySpan<byte> key, ushort keyId = 0)
+    {
+        yh_rc err = yh_util_import_wrap_key(this.handle, ref keyId, label, domains, in capabilities,
+            algorithm, in delegatedCapabilities, key, (nuint)key.Length);
+        YubiHsmException.ThrowIfError(err);
+        return keyId;
+    }
+
+    /// <summary>
+    /// Imports a public RSA key as a Public Wrap Key into the device.
+    /// </summary>
+    /// <param name="label">The label for the public wrap key, UTF-8 encoded and null-terminated.</param>
+    /// <param name="domains">The domains to which the public wrap key belongs.</param>
+    /// <param name="capabilities">The capabilities of the public wrap key.</param>
+    /// <param name="algorithm">The algorithm of the public wrap key.</param>
+    /// <param name="delegatedCapabilities">The delegated capabilities of the public wrap key.</param>
+    /// <param name="key">The buffer containing the public wrap key material.</param>
+    /// <param name="keyId">The ID of the public wrap key. 0 if the ID should be assigned by the device.</param>
+    /// <returns>The ID of the imported public wrap key.</returns>
+    public ushort ImportPublicWrapKey(ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
+        Algorithm algorithm, in Capabilities delegatedCapabilities, ReadOnlySpan<byte> key, ushort keyId = 0)
+    {
+        yh_rc err = yh_util_import_public_wrap_key(this.handle, ref keyId, label, domains, in capabilities,
+            algorithm, in delegatedCapabilities, key, (nuint)key.Length);
+        YubiHsmException.ThrowIfError(err);
+        return keyId;
+    }
+
+    /// <summary>
+    /// Generates a Wrap Key in the device.
+    /// </summary>
+    /// <param name="label">The label for the wrap key, UTF-8 encoded and null-terminated.</param>
+    /// <param name="domains">The domains to which the wrap key belongs.</param>
+    /// <param name="capabilities">The capabilities of the wrap key.</param>
+    /// <param name="algorithm">The algorithm of the wrap key.</param>
+    /// <param name="delegatedCapabilities">The delegated capabilities of the wrap key.</param>
+    /// <param name="keyId">The ID of the wrap key. 0 if the ID should be assigned by the device.</param>
+    /// <returns>The ID of the generated wrap key.</returns>
+    public ushort GenerateWrapKey(ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
+        Algorithm algorithm, in Capabilities delegatedCapabilities, ushort keyId = 0)
+    {
+        yh_rc err = yh_util_generate_wrap_key(this.handle, ref keyId, label, domains, in capabilities,
+            algorithm, in delegatedCapabilities);
+        YubiHsmException.ThrowIfError(err);
+        return keyId;
+    }
+
+    /// <summary>
     /// Frees data associated with the session.
     /// </summary>
     public void Dispose()
