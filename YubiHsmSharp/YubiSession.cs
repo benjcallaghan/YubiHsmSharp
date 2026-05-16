@@ -654,6 +654,72 @@ public sealed class YubiSession : IDisposable
     }
 
     /// <summary>
+    /// Gets an <see cref="ObjectType.Opaque"/> object (like an X.509 certificate) from the device.
+    /// </summary>
+    /// <param name="objectId">The ID of the opaque object to retrieve.</param>
+    /// <param name="opaque">The buffer to store the retrieved opaque object.</param>
+    /// <returns>The length of the retrieved opaque object.</returns>
+    public int GetOpaque(ushort objectId, Span<byte> opaque)
+    {
+        yh_rc err = yh_util_get_opaque(this.handle, objectId, opaque, out nuint dataLen);
+        YubiHsmException.ThrowIfError(err);
+        return (int)dataLen;
+    }
+
+    /// <summary>
+    /// Gets an <see cref="ObjectType.Opaque"/> object (like an X.509 certificate) from the device, with an option to try decompressing the object if it's stored in compressed form.
+    /// </summary>
+    /// <param name="objectId">The ID of the opaque object to retrieve.</param>
+    /// <param name="opaque">The buffer to store the retrieved opaque object.</param>
+    /// <param name="tryDecompress">A value indicating whether to try decompressing the object if it's stored in compressed form.</param>
+    /// <returns>A tuple containing the length of the retrieved opaque object and the length of the stored object.</returns>
+    public (int dataLength, int storedLength) GetOpaque(ushort objectId, Span<byte> opaque, bool tryDecompress)
+    {
+        yh_rc err = yh_util_get_opaque_ex(this.handle, objectId, opaque, out nuint dataLen, out nuint storedLen, tryDecompress);
+        YubiHsmException.ThrowIfError(err);
+        return ((int)dataLen, (int)storedLen);
+    }
+
+    /// <summary>
+    /// Imports an <see cref="ObjectType.Opaque"/> object into the device.
+    /// </summary>
+    /// <param name="label">The label of the opaque object, UTF-8 encoded and null-terminated.</param>
+    /// <param name="domains">The domains where the opaque object will be operating within.</param>
+    /// <param name="capabilities">The capabilities of the opaque object.</param>
+    /// <param name="algorithm">The algorithm of the opaque object.</param>
+    /// <param name="opaque">The buffer containing the opaque object to import.</param>
+    /// <param name="objectId">The ID of the opaque object. 0 if the ID should be assigned by the device.</param>
+    /// <returns>The ID of the imported opaque object.</returns>
+    public ushort ImportOpaque(ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
+        Algorithm algorithm, ReadOnlySpan<byte> opaque, ushort objectId = 0)
+    {
+        yh_rc err = yh_util_import_opaque(this.handle, ref objectId, label, domains, in capabilities,
+            algorithm, opaque, (nuint)opaque.Length);
+        YubiHsmException.ThrowIfError(err);
+        return objectId;
+    }
+
+    /// <summary>
+    /// Imports an <see cref="ObjectType.Opaque"/> object into the device, with an option to compress the object before storing it.
+    /// </summary>
+    /// <param name="label">The label of the opaque object, UTF-8 encoded and null-terminated.</param>
+    /// <param name="domains">The domains where the opaque object will be operating within.</param>
+    /// <param name="capabilities">The capabilities of the opaque object.</param>
+    /// <param name="algorithm">The algorithm of the opaque object.</param>
+    /// <param name="opaque">The buffer containing the opaque object to import.</param>
+    /// <param name="compression">The compression option for the opaque object.</param>
+    /// <param name="objectId">The ID of the opaque object. 0 if the ID should be assigned by the device.</param>
+    /// <returns>A tuple containing the ID of the imported opaque object and the length of the imported object.</returns>
+    public (ushort objectId, int importLength) ImportOpaque(ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
+        Algorithm algorithm, ReadOnlySpan<byte> opaque, CompressOption compression, ushort objectId = 0)
+    {
+        yh_rc err = yh_util_import_opaque_ex(this.handle, ref objectId, label, domains, in capabilities,
+            algorithm, opaque, (nuint)opaque.Length, compression, out nuint importLen);
+        YubiHsmException.ThrowIfError(err);
+        return (objectId, (int)importLen);
+    }
+
+    /// <summary>
     /// Frees data associated with the session.
     /// </summary>
     public void Dispose()

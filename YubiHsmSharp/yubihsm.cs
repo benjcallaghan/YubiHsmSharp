@@ -334,21 +334,6 @@ internal static unsafe partial class yubihsm
         YH_CONNECTOR_NOPROXY = 5,
     }
 
-    /// <summary>
-    /// Options for data compression
-    /// </summary>
-    public enum yh_compress_option
-    {
-        /// <summary>Do not compress data before importing it</summary>
-        NO_COMPRESS = 1,
-
-        /// <summary>Compress data if it's too big</summary>
-        COMPRESS_IF_TOO_BIG = 2,
-
-        /// <summary>Compress data before importing it</summary>
-        COMPRESS = 3,
-    }
-
     private static readonly (string name, int bit)[] yh_capability = [
         ("change-authentication-key", 0x2e),
         ("create-otp-aead", 0x1e),
@@ -1800,7 +1785,7 @@ internal static unsafe partial class yubihsm
     public static partial yh_rc yh_util_import_opaque_ex(SafeSessionHandle session, ref ushort object_id,
         ReadOnlySpan<byte> label, Domains domains, in Capabilities capabilities,
         Algorithm algorithm, ReadOnlySpan<byte> @in, nuint in_len,
-        yh_compress_option compress, out nuint import_len);
+        CompressOption compress, out nuint import_len);
 
     /// <summary>
     /// Sign an SSH Certificate request. The function produces a signature that can then be used to produce the SSH Certificate
