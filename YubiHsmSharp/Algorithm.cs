@@ -255,7 +255,7 @@ public static class AlgorithmExtensions
         /// Converts an algorithm to its string representation.
         /// </summary>
         /// <returns>The string representation of the algorithm.</returns>
-        public string ToString()
+        public string ToYubiString()
         {
             yh_rc err = yh_algo_to_string(algorithm, out nint result);
             YubiHsmException.ThrowIfError(err);
