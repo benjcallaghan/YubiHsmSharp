@@ -1094,7 +1094,7 @@ internal static unsafe partial class yubihsm
     /// </returns>
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_util_close_session(SafeSessionHandle session);
+    public static partial yh_rc yh_util_close_session(nint session);
 
     /// <summary>
     /// Sign data using RSA-PKCS#1v1.5

@@ -117,7 +117,13 @@ internal class SafeSessionHandle : SafeHandle
 
     protected override bool ReleaseHandle()
     {
-        yh_rc err = yh_destroy_session(ref this.handle);
+        yh_rc err = yh_util_close_session(this.handle);
+        if (err != yh_rc.YHR_SUCCESS)
+        {
+            return false;
+        }
+
+        err = yh_destroy_session(ref this.handle);
         return err == yh_rc.YHR_SUCCESS;
     }
 }
