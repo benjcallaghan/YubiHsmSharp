@@ -14,28 +14,61 @@
  * limitations under the License.
  */
 
+using System.Text;
+
 namespace YubiHsmSharp.Tests;
 
 public class AlgorithmTests
 {
-    [Fact]
-    public void TestAlgorithms()
+    [Theory]
+    [InlineData(Algorithm.Rsa2048, false)]
+    [InlineData(Algorithm.HmacSha1, true)]
+    [InlineData(Algorithm.HmacSha256, true)]
+    [InlineData(Algorithm.HmacSha384, true)]
+    [InlineData(Algorithm.HmacSha512, true)]
+    public void IsHMAC_WithValidAlgorithm_ReturnsCorrectResult(Algorithm input, bool output)
     {
-        // HMAC Test
-        Assert.False(Algorithm.Rsa2048.IsHmac);
-        Assert.True(Algorithm.HmacSha1.IsHmac);
-        Assert.True(Algorithm.HmacSha256.IsHmac);
-        Assert.True(Algorithm.HmacSha384.IsHmac);
-        Assert.True(Algorithm.HmacSha512.IsHmac);
+        Assert.Equal(output, input.IsHmac);
+    }
 
-        // String Parsing Errors
-        Assert.Throws<YubiHsmException>(() => Algorithm.From(""u8));
-        Assert.Throws<YubiHsmException>(() => Algorithm.From("something"u8));
+    [Theory]
+    [InlineData("")]
+    [InlineData("something")]
+    public void From_WithInvalidString_ThrowsYubiHsmException(string input)
+    {
+        Action act = () =>
+        {
+            // Arrange
+            Span<byte> inputBytes = stackalloc byte[input.Length + 1];
+            int inputLength = Encoding.UTF8.GetBytes(input, inputBytes);
+            inputBytes[^1] = 0; // Null-terminated
+            Assert.Equal(input.Length, inputLength); // All values fit within ASCII.
 
-        // String Parsing Success
-        Assert.Equal(Algorithm.RsaPkcs1Sha1, Algorithm.From("rsa-pkcs1-sha1"u8));
-        Assert.Equal(Algorithm.Rsa2048, Algorithm.From("rsa2048"u8));
-        Assert.Equal(Algorithm.Ecp384, Algorithm.From("ecp384"u8));
-        Assert.Equal(Algorithm.Mgf1Sha512, Algorithm.From("mgf1-sha512"u8));
+            // Act
+            Algorithm.From(inputBytes);
+        };
+
+        // Assert
+        Assert.Throws<YubiHsmException>(act);
+    }
+
+    [Theory]
+    [InlineData("rsa-pkcs1-sha1", Algorithm.RsaPkcs1Sha1)]
+    [InlineData("rsa2048", Algorithm.Rsa2048)]
+    [InlineData("ecp384", Algorithm.Ecp384)]
+    [InlineData("mgf1-sha512", Algorithm.Mgf1Sha512)]
+    public void From_WithValidString_ProducesValidAlgorithm(string input, Algorithm output)
+    {
+        // Arrange
+        Span<byte> inputBytes = stackalloc byte[input.Length + 1];
+        int inputLength = Encoding.UTF8.GetBytes(input, inputBytes);
+        inputBytes[^1] = 0; // Null-terminated
+        Assert.Equal(input.Length, inputLength); // All values fit within ASCII.
+
+        // Act
+        Algorithm algorithm = Algorithm.From(inputBytes);
+
+        // Assert
+        Assert.Equal(output, algorithm);
     }
 }
