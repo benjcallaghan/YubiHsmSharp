@@ -101,6 +101,91 @@ public sealed class YubiSession : IDisposable
     }
 
     /// <summary>
+    /// Signs data using RSA-PKCS#1v1.5
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="data"/> is either a raw hashed message (sha1, sha256, sha384, or sha512)
+    /// or that with correct digestinfo pre-pended.
+    /// </remarks>
+    /// <param name="keyId">The ID of the signing key.</param>
+    /// <param name="hashed">true if the data is only hashed; otherwise, false.</param>
+    /// <param name="data">The data to sign.</param>
+    /// <param name="signature">The buffer to receive the signature.</param>
+    /// <param name="signatureLength">The length of the received signature.</param>
+    public void SignPkcs1v15(ushort keyId, bool hashed, ReadOnlySpan<byte> data, Span<byte> signature, out int signatureLength)
+    {
+        yh_rc err = yh_util_sign_pkcs1v1_5(this.handle, keyId, hashed, data, (nuint)data.Length, signature, out nuint signatureLen);
+        YubiHsmException.ThrowIfError(err);
+        signatureLength = (int)signatureLen;
+    }
+
+    /// <summary>
+    /// Signs data using RSA-PSS
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="data"/> is a raw hashed message (sha1, sha256, sha384, or sha512).
+    /// </remarks>
+    /// <param name="keyId">The ID of the signing key.</param>
+    /// <param name="data">The data to sign.</param>
+    /// <param name="signature">The buffer to receive the signature.</param>
+    /// <param name="signatureLength">The length of the received signature.</param>
+    /// <param name="saltLength">The length of the salt.</param>
+    /// <param name="maskGenerationFunction">The algorithm for mask generation.</param>
+    public void SignPss(ushort keyId, ReadOnlySpan<byte> data, Span<byte> signature, out int signatureLength,
+        int saltLength, Algorithm maskGenerationFunction)
+    {
+        yh_rc err = yh_util_sign_pss(this.handle, keyId, data, (nuint)data.Length, signature, out nuint signatureLen,
+            (nuint)saltLength, maskGenerationFunction);
+        YubiHsmException.ThrowIfError(err);
+        signatureLength = (int)signatureLen;
+    }
+
+    /// <summary>
+    /// Signs data using ECDSA 
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="data"/> is a raw hashed message, a truncated hash to the curve length, or a padded hash to the curve length.
+    /// </remarks>
+    /// <param name="keyId">The ID of the signing key.</param>
+    /// <param name="data">The data to sign.</param>
+    /// <param name="signature">The buffer to receive the signature.</param>
+    /// <param name="signatureLength">The length of the received signature.</param>
+    public void SignEcdsa(ushort keyId, ReadOnlySpan<byte> data, Span<byte> signature, out int signatureLength)
+    {
+        yh_rc err = yh_util_sign_ecdsa(this.handle, keyId, data, (nuint)data.Length, signature, out nuint signatureLen);
+        YubiHsmException.ThrowIfError(err);
+        signatureLength = (int)signatureLen;
+    }
+
+    /// <summary>
+    /// Signs data using EdDSA
+    /// </summary>
+    /// <param name="keyId">The ID of the signing key.</param>
+    /// <param name="data">The data to sign.</param>
+    /// <param name="signature">The buffer to receive the signature.</param>
+    /// <param name="signatureLength">The length of the received signature.</param>
+    public void SignEddsa(ushort keyId, ReadOnlySpan<byte> data, Span<byte> signature, out int signatureLength)
+    {
+        yh_rc err = yh_util_sign_eddsa(this.handle, keyId, data, (nuint)data.Length, signature, out nuint signatureLen);
+        YubiHsmException.ThrowIfError(err);
+        signatureLength = (int)signatureLen;
+    }
+
+    /// <summary>
+    /// Signs data using HMAC
+    /// </summary>
+    /// <param name="keyId">The ID of the signing key.</param>
+    /// <param name="data">The data to sign.</param>
+    /// <param name="signature">The buffer to receive the signature.</param>
+    /// <param name="signatureLength">The length of the received signature.</param>
+    public void SignHmac(ushort keyId, ReadOnlySpan<byte> data, Span<byte> signature, out int signatureLength)
+    {
+        yh_rc err = yh_util_sign_hmac(this.handle, keyId, data, (nuint)data.Length, signature, out nuint signatureLen);
+        YubiHsmException.ThrowIfError(err);
+        signatureLength = (int)signatureLen;
+    }
+
+    /// <summary>
     /// Frees data associated with the session.
     /// </summary>
     public void Dispose()
