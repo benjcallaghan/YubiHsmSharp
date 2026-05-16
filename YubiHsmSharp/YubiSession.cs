@@ -720,6 +720,24 @@ public sealed class YubiSession : IDisposable
     }
 
     /// <summary>
+    /// Signs an SSH Certificate request. This function produces a signature that can then be used to produce the certificate.
+    /// </summary>
+    /// <param name="keyId">The ID of the key used to sign the request.</param>
+    /// <param name="templateId">The ID of the template to use as a certificate template.</param>
+    /// <param name="signatureAlgorithm">The signature algorithm to use.</param>
+    /// <param name="certificateRequest">The certificate request to sign.</param>
+    /// <param name="signature">The buffer to store the generated signature.</param>
+    /// <returns>The length of the generated signature.</returns>
+    public int SignSshCertificate(ushort keyId, ushort templateId, Algorithm signatureAlgorithm,
+        ReadOnlySpan<byte> certificateRequest, Span<byte> signature)
+    {
+        yh_rc err = yh_util_sign_ssh_certificate(this.handle, keyId, templateId, signatureAlgorithm,
+            certificateRequest, (nuint)certificateRequest.Length, signature, out nuint signatureLen);
+        YubiHsmException.ThrowIfError(err);
+        return (int)signatureLen;
+    }
+
+    /// <summary>
     /// Frees data associated with the session.
     /// </summary>
     public void Dispose()
