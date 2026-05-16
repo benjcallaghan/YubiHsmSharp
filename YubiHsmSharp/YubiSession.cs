@@ -623,6 +623,37 @@ public sealed class YubiSession : IDisposable
     }
 
     /// <summary>
+    /// Get audit logs from the device.
+    /// </summary>
+    /// <remarks>
+    /// When audit enforce is set, if the log buffer is full, no new operations (other than authentication operations)
+    /// can be performed unless the log entries are read by this command and then the log index is set by calling
+    /// <see cref="SetLogIndex"/>.
+    /// </remarks>
+    /// <param name="logs">The buffer to store the log entries.</param>
+    /// <returns>A tuple containing the number of unlogged boot entries, unlogged authentication entries, and the length of the logs.</returns>
+    public (ushort unloggedBoot, ushort unloggedAuth, int logsLength) GetLogEntries(Span<LogEntry> logs)
+    {
+        yh_rc err = yh_util_get_log_entries(this.handle, out ushort unloggedBoot, out ushort unloggedAuth, logs, out nuint logsLen);
+        YubiHsmException.ThrowIfError(err);
+        return (unloggedBoot, unloggedAuth, (int)logsLen);
+    }
+
+    /// <summary>
+    /// Set the index of the last extracted log entry.
+    /// </summary>
+    /// <remarks>
+    /// This function should be called after <see cref="GetLogEntries"/> to inform the device what the last
+    /// extracted log entry is so new logs can be written. This is used when forced auditing is enabled.
+    /// </remarks>
+    /// <param name="index">The index of the last extracted log entry.</param>
+    public void SetLogIndex(ushort index)
+    {
+        yh_rc err = yh_util_set_log_index(this.handle, index);
+        YubiHsmException.ThrowIfError(err);
+    }
+
+    /// <summary>
     /// Frees data associated with the session.
     /// </summary>
     public void Dispose()

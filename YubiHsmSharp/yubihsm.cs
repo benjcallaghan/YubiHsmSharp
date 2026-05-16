@@ -349,61 +349,6 @@ internal static unsafe partial class yubihsm
         COMPRESS = 3,
     }
 
-    /// <summary>
-    /// Logging struct as returned by device
-    /// </summary>
-    /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Logs.html"/> 
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct yh_log_entry
-    {
-        /// <summary>
-        /// Monotonically increasing index
-        /// </summary>
-        ushort number;
-
-        /// <summary>
-        /// What command was executed
-        /// </summary>
-        /// <seealso cref="Command"/> 
-        byte command;
-
-        /// <summary>
-        /// Length of in-data
-        /// </summary>
-        ushort length;
-
-        /// <summary>
-        /// ID of Authentication Key used
-        /// </summary>
-        ushort session_key;
-
-        /// <summary>
-        /// ID of first Object used
-        /// </summary>
-        ushort target_key;
-
-        /// <summary>
-        /// ID of second Object used
-        /// </summary>
-        ushort second_key;
-
-        /// <summary>
-        /// Command result
-        /// </summary>
-        /// <seealso cref="Command"/> 
-        byte result;
-
-        /// <summary>
-        /// Systick at time of execution
-        /// </summary>
-        uint systick;
-
-        /// <summary>
-        /// Truncated sha256 digest of this last digest + this entry
-        /// </summary>
-        fixed byte digest[YH_LOG_DIGEST_SIZE];
-    }
-
     private static readonly (string name, int bit)[] yh_capability = [
         ("change-authentication-key", 0x2e),
         ("create-otp-aead", 0x1e),
@@ -1758,13 +1703,13 @@ internal static unsafe partial class yubihsm
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
     public static partial yh_rc yh_util_get_log_entries(SafeSessionHandle session, out ushort unlogged_boot,
-        out ushort unlogged_auth, Span<yh_log_entry> @out, out nuint n_items);
+        out ushort unlogged_auth, Span<LogEntry> @out, out nuint n_items);
 
     /// <summary>
     /// Set the index of the last extracted log entry.
     /// </summary>
     /// <remarks>
-    /// This function should be called after <see cref="yh_util_get_log_entries"/> to inform the device what the last exttracted
+    /// This function should be called after <see cref="yh_util_get_log_entries"/> to inform the device what the last extracted
     /// log entry is so new logs can be written. This is used when forced auditing is enabled.
     /// </remarks>
     /// <param name="session">Authenticated session to use</param>
@@ -2673,8 +2618,8 @@ internal static unsafe partial class yubihsm
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Logs.html">Logs</seealso>
     [LibraryImport(nameof(yubihsm))]
     [return: MarshalAs(UnmanagedType.U1)]
-    public static partial bool yh_verify_logs(Span<yh_log_entry> logs, nuint n_items,
-        in yh_log_entry last_previous_log);
+    public static partial bool yh_verify_logs(Span<LogEntry> logs, nuint n_items,
+        in LogEntry last_previous_log);
 
     /// <summary>
     /// Convert a string to a domain's numeric value
