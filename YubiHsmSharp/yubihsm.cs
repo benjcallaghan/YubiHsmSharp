@@ -541,22 +541,6 @@ internal static unsafe partial class yubihsm
     ];
 
     /// <summary>
-    /// The object was generated on the device
-    /// </summary>
-    public const int YH_ORIGIN_GENERATED = 0x01;
-
-    /// <summary>
-    /// The object was imported into the device
-    /// </summary>
-    public const int YH_ORIGIN_IMPORTED = 0x02;
-
-    /// <summary>
-    /// The object was imported into the device under wrap.
-    /// This is used in combination with objects original 'origin'.
-    /// </summary>
-    public const int YH_ORIGIN_IMPORTED_WRAPPED = 0x10;
-
-    /// <summary>
     /// Return a string describing an error condition
     /// </summary>
     /// <param name="err"><see cref="yh_rc"/> error code</param>

@@ -19,6 +19,29 @@ using System.Runtime.CompilerServices;
 namespace YubiHsmSharp;
 
 /// <summary>
+/// The origin of an object indicating whether it was created or imported.
+/// </summary>
+[Flags]
+public enum Origins
+{
+    /// <summary>
+    /// The object was generated on the device.
+    /// </summary>
+    Generated = 0x01,
+
+    /// <summary>
+    /// The object was imported into the device.
+    /// </summary>
+    Imported = 0x02,
+
+    /// <summary>
+    /// The object was imported into the device under wrap.
+    /// This is used in combination with the object's original 'origin'.
+    /// </summary>
+    Wrapped = 0x10,
+}
+
+/// <summary>
 /// Object descriptor
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -70,8 +93,8 @@ public readonly struct ObjectDescriptor
     /// <summary>
     /// Object origin
     /// </summary>
-    public readonly byte Origin => this.origin;
-    private readonly byte origin;
+    public readonly Origins Origin => this.origin;
+    private readonly Origins origin;
 
     /// <summary>
     /// Object label. The label consists of raw bytes and is not restricted to
