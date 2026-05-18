@@ -7,7 +7,7 @@ namespace YubiHsmSharp.PciPin;
 /// <summary>
 /// Standalone utilities for interacting with raw keys.
 /// </summary>
-public class KeyUtils
+public static class KeyUtils
 {
     /// <summary>
     /// Generates a key check value (KCV) for the given AES key.
@@ -22,7 +22,7 @@ public class KeyUtils
     /// <param name="keyCheckValue">A buffer to hold the generated KCV.</param>
     /// <returns>The number of bytes written to <paramref name="keyCheckValue"/>.</returns>
     /// <exception cref="ArgumentException">Thrown if <paramref name="keyCheckValue"/> is too small.</exception>
-    public int AesKeyCheckValue(ReadOnlySpan<byte> aesKey, Span<byte> keyCheckValue)
+    public static int AesKeyCheckValue(ReadOnlySpan<byte> aesKey, Span<byte> keyCheckValue)
     {
         const int kcvSize = 3;
         if (keyCheckValue.Length < kcvSize)
@@ -42,5 +42,33 @@ public class KeyUtils
 
         mac[..kcvSize].CopyTo(keyCheckValue);
         return kcvSize;
+    }
+
+    /// <summary>
+    /// Combines three key components into a usable encryption key.
+    /// </summary>
+    /// <param name="c1">The first key component.</param>
+    /// <param name="c2">The second key component.</param>
+    /// <param name="c3">The third key component.</param>
+    /// <param name="key">The combined encryption key.</param>
+    /// <returns>The number of bytes written to <paramref name="key"/>.</returns>
+    /// <exception cref="ArgumentException">Thrown if the key components are different lengths or if <paramref name="key"/> is too small.</exception>
+    public static int CombineComponents(ReadOnlySpan<byte> c1, ReadOnlySpan<byte> c2, ReadOnlySpan<byte> c3, Span<byte> key)
+    {
+        if (c1.Length != c2.Length || c2.Length != c3.Length)
+        {
+            throw new ArgumentException("All key components must be the same length.");
+        }
+        if (key.Length < c1.Length)
+        {
+            throw new ArgumentException("The key buffer must be at least as long as the key components.", nameof(key));
+        }
+
+        for (int i = 0; i < c1.Length; i++)
+        {
+            key[i] = (byte)(c1[i] ^ c2[i] ^ c3[i]);
+        }
+
+        return c1.Length;
     }
 }
