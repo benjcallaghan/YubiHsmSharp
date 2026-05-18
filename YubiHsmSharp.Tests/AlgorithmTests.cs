@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace YubiHsmSharp.Tests;
@@ -40,13 +39,13 @@ public class AlgorithmTests
         Action act = () =>
         {
             // Arrange
-            Span<sbyte> inputBytes = stackalloc sbyte[input.Length + 1];
-            int inputLength = Encoding.UTF8.GetBytes(input, MemoryMarshal.Cast<sbyte, byte>(inputBytes));
-            inputBytes[^1] = 0; // Null-terminated
+            Span<byte> utf8Input = stackalloc byte[input.Length + 1];
+            int inputLength = Encoding.UTF8.GetBytes(input, utf8Input);
+            utf8Input[^1] = 0; // Null-terminated
             Assert.Equal(input.Length, inputLength); // All values fit within ASCII.
 
             // Act
-            Algorithm.From(inputBytes);
+            Algorithm.From(utf8Input);
         };
 
         // Assert
@@ -61,13 +60,13 @@ public class AlgorithmTests
     public void From_WithValidString_ProducesValidAlgorithm(string input, Algorithm output)
     {
         // Arrange
-        Span<sbyte> inputBytes = stackalloc sbyte[input.Length + 1];
-        int inputLength = Encoding.UTF8.GetBytes(input, MemoryMarshal.Cast<sbyte, byte>(inputBytes));
-        inputBytes[^1] = 0; // Null-terminated
+        Span<byte> utf8Input = stackalloc byte[input.Length + 1];
+        int inputLength = Encoding.UTF8.GetBytes(input, utf8Input);
+        utf8Input[^1] = 0; // Null-terminated
         Assert.Equal(input.Length, inputLength); // All values fit within ASCII.
 
         // Act
-        Algorithm algorithm = Algorithm.From(inputBytes);
+        Algorithm algorithm = Algorithm.From(utf8Input);
 
         // Assert
         Assert.Equal(output, algorithm);

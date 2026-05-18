@@ -25,7 +25,7 @@ public sealed class YubiModule : IDisposable
     /// </summary>
     /// <param name="utf8Url">The URL associated with this connector, encoded as UTF-8 and null-terminated.</param>
     /// <returns>A <see cref="YubiConnector"/> configured with the provided URL.</returns>
-    public YubiConnector InitConnector(ReadOnlySpan<sbyte> utf8Url)
+    public YubiConnector InitConnector(ReadOnlySpan<byte> utf8Url)
     {
         Debug.Assert(this.handle != null, "YubiModule must be initialized before initializing a connector.");
 

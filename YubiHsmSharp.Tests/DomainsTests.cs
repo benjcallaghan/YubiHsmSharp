@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace YubiHsmSharp.Tests;
@@ -37,13 +36,13 @@ public class DomainsTests
     public void From_WithValidString_ProducesValidNumeric(string input, ushort output)
     {
         // Arrange
-        Span<sbyte> inputBytes = stackalloc sbyte[input.Length + 1];
-        int inputLength = Encoding.UTF8.GetBytes(input, MemoryMarshal.Cast<sbyte, byte>(inputBytes));
-        inputBytes[^1] = 0; // Null-terminated
+        Span<byte> utf8Input = stackalloc byte[input.Length + 1];
+        int inputLength = Encoding.UTF8.GetBytes(input, utf8Input);
+        utf8Input[^1] = 0; // Null-terminated
         Assert.Equal(input.Length, inputLength); // All values fit within ASCII.
 
         // Act
-        Domains domains = Domains.From(inputBytes);
+        Domains domains = Domains.From(utf8Input);
 
         // Assert
         Assert.Equal(output, domains.RawValue);

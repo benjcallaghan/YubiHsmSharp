@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace YubiHsmSharp.Tests;
@@ -29,13 +28,13 @@ public class ObjectTypeTests
         Action act = () =>
         {
             // Arrange
-            Span<sbyte> inputBytes = stackalloc sbyte[input.Length + 1];
-            int inputLength = Encoding.UTF8.GetBytes(input, MemoryMarshal.Cast<sbyte, byte>(inputBytes));
-            inputBytes[^1] = 0; // Null-terminated
+            Span<byte> utf8Input = stackalloc byte[input.Length + 1];
+            int inputLength = Encoding.UTF8.GetBytes(input, utf8Input);
+            utf8Input[^1] = 0; // Null-terminated
             Assert.Equal(input.Length, inputLength); // All values fit within ASCII.
 
             // Act
-            ObjectType.From(inputBytes);
+            ObjectType.From(utf8Input);
         };
 
         // Assert
@@ -53,13 +52,13 @@ public class ObjectTypeTests
     public void From_WithValidString_ProducesValidObjectType(string input, ObjectType output)
     {
         // Arrange
-        Span<sbyte> inputBytes = stackalloc sbyte[input.Length + 1];
-        int inputLength = Encoding.UTF8.GetBytes(input, MemoryMarshal.Cast<sbyte, byte>(inputBytes));
-        inputBytes[^1] = 0; // Null-terminated
+        Span<byte> utf8Input = stackalloc byte[input.Length + 1];
+        int inputLength = Encoding.UTF8.GetBytes(input, utf8Input);
+        utf8Input[^1] = 0; // Null-terminated
         Assert.Equal(input.Length, inputLength); // All values fit within ASCII.
 
         // Act
-        ObjectType type = ObjectType.From(inputBytes);
+        ObjectType type = ObjectType.From(utf8Input);
 
         // Assert
         Assert.Equal(output, type);

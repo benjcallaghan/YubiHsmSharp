@@ -49,7 +49,7 @@ public readonly struct Domains
     /// </remarks>
     /// <param name="utf8String">String of domains, UTF-8 encoded and null-terminated.</param>
     /// <returns>The parsed domains as an unsigned int.</returns>
-    public static Domains From(ReadOnlySpan<sbyte> utf8String)
+    public static Domains From(ReadOnlySpan<byte> utf8String)
     {
         yh_rc err = yh_string_to_domains(utf8String, out Domains result);
         YubiHsmException.ThrowIfError(err);
@@ -63,12 +63,12 @@ public readonly struct Domains
     public override string ToString()
     {
         const int maxLength = 40;
-        Span<sbyte> bytes = stackalloc sbyte[maxLength];
-        yh_rc err = yh_domains_to_string(this, bytes, maxLength);
+        Span<byte> utf8Bytes = stackalloc byte[maxLength];
+        yh_rc err = yh_domains_to_string(this, utf8Bytes, maxLength);
         YubiHsmException.ThrowIfError(err);
         
-        int terminator = bytes.IndexOf((sbyte)0);
+        int terminator = utf8Bytes.IndexOf((byte)0);
         Debug.Assert(terminator != -1, "The null terminator must be present in result.");
-        return Encoding.UTF8.GetString(MemoryMarshal.Cast<sbyte, byte>(bytes[..terminator]));
+        return Encoding.UTF8.GetString(utf8Bytes[..terminator]);
     }
 }

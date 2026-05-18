@@ -32,7 +32,7 @@ public struct Capabilities
     /// </summary>
     /// <param name="utf8String">String of capabilities separated by ',', ':', or '|', UTF-8 encoded and null-terminated.</param>
     /// <returns>The parsed capabilities.</returns>
-    public static Capabilities From(ReadOnlySpan<sbyte> utf8String)
+    public static Capabilities From(ReadOnlySpan<byte> utf8String)
     {
         yh_rc err = yh_string_to_capabilities(utf8String, out Capabilities caps);
         YubiHsmException.ThrowIfError(err);
@@ -68,7 +68,7 @@ public struct Capabilities
     /// </summary>
     /// <param name="utf8Capability">Capability to check, UTF-8 encoded and null-terminated.</param>
     /// <returns>True if the capability is in this capabilities set. False otherwise.</returns>
-    public readonly bool CheckCapability(ReadOnlySpan<sbyte> utf8Capability)
+    public readonly bool CheckCapability(ReadOnlySpan<byte> utf8Capability)
     {
         return yh_check_capability(in this, utf8Capability);
     }

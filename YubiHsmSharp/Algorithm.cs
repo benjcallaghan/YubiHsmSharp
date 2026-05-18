@@ -267,7 +267,7 @@ public static class AlgorithmExtensions
         /// </summary>
         /// <param name="utf8String">Algorithm as string, UTF-8 encoded and null-terminated.</param>
         /// <returns>The numeric value of the algorithm.</returns>
-        public static Algorithm From(ReadOnlySpan<sbyte> utf8String)
+        public static Algorithm From(ReadOnlySpan<byte> utf8String)
         {
             yh_rc err = yh_string_to_algo(utf8String, out Algorithm alg);
             YubiHsmException.ThrowIfError(err);
