@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace YubiHsmSharp.PciPin;
 
 /// <summary>
@@ -13,61 +11,432 @@ public struct Tr31KeyBlock
     /// Parses key block header data and captures encrypted key data and authentication codes.
     /// </summary>
     /// <remarks>
-    /// The full data of <paramref name="keyBlock"/> is copied into the newly constructed object.
+    /// This constructor takes ownership of the <paramref name="keyBlock"/> array.
     /// </remarks>
     /// <param name="keyBlock">The key block to parse</param>
     /// <exception cref="ArgumentException">Thrown when the encoded length does not match the actual length of the key block.</exception>
-    public Tr31KeyBlock(ReadOnlySpan<byte> keyBlock)
+    public Tr31KeyBlock(byte[] keyBlock)
     {
-        this.keyBlock = keyBlock.ToArray();
-        if (this.KeyBlockLength != keyBlock.Length)
+        this.keyBlock = keyBlock;
+        if (this.Length != keyBlock.Length)
         {
-            throw new ArgumentException($"The encoded key block length ({this.KeyBlockLength}) does not match the actual length of the key block ({keyBlock.Length}).", nameof(keyBlock));
+            throw new ArgumentException($"The encoded key block length ({this.Length}) does not match the actual length of the key block ({keyBlock.Length}).", nameof(keyBlock));
         }
     }
 
     /// <summary>
     /// Gets the Key Block Version ID, which defines the method by which it is cryptographically protected.
     /// </summary>
-    public readonly string KeyBlockVersionId => Encoding.ASCII.GetString(this.keyBlock[0..1]);
+#pragma warning disable CS0612 // Type or member is obsolete
+    public readonly KeyBlockVersion VersionId => this.keyBlock[0] switch
+    {
+        (byte)'A' => KeyBlockVersion.Variant2005,
+        (byte)'B' => KeyBlockVersion.Derivation2010,
+        (byte)'C' => KeyBlockVersion.Variant2010,
+        (byte)'D' => KeyBlockVersion.Deriviation2017,
+        _ => KeyBlockVersion.Unknown,
+    };
+#pragma warning restore CS0612 // Type or member is obsolete
 
     /// <summary>
     /// Gets the key-block length, including the header, encrypted data, and MAC.
     /// </summary>
-    public readonly int KeyBlockLength => Int32.Parse(this.keyBlock[1..5]);
+    public readonly int Length => Int32.Parse(this.keyBlock.AsSpan(1..5));
 
     /// <summary>
     /// Gets information about the intended function of the protected key.
     /// </summary>
-    public readonly string KeyUsage => Encoding.ASCII.GetString(this.keyBlock[5..7]);
+    public readonly KeyUsage Usage => this.keyBlock.AsSpan(5..7) switch
+    {
+        [(byte)'B', (byte)'0'] => KeyUsage.BaseDerivationKey,
+        [(byte)'B', (byte)'1'] => KeyUsage.InitialPinEncryptionKey,
+        [(byte)'B', (byte)'3'] => KeyUsage.KeyDerivationKey,
+        [(byte)'C', (byte)'0'] => KeyUsage.CardVerificationKey,
+        [(byte)'D', (byte)'0'] => KeyUsage.SymmetricDataEncryptionKey,
+        [(byte)'D', (byte)'3'] => KeyUsage.SensitiveDataEncryptionKey,
+        [(byte)'E', (byte)'0'] => KeyUsage.EmvCryptogramKey,
+        [(byte)'E', (byte)'1'] => KeyUsage.EmvConfidentialityKey,
+        [(byte)'E', (byte)'2'] => KeyUsage.EmvIntegrityKey,
+        [(byte)'E', (byte)'3'] => KeyUsage.EmvAuthenticationKey,
+        [(byte)'E', (byte)'4'] => KeyUsage.EmvDynamicKey,
+        [(byte)'E', (byte)'5'] => KeyUsage.EmvPersonalizationKey,
+        [(byte)'K', (byte)'0'] => KeyUsage.KeyEncryptionKey,
+        [(byte)'K', (byte)'1'] => KeyUsage.KeyBlockProtectionKeyTr31,
+        [(byte)'K', (byte)'4'] => KeyUsage.KeyBlockProtectionKeyIso20038,
+        [(byte)'M', (byte)'0'] => KeyUsage.Iso16609Mac1Key,
+        [(byte)'M', (byte)'1'] => KeyUsage.Iso9797Mac1Key,
+        [(byte)'M', (byte)'3'] => KeyUsage.Iso9797Mac3Key,
+        [(byte)'M', (byte)'6'] => KeyUsage.Iso9797Mac5Key,
+        [(byte)'M', (byte)'7'] => KeyUsage.HmacKey,
+        [(byte)'P', (byte)'0'] => KeyUsage.PinEncryptionKey,
+        [(byte)'V', (byte)'0'] => KeyUsage.PinVerificationKpvKey,
+        [(byte)'V', (byte)'1'] => KeyUsage.PinVerificationIbmKey,
+        [(byte)'V', (byte)'2'] => KeyUsage.PinVerificationVisaKey,
+        _ => KeyUsage.Unknown,
+    };
 
     /// <summary>
     /// Gets the approved algorithm for which the protected key may be used.
     /// </summary>
-    public readonly string Algorithm => Encoding.ASCII.GetString(this.keyBlock[7..8]);
+    public readonly KeyAlgorithm Algorithm => this.keyBlock[7] switch
+    {
+        (byte)'A' => KeyAlgorithm.AdvancedEncryptionStandard,
+        (byte)'D' => KeyAlgorithm.DataEncryptionAlgorithm,
+        (byte)'H' => KeyAlgorithm.HmacSha1,
+        (byte)'I' => KeyAlgorithm.HmacSha2,
+        (byte)'T' => KeyAlgorithm.TripleDataEncryptionAlgorithm,
+        _ => KeyAlgorithm.Unknown,
+    };
 
     /// <summary>
     /// Gets the operation the protected key can perform.
     /// </summary>
-    public readonly string ModeOfUse => Encoding.ASCII.GetString(this.keyBlock[8..9]);
+    public readonly KeyUse ModeOfUse => this.keyBlock[8] switch
+    {
+        (byte)'B' => KeyUse.EncryptDecrypt,
+        (byte)'C' => KeyUse.GenerateVerify,
+        (byte)'D' => KeyUse.Decrypt,
+        (byte)'E' => KeyUse.Encrypt,
+        (byte)'G' => KeyUse.Generate,
+        (byte)'N' => KeyUse.NoRestriction,
+        (byte)'V' => KeyUse.Verify,
+        (byte)'X' => KeyUse.Derive,
+        _ => KeyUse.Unknown,
+    };
 
     /// <summary>
     /// Gets the version number of the protected key.
     /// </summary>
-    public readonly int KeyVersionNumber => Int32.Parse(this.keyBlock[9..11]);
+    public readonly int VersionNumber => Int32.Parse(this.keyBlock.AsSpan(9..11));
 
     /// <summary>
     /// Gets whether the key may be transferred outside the cryptographic domain.
     /// </summary>
-    public readonly string Exportability => Encoding.ASCII.GetString(this.keyBlock[11..12]);
+    public readonly KeyExportability Exportability => this.keyBlock[11] switch
+    {
+        (byte)'E' => KeyExportability.ExtraSensitive,
+        (byte)'N' => KeyExportability.NonExportable,
+        (byte)'S' => KeyExportability.Sensitive,
+        _ => KeyExportability.Unknown,
+    };
 
     /// <summary>
     /// Gets the number of optional blocks included in the key block.
     /// </summary>
-    public readonly int NumberOfOptionalBlocks => Int32.Parse(this.keyBlock[12..14]);
+    public readonly int NumberOfOptionalBlocks => Int32.Parse(this.keyBlock.AsSpan(12..14));
 
     /// <summary>
     /// Gets whether the key is in a key exchange context or in a storage context.
     /// </summary>
-    public readonly string KeyContext => Encoding.ASCII.GetString(this.keyBlock[14..16]);
+    public readonly KeyContext Context => this.keyBlock[15] switch
+    {
+        (byte)'0' => KeyContext.StorageOrExchange,
+        (byte)'1' => KeyContext.Storage,
+        (byte)'2' => KeyContext.Exchange,
+        _ => KeyContext.Unknown,
+    };
+}
+
+/// <summary>
+/// Identifies the version of a key block, which defines the method by which it is cryptographically protected.
+/// </summary>
+public enum KeyBlockVersion
+{
+    /// <summary>
+    /// An unrecognized version
+    /// </summary>
+    Unknown,
+
+    /// <summary>
+    /// A: Protected by Key Variant Binding Method 2005 Edition (Deprecated)
+    /// </summary>
+    [Obsolete]
+    Variant2005,
+
+    /// <summary>
+    /// B: Protected by Key Derivation Binding Method 2010
+    /// </summary>
+    Derivation2010,
+
+    /// <summary>
+    /// C: Protected by Key Variant Binding Method 2010
+    /// </summary>
+    Variant2010,
+
+    /// <summary>
+    /// D: Protected by Key Derivation Binding Method 2017
+    /// </summary>
+    Deriviation2017
+}
+
+/// <summary>
+/// Provides information about the intended function of a protected key.
+/// </summary>
+public enum KeyUsage
+{
+    /// <summary>
+    /// An unrecognized usage
+    /// </summary>
+    Unknown,
+
+    /// <summary>
+    /// B0: Base Derivation Key (BDK) used to derive initial PIN encryption key (IPEK) in the derived unique key per transaction (DUKPT) process
+    /// </summary>
+    BaseDerivationKey,
+
+    /// <summary>
+    /// B1: Initial PIN encryption key (IPEK) in the derived unique key per transaction (DUKPT) process
+    /// </summary>
+    InitialPinEncryptionKey,
+
+    /// <summary>
+    /// B3: Key derivation key used as input to an irreversible key derivation function
+    /// </summary>
+    KeyDerivationKey,
+
+    /// <summary>
+    /// C0: Card Verification Key (CVK) for computing or verifying a card verification code
+    /// </summary>
+    CardVerificationKey,
+
+    /// <summary>
+    /// D0: Symmetric data encryption key
+    /// </summary>
+    SymmetricDataEncryptionKey,
+
+    /// <summary>
+    /// D3: Symmetric data encryption key for sensitive data
+    /// </summary>
+    SensitiveDataEncryptionKey,
+
+    /// <summary>
+    /// E0: Derivation key for an EMV/chip issuer master key: application cryptograms
+    /// </summary>
+    EmvCryptogramKey,
+
+    /// <summary>
+    /// E1: Derivation key for an EMV/chip issuer master key: secure messaging for confidentiality
+    /// </summary>
+    EmvConfidentialityKey,
+
+    /// <summary>
+    /// E2: Derivation key for an EMV/chip issuer master key: secure messaging for integrity
+    /// </summary>
+    EmvIntegrityKey,
+
+    /// <summary>
+    /// E3: Derivation key for an EMV/chip issuer master key: data authentication code
+    /// </summary>
+    EmvAuthenticationKey,
+
+    /// <summary>
+    /// E4: Derivation key for an EMV/chip issuer master key: dynamic numbers
+    /// </summary>
+    EmvDynamicKey,
+
+    /// <summary>
+    /// E5: Derivation key for an EMV/chip issuer master key: card personalization
+    /// </summary>
+    EmvPersonalizationKey,
+
+    // TODO: F0-F4
+
+    /// <summary>
+    /// K0: Key encryption or wrapping key
+    /// </summary>
+    KeyEncryptionKey,
+
+    /// <summary>
+    /// K1: TR-31 key block protection key
+    /// </summary>
+    KeyBlockProtectionKeyTr31,
+
+    /// <summary>
+    /// K4: ISO 20038 key block protection key
+    /// </summary>
+    KeyBlockProtectionKeyIso20038,
+
+    /// <summary>
+    /// M0: ISO 16609 MAC algorithm 1 key
+    /// </summary>
+    Iso16609Mac1Key,
+
+    /// <summary>
+    /// M1: ISO 9797-1 MAC algorithm 1 key
+    /// </summary>
+    Iso9797Mac1Key,
+
+    /// <summary>
+    /// M3: ISO 9797-1 MAC algorithm 3 key
+    /// </summary>
+    Iso9797Mac3Key,
+
+    /// <summary>
+    /// M6: ISO 9797-1:2011 MAC algorithm 5/CMAC key
+    /// </summary>
+    Iso9797Mac5Key,
+
+    /// <summary>
+    /// M7: HMAC algorithm key
+    /// </summary>
+    HmacKey,
+
+    /// <summary>
+    /// P0: PIN encryption key
+    /// </summary>
+    PinEncryptionKey,
+
+    /// <summary>
+    /// V0: PIN verification, KPV, other algorithm key
+    /// </summary>
+    PinVerificationKpvKey,
+
+    /// <summary>
+    /// V1: PIN verification, IBM3624 key
+    /// </summary>
+    PinVerificationIbmKey,
+
+    /// <summary>
+    /// V2: PIN verification, Visa PVV key
+    /// </summary>
+    PinVerificationVisaKey,
+}
+
+/// <summary>
+/// The approved algorithm for which a protected key may be used.
+/// </summary>
+public enum KeyAlgorithm
+{
+    /// <summary>
+    /// An unrecognized algorithm
+    /// </summary>
+    Unknown,
+
+    /// <summary>
+    /// A: Advanced Encryption Standard (AES)
+    /// </summary>
+    AdvancedEncryptionStandard,
+
+    /// <summary>
+    /// D: Data Encryption Algorithm (DEA)
+    /// </summary>
+    DataEncryptionAlgorithm,
+
+    /// <summary>
+    /// H: HMAC-SHA-1
+    /// </summary>
+    HmacSha1,
+
+    /// <summary>
+    /// I: HMAC-SHA-2
+    /// </summary>
+    HmacSha2,
+
+    /// <summary>
+    /// T: Triple Data Encryption Algorithm (TDEA)
+    /// </summary>
+    TripleDataEncryptionAlgorithm,
+}
+
+/// <summary>
+/// Defines the operation a protected key can perform.
+/// </summary>
+public enum KeyUse
+{
+    /// <summary>
+    /// An unrecognized use
+    /// </summary>
+    Unknown,
+
+    /// <summary>
+    /// B: Both encrypt and decrypt data, wrap and unwrap keys
+    /// </summary>
+    EncryptDecrypt,
+
+    /// <summary>
+    /// C: Both generate and verify of check/PIN values
+    /// </summary>
+    GenerateVerify,
+
+    /// <summary>
+    /// D: Decrypt data, unwrap keys only
+    /// </summary>
+    Decrypt,
+
+    /// <summary>
+    /// E: Encrypt data, wrap keys only
+    /// </summary>
+    Encrypt,
+
+    /// <summary>
+    /// G: Generate of check/PIN values only
+    /// </summary>
+    Generate,
+
+    /// <summary>
+    /// N: No special restrictions (other than restrictions implied by <see cref="KeyUsage"/>)
+    /// </summary>
+    NoRestriction,
+
+    /// <summary>
+    /// V: Verify of check/PIN values only
+    /// </summary>
+    Verify,
+
+    /// <summary>
+    /// X: Key used to derive other key(s)
+    /// </summary>
+    Derive,
+}
+
+/// <summary>
+/// Defines whether a protected key may be transferred outside the cryptograhic domain in which the key is found.
+/// </summary>
+public enum KeyExportability
+{
+    /// <summary>
+    /// An unknown exportability
+    /// </summary>
+    Unknown,
+
+    /// <summary>
+    /// E: Extra sensitive: key exportable under a key-encrypting key meeting the requirements of X9.24 Parts 1 or 2
+    /// </summary>
+    ExtraSensitive,
+
+    /// <summary>
+    /// N: Non-exportable
+    /// </summary>
+    NonExportable,
+
+    /// <summary>
+    /// S: Sensitive: key exportable under any key-encrypting key not necessarily meeting the requirements of X9.24
+    /// </summary>
+    Sensitive,
+}
+
+/// <summary>
+/// Defines whether a key block is in a key exchange context (wrapped by a transport key) or in a storage context.
+/// </summary>
+public enum KeyContext
+{
+    /// <summary>
+    /// An unrecognized context
+    /// </summary>
+    Unknown,
+
+    /// <summary>
+    /// 0: The key can be used in either a key storage or a key exchange context.
+    /// </summary>
+    StorageOrExchange,
+
+    /// <summary>
+    /// 1: The key can be used in a key storage context only.
+    /// </summary>
+    Storage,
+
+    /// <summary>
+    /// 2: The key can be used in a key exchange context only.
+    /// </summary>
+    Exchange,
 }
