@@ -1,3 +1,10 @@
+using System.Buffers;
+using System.Buffers.Binary;
+using System.Diagnostics;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
+
 namespace YubiHsmSharp.PciPin;
 
 /// <summary>
@@ -27,7 +34,6 @@ public struct Tr31KeyBlock
     /// <summary>
     /// Gets the Key Block Version ID, which defines the method by which it is cryptographically protected.
     /// </summary>
-#pragma warning disable CS0612 // Type or member is obsolete
     public readonly KeyBlockVersion VersionId => this.keyBlock[0] switch
     {
         (byte)'A' => KeyBlockVersion.Variant2005,
@@ -36,7 +42,6 @@ public struct Tr31KeyBlock
         (byte)'D' => KeyBlockVersion.Deriviation2017,
         _ => KeyBlockVersion.Unknown,
     };
-#pragma warning restore CS0612 // Type or member is obsolete
 
     /// <summary>
     /// Gets the key-block length, including the header, encrypted data, and MAC.
@@ -135,6 +140,153 @@ public struct Tr31KeyBlock
         (byte)'2' => KeyContext.Exchange,
         _ => KeyContext.Unknown,
     };
+
+    private readonly int HeaderLength => this.NumberOfOptionalBlocks == 0 ? 16 : throw new NotImplementedException("Optional header blocks are not yet implemented.");
+
+    private readonly int MacLength => this.VersionId switch
+    {
+        KeyBlockVersion.Variant2005 => 4,
+        KeyBlockVersion.Derivation2010 => 8,
+        KeyBlockVersion.Variant2010 => 4,
+        KeyBlockVersion.Deriviation2017 => 16,
+        _ => throw new NotSupportedException($"The key block version {this.VersionId} is not supported."),
+    };
+
+    /// <summary>
+    /// Decrypts and unwraps the protected key stored within this key block.
+    /// </summary>
+    /// <param name="keyBlockProtectionKey">The Key Block Protection Key (KBPK) or Zone Master Key (ZMK).</param>
+    /// <param name="clearKey">The decrypted and unwrapped key.</param>
+    /// <returns>The number of bytes written to <paramref name="clearKey"/>.</returns>
+    public readonly int Decrypt(ReadOnlySpan<byte> keyBlockProtectionKey, Span<byte> clearKey)
+    {
+        Span<byte> encryptionKey = stackalloc byte[keyBlockProtectionKey.Length];
+        Span<byte> authenticationKey = stackalloc byte[keyBlockProtectionKey.Length];
+        (int writtenEncryption, int writtenAuthentication) = DeriveKeys(keyBlockProtectionKey, encryptionKey, authenticationKey);
+        encryptionKey = encryptionKey[..writtenEncryption];
+        authenticationKey = authenticationKey[..writtenAuthentication];
+
+        ReadOnlySpan<byte> header = this.keyBlock.AsSpan(..this.HeaderLength);
+        ReadOnlySpan<byte> givenMacHex = this.keyBlock.AsSpan(^(this.MacLength * 2)..);
+        ReadOnlySpan<byte> encryptedKeyHex = this.keyBlock.AsSpan(header.Length..^givenMacHex.Length);
+
+        Span<byte> encryptedKey = stackalloc byte[encryptedKeyHex.Length / 2];
+        OperationStatus status = Convert.FromHexString(encryptedKeyHex, encryptedKey, out int consumed, out int written);
+        Debug.Assert(status == OperationStatus.Done);
+        Debug.Assert(consumed == encryptedKeyHex.Length);
+        Debug.Assert(written == encryptedKey.Length);
+
+        Span<byte> givenMac = stackalloc byte[givenMacHex.Length / 2];
+        status = Convert.FromHexString(givenMacHex, givenMac, out consumed, out written);
+        Debug.Assert(status == OperationStatus.Done);
+        Debug.Assert(consumed == givenMacHex.Length);
+        Debug.Assert(written == givenMac.Length);
+
+        ReadOnlySpan<byte> iv = this.VersionId switch
+        {
+            KeyBlockVersion.Variant2005 => header[..8],
+            KeyBlockVersion.Derivation2010 => givenMac[..8],
+            KeyBlockVersion.Variant2010 => header[..8],
+            KeyBlockVersion.Deriviation2017 => givenMac[..16],
+            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
+        };
+
+        Span<byte> paddedKey = stackalloc byte[encryptedKey.Length];
+        written = this.DecryptKeyBlock(encryptionKey, iv, encryptedKey, paddedKey);
+        paddedKey = paddedKey[..written];
+
+        Span<byte> computedMac = stackalloc byte[givenMac.Length];
+        written = this.GenerateMac(authenticationKey, header, paddedKey, computedMac);
+        computedMac = computedMac[..written];
+        VerifyMac(givenMac, computedMac);
+
+        int keyLengthBits = BinaryPrimitives.ReadUInt16BigEndian(paddedKey[..2]);
+        int keyLengthBytes = keyLengthBits / 8;
+        paddedKey.Slice(2, keyLengthBytes).CopyTo(clearKey);
+        return keyLengthBytes;
+    }
+
+    private readonly (int writtenEncryption, int writtenAuthentication) DeriveKeys(ReadOnlySpan<byte> keyBlockProtectionKey, Span<byte> encryptionKey, Span<byte> authenticationKey)
+    {
+        throw new NotImplementedException();
+    }
+
+    private readonly int DecryptKeyBlock(ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> iv, ReadOnlySpan<byte> encryptedKey, Span<byte> paddedKey)
+    {
+        string algorithm = this.VersionId == KeyBlockVersion.Deriviation2017 ? "AES/CBC/NoPadding" : "DESede/CBC/NoPadding";
+        IBufferedCipher cipher = CipherUtilities.GetCipher(algorithm);
+        cipher.Init(forEncryption: false, new ParametersWithIV(new KeyParameter(encryptionKey), iv));
+        return cipher.DoFinal(encryptedKey, paddedKey);
+    }
+
+    private static void VerifyMac(ReadOnlySpan<byte> givenMac, ReadOnlySpan<byte> computedMac)
+    {
+        if (!givenMac.SequenceEqual(computedMac))
+        {
+            throw new InvalidOperationException("The computed MAC does not match the encoded MAC.");
+        }
+    }
+
+    private readonly int GenerateMac(ReadOnlySpan<byte> authenticationKey, ReadOnlySpan<byte> header, ReadOnlySpan<byte> paddedKey, Span<byte> computedMac)
+    {
+        string algorithm = this.VersionId switch
+        {
+            KeyBlockVersion.Derivation2010 => "DESede/CBC/NoPadding",
+            KeyBlockVersion.Deriviation2017 => "AES/CBC/NoPadding",
+            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
+        };
+        int blockSize = this.VersionId switch
+        {
+            KeyBlockVersion.Derivation2010 => 8,
+            KeyBlockVersion.Deriviation2017 => 16,
+            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
+        };
+
+        Span<byte> k1 = stackalloc byte[authenticationKey.Length];
+        Span<byte> k2 = stackalloc byte[authenticationKey.Length];
+        (int k1Written, int k2Written) = DeriveSubKeys(authenticationKey, k1, k2);
+        k1 = k1[..k1Written];
+        k2 = k2[..k2Written];
+
+        int paddingRequired = (header.Length + paddedKey.Length) % blockSize;
+        Span<byte> data = stackalloc byte[header.Length + paddedKey.Length + paddingRequired];
+        header.CopyTo(data[..header.Length]);
+        paddedKey.CopyTo(data[header.Length..]);
+
+        if (paddingRequired != 0)
+        {
+            // Padding required. Use k2 in the final block.            
+            data[^paddingRequired..].Clear(); // Pad with zeros
+            data[^paddingRequired] = 0x80; // Start of padding
+
+            Span<byte> lastBlock = data[^blockSize..];
+            KeyUtils.Xor(lastBlock, k2, lastBlock);
+        }
+        else
+        {
+            // No padding required. Use k1 in the final block.
+            Span<byte> lastBlock = data[^blockSize..];
+            KeyUtils.Xor(lastBlock, k1, lastBlock);
+        }
+
+        Span<byte> iv = stackalloc byte[blockSize];
+        iv.Clear(); // Ensure all zeros.
+
+        IBufferedCipher cipher = CipherUtilities.GetCipher(algorithm);
+        cipher.Init(forEncryption: true, new ParametersWithIV(new KeyParameter(authenticationKey), iv));
+
+        Span<byte> mac = stackalloc byte[data.Length];
+        int written = cipher.DoFinal(data, mac);
+        mac = mac[..written];
+
+        mac[^blockSize..].CopyTo(computedMac);
+        return blockSize;
+    }
+
+    private readonly (int k1Written, int k2Written) DeriveSubKeys(ReadOnlySpan<byte> authenticationKey, Span<byte> k1, Span<byte> k2)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 /// <summary>
@@ -150,7 +302,6 @@ public enum KeyBlockVersion
     /// <summary>
     /// A: Protected by Key Variant Binding Method 2005 Edition (Deprecated)
     /// </summary>
-    [Obsolete]
     Variant2005,
 
     /// <summary>
