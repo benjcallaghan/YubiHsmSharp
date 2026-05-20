@@ -155,16 +155,31 @@ public readonly struct TR31KeyBlock
     };
 
     /// <summary>
-    /// Decrypts and unwraps the protected key stored within this key block.
+    /// Decrypts and unwraps the protected key stored within this key block, using fully-local cryptography.
     /// </summary>
     /// <param name="keyBlockProtectionKey">The Key Block Protection Key (KBPK) or Zone Master Key (ZMK).</param>
     /// <param name="clearKey">The decrypted and unwrapped key.</param>
     /// <returns>The number of bytes written to <paramref name="clearKey"/>.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the computed MAC does not match the encoded MAC.</exception>
     public readonly int Decrypt(ReadOnlySpan<byte> keyBlockProtectionKey, Span<byte> clearKey)
     {
-        Span<byte> encryptionKey = stackalloc byte[keyBlockProtectionKey.Length];
-        Span<byte> authenticationKey = stackalloc byte[keyBlockProtectionKey.Length];
-        int written = DeriveKeys(keyBlockProtectionKey, encryptionKey, authenticationKey);
+        return this.Decrypt(AesUtilities.CreateEngine(), new KeyParameter(keyBlockProtectionKey), clearKey);
+    }
+
+    /// <summary>
+    /// Decrypts and unwraps the protected key stored within this key block, using the provided cipher.
+    /// </summary>
+    /// <param name="cipher">The cipher to use in deriving encryption keys and authentication keys from <paramref name="keyBlockProtectionKey"/>.
+    /// <param name="keyBlockProtectionKey">The Key Block Protection Key (KBPK) or Zone Master Key (ZMK).</param>
+    /// <param name="clearKey">The decrypted and unwrapped key.</param>
+    /// <returns>The number of bytes written to <paramref name="clearKey"/>.</returns>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="cipher"/> does not match the protection used in this key block.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the computed MAC does not match the encoded MAC.</exception>
+    public readonly int Decrypt(IBlockCipher cipher, KeyParameter keyBlockProtectionKey, Span<byte> clearKey)
+    {
+        Span<byte> encryptionKey = stackalloc byte[keyBlockProtectionKey.KeyLength];
+        Span<byte> authenticationKey = stackalloc byte[keyBlockProtectionKey.KeyLength];
+        int written = DeriveKeys(cipher, keyBlockProtectionKey, encryptionKey, authenticationKey);
         encryptionKey = encryptionKey[..written];
         authenticationKey = authenticationKey[..written];
 
@@ -208,8 +223,17 @@ public readonly struct TR31KeyBlock
         return keyLengthBytes;
     }
 
-    private readonly int DeriveKeys(ReadOnlySpan<byte> keyBlockProtectionKey, Span<byte> encryptionKey, Span<byte> authenticationKey)
+    private readonly int DeriveKeys(IBlockCipher cipher, KeyParameter keyBlockProtectionKey, Span<byte> encryptionKey, Span<byte> authenticationKey)
     {
+        if (this.VersionId != KeyBlockVersion.Deriviation2017)
+        {
+            throw new NotImplementedException("Only AES keys are currently supported.");
+        }
+        if (!cipher.AlgorithmName.Contains("aes", StringComparison.InvariantCultureIgnoreCase))
+        {
+            throw new ArgumentException("The provided block cipher does not match the key block.", nameof(cipher));
+        }
+
         Span<byte> derivationData = [
             1, // Counter for number of CMAC calls
             0, 0, // Key usage identifier, 0=encryption, 1=authentication
@@ -218,24 +242,19 @@ public readonly struct TR31KeyBlock
             0, 128, // Key length in bits
         ];
 
-        if (this.VersionId != KeyBlockVersion.Deriviation2017)
-        {
-            throw new NotImplementedException("Only AES keys are currently supported.");
-        }
-
-        derivationData[5] = keyBlockProtectionKey.Length switch
+        derivationData[5] = keyBlockProtectionKey.KeyLength switch
         {
             16 => 2,
             24 => 3,
             32 => 4,
-            _ => throw new NotSupportedException($"The key length {keyBlockProtectionKey.Length} is not supported.")
+            _ => throw new NotSupportedException($"The key length {keyBlockProtectionKey.KeyLength} is not supported.")
         };
-        BinaryPrimitives.WriteUInt16BigEndian(derivationData[6..8], (ushort)(keyBlockProtectionKey.Length * 8));
+        BinaryPrimitives.WriteUInt16BigEndian(derivationData[6..8], (ushort)(keyBlockProtectionKey.KeyLength * 8));
 
-        CMac cmac = new(AesUtilities.CreateEngine());
-        cmac.Init(new KeyParameter(keyBlockProtectionKey));
-        
-        int maxLoops = (int)Math.Ceiling((double)keyBlockProtectionKey.Length / cmac.GetMacSize());
+        CMac cmac = new(cipher);
+        cmac.Init(keyBlockProtectionKey);
+
+        int maxLoops = (int)Math.Ceiling((double)keyBlockProtectionKey.KeyLength / cmac.GetMacSize());
         int writtenEncryption = 0;
         int writtenAuthentication = 0;
 
@@ -252,11 +271,12 @@ public readonly struct TR31KeyBlock
             writtenAuthentication += cmac.DoFinal(authenticationKey[writtenAuthentication..]);
         }
 
-        return keyBlockProtectionKey.Length; // Final keys are always the same length as the original.
+        return keyBlockProtectionKey.KeyLength; // Final keys are always the same length as the original.
     }
 
     private readonly int DecryptKeyBlock(ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> iv, ReadOnlySpan<byte> encryptedKey, Span<byte> paddedKey)
     {
+        // The Encryption Key is always an ephemeral key, so cryptography should be performed locally.
         string algorithm = this.VersionId switch
         {
             KeyBlockVersion.Derivation2010 => "DESede/CBC/NoPadding",
@@ -278,6 +298,7 @@ public readonly struct TR31KeyBlock
 
     private readonly int GenerateMac(ReadOnlySpan<byte> authenticationKey, ReadOnlySpan<byte> header, ReadOnlySpan<byte> paddedKey, Span<byte> computedMac)
     {
+        // The Authentication Key is always an ephemeral key, so cryptography should be performed locally.
         IBlockCipher cipher = this.VersionId switch
         {
             KeyBlockVersion.Derivation2010 => new DesEdeEngine(),
