@@ -87,7 +87,7 @@ public static class YubiSessionExtensions
                 KeyExportability.ExtraSensitive => Capabilities.From("exportable-under-wrap"u8),
                 KeyExportability.NonExportable => new Capabilities(),
                 KeyExportability.Sensitive => Capabilities.From("exportable-under-wrap"u8),
-                _ => throw new ArgumentException($"The exportablity '{keyBlock.Exportability}' is not supported.", nameof(keyBlock));
+                _ => throw new ArgumentException($"The exportablity '{keyBlock.Exportability}' is not supported.", nameof(keyBlock)),
             };
             Capabilities capabilities = modeOfUse.Merge(in exportability);
 
