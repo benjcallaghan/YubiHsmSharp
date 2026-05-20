@@ -155,20 +155,6 @@ public readonly struct TR31KeyBlock
         _ => throw new NotSupportedException($"The key block version {this.VersionId} is not supported."),
     };
 
-    private readonly string CipherAlgorithm => this.VersionId switch
-    {
-        KeyBlockVersion.Derivation2010 => "DESede/CBC/NoPadding",
-        KeyBlockVersion.Deriviation2017 => "AES/CBC/NoPadding",
-        _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
-    };
-
-    private readonly int BlockSize => this.VersionId switch
-    {
-        KeyBlockVersion.Derivation2010 => 8,
-        KeyBlockVersion.Deriviation2017 => 16,
-        _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
-    };
-
     /// <summary>
     /// Decrypts and unwraps the protected key stored within this key block.
     /// </summary>
@@ -230,7 +216,13 @@ public readonly struct TR31KeyBlock
 
     private readonly int DecryptKeyBlock(ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> iv, ReadOnlySpan<byte> encryptedKey, Span<byte> paddedKey)
     {
-        IBufferedCipher cipher = CipherUtilities.GetCipher(this.CipherAlgorithm);
+        string algorithm = this.VersionId switch
+        {
+            KeyBlockVersion.Derivation2010 => "DESede/CBC/NoPadding",
+            KeyBlockVersion.Deriviation2017 => "AES/CBC/NoPadding",
+            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
+        };
+        IBufferedCipher cipher = CipherUtilities.GetCipher(algorithm);
         cipher.Init(forEncryption: false, new ParametersWithIV(new KeyParameter(encryptionKey), iv));
         return cipher.DoFinal(encryptedKey, paddedKey);
     }
