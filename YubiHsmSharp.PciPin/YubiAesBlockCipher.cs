@@ -19,7 +19,7 @@ public class YubiAesBlockCipher : IBlockCipher
     /// Constructs a new block cipher that uses the given <see cref="YubiSession"/> for device communication.
     /// </summary>
     /// <remarks>
-    /// The authentication key used to create the session must have the following delegated capabilities:
+    /// The authentication key used to create the session must have the following capabilities:
     /// encrypt-ecb (for encryption), decrypt-ecb (for decryption)
     /// </remarks>
     /// <param name="session">The authenticated session to the YubiHSM 2.</param>
