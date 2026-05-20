@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace YubiHsmSharp.PciPin;
 
@@ -260,13 +261,13 @@ public readonly struct TR31KeyBlock
             data[^paddingRequired] = 0x80; // Start of padding
 
             Span<byte> lastBlock = data[^this.BlockSize..];
-            KeyUtils.Xor(lastBlock, k2, lastBlock);
+            Bytes.XorTo(lastBlock.Length, k2, lastBlock);
         }
         else
         {
             // No padding required. Use k1 in the final block.
             Span<byte> lastBlock = data[^this.BlockSize..];
-            KeyUtils.Xor(lastBlock, k1, lastBlock);
+            Bytes.XorTo(lastBlock.Length, k1, lastBlock);
         }
 
         Span<byte> iv = stackalloc byte[this.BlockSize];

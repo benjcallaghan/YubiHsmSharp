@@ -1,6 +1,7 @@
 ﻿using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Utilities;
 
 namespace YubiHsmSharp.PciPin;
 
@@ -54,60 +55,18 @@ public static class KeyUtils
     /// <returns>The number of bytes written to <paramref name="key"/>.</returns>
     /// <exception cref="ArgumentException">Thrown if the key components are different lengths or if <paramref name="key"/> is too small.</exception>
     public static int CombineComponents(ReadOnlySpan<byte> c1, ReadOnlySpan<byte> c2, ReadOnlySpan<byte> c3, Span<byte> key)
-        => Xor(c1, c2, c3, key);
-
-    /// <summary>
-    /// Performs the XOR operation on each byte of each component, storing the value in result.
-    /// </summary>
-    /// <param name="c1">The first component.</param>
-    /// <param name="c2">The second component.</param>
-    /// <param name="result">The result of XOR'ing each byte.</param>
-    /// <returns>The number of bytes written to <paramref name="result"/>.</returns>
-    /// <exception cref="ArgumentException">Thrown if the components are different lengths or if <paramref name="result"/> is too small.</exception>
-    public static int Xor(ReadOnlySpan<byte> c1, ReadOnlySpan<byte> c2, Span<byte> result)
-    {
-        if (c1.Length != c2.Length)
-        {
-            throw new ArgumentException("All key components must be the same length.");
-        }
-        if (result.Length < c1.Length)
-        {
-            throw new ArgumentException("The key buffer must be at least as long as the key components.", nameof(result));
-        }
-
-        for (int i = 0; i < c1.Length; i++)
-        {
-            result[i] = (byte)(c1[i] ^ c2[i]);
-        }
-
-        return c1.Length;
-    }
-
-    /// <summary>
-    /// Performs the XOR operation on each byte of each component, storing the value in result.
-    /// </summary>
-    /// <param name="c1">The first component.</param>
-    /// <param name="c2">The second component.</param>
-    /// <param name="c3">The third component.</param>
-    /// <param name="result">The result of XOR'ing each byte.</param>
-    /// <returns>The number of bytes written to <paramref name="result"/>.</returns>
-    /// <exception cref="ArgumentException">Thrown if the components are different lengths or if <paramref name="result"/> is too small.</exception>
-    public static int Xor(ReadOnlySpan<byte> c1, ReadOnlySpan<byte> c2, ReadOnlySpan<byte> c3, Span<byte> result)
     {
         if (c1.Length != c2.Length || c2.Length != c3.Length)
         {
             throw new ArgumentException("All key components must be the same length.");
         }
-        if (result.Length < c1.Length)
+        if (key.Length < c1.Length)
         {
-            throw new ArgumentException("The key buffer must be at least as long as the key components.", nameof(result));
+            throw new ArgumentException("The key buffer must be at least as long as the key components.", nameof(key));
         }
 
-        for (int i = 0; i < c1.Length; i++)
-        {
-            result[i] = (byte)(c1[i] ^ c2[i] ^ c3[i]);
-        }
-
+        Bytes.Xor(c1.Length, c1, c2, key);
+        Bytes.XorTo(c1.Length, c3, key);
         return c1.Length;
     }
 }
