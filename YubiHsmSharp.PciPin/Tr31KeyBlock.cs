@@ -10,7 +10,7 @@ namespace YubiHsmSharp.PciPin;
 /// <summary>
 /// Represents a TR-31 Key Block, with header fields parsed and verified.
 /// </summary>
-public struct Tr31KeyBlock
+public readonly struct Tr31KeyBlock
 {
     private readonly byte[] keyBlock;
 
