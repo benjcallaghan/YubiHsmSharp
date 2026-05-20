@@ -10,7 +10,7 @@ namespace YubiHsmSharp.PciPin;
 /// <summary>
 /// Represents a TR-31 Key Block, with header fields parsed and verified.
 /// </summary>
-public readonly struct Tr31KeyBlock
+public readonly struct TR31KeyBlock
 {
     private readonly byte[] keyBlock;
 
@@ -22,7 +22,7 @@ public readonly struct Tr31KeyBlock
     /// </remarks>
     /// <param name="keyBlock">The key block to parse</param>
     /// <exception cref="ArgumentException">Thrown when the encoded length does not match the actual length of the key block.</exception>
-    public Tr31KeyBlock(byte[] keyBlock)
+    public TR31KeyBlock(byte[] keyBlock)
     {
         this.keyBlock = keyBlock;
         if (this.Length != keyBlock.Length)
