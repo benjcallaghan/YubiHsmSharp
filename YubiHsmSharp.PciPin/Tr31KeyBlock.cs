@@ -245,10 +245,6 @@ public readonly struct TR31KeyBlock
 
     private readonly int GenerateMac(ReadOnlySpan<byte> authenticationKey, ReadOnlySpan<byte> header, ReadOnlySpan<byte> paddedKey, Span<byte> computedMac)
     {
-        Span<byte> data = stackalloc byte[header.Length + paddedKey.Length];
-        header.CopyTo(data[..header.Length]);
-        paddedKey.CopyTo(data[header.Length..]);
-
         IBlockCipher cipher = this.VersionId switch
         {
             KeyBlockVersion.Derivation2010 => new DesEdeEngine(),
@@ -257,7 +253,8 @@ public readonly struct TR31KeyBlock
         };
         CMac cmac = new(cipher);
         cmac.Init(new KeyParameter(authenticationKey));
-        cmac.BlockUpdate(data);
+        cmac.BlockUpdate(header);
+        cmac.BlockUpdate(paddedKey);
         return cmac.DoFinal(computedMac);
     }
 }
