@@ -169,7 +169,7 @@ public readonly struct TR31KeyBlock
     /// <summary>
     /// Decrypts and unwraps the protected key stored within this key block, using the provided cipher.
     /// </summary>
-    /// <param name="cipher">The cipher to use in deriving encryption keys and authentication keys from <paramref name="keyBlockProtectionKey"/>.
+    /// <param name="cipher">The cipher to use in deriving encryption keys and authentication keys from <paramref name="keyBlockProtectionKey"/>.</param>
     /// <param name="keyBlockProtectionKey">The Key Block Protection Key (KBPK) or Zone Master Key (ZMK).</param>
     /// <param name="clearKey">The decrypted and unwrapped key.</param>
     /// <returns>The number of bytes written to <paramref name="clearKey"/>.</returns>
