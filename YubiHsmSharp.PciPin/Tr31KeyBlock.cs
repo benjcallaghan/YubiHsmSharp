@@ -152,6 +152,20 @@ public struct Tr31KeyBlock
         _ => throw new NotSupportedException($"The key block version {this.VersionId} is not supported."),
     };
 
+    private readonly string CipherAlgorithm => this.VersionId switch
+    {
+        KeyBlockVersion.Derivation2010 => "DESede/CBC/NoPadding",
+        KeyBlockVersion.Deriviation2017 => "AES/CBC/NoPadding",
+        _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
+    };
+
+    private readonly int BlockSize => this.VersionId switch
+    {
+        KeyBlockVersion.Derivation2010 => 8,
+        KeyBlockVersion.Deriviation2017 => 16,
+        _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
+    };
+
     /// <summary>
     /// Decrypts and unwraps the protected key stored within this key block.
     /// </summary>
@@ -213,8 +227,7 @@ public struct Tr31KeyBlock
 
     private readonly int DecryptKeyBlock(ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> iv, ReadOnlySpan<byte> encryptedKey, Span<byte> paddedKey)
     {
-        string algorithm = this.VersionId == KeyBlockVersion.Deriviation2017 ? "AES/CBC/NoPadding" : "DESede/CBC/NoPadding";
-        IBufferedCipher cipher = CipherUtilities.GetCipher(algorithm);
+        IBufferedCipher cipher = CipherUtilities.GetCipher(this.CipherAlgorithm);
         cipher.Init(forEncryption: false, new ParametersWithIV(new KeyParameter(encryptionKey), iv));
         return cipher.DoFinal(encryptedKey, paddedKey);
     }
@@ -229,26 +242,13 @@ public struct Tr31KeyBlock
 
     private readonly int GenerateMac(ReadOnlySpan<byte> authenticationKey, ReadOnlySpan<byte> header, ReadOnlySpan<byte> paddedKey, Span<byte> computedMac)
     {
-        string algorithm = this.VersionId switch
-        {
-            KeyBlockVersion.Derivation2010 => "DESede/CBC/NoPadding",
-            KeyBlockVersion.Deriviation2017 => "AES/CBC/NoPadding",
-            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
-        };
-        int blockSize = this.VersionId switch
-        {
-            KeyBlockVersion.Derivation2010 => 8,
-            KeyBlockVersion.Deriviation2017 => 16,
-            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
-        };
-
         Span<byte> k1 = stackalloc byte[authenticationKey.Length];
         Span<byte> k2 = stackalloc byte[authenticationKey.Length];
         (int k1Written, int k2Written) = DeriveSubKeys(authenticationKey, k1, k2);
         k1 = k1[..k1Written];
         k2 = k2[..k2Written];
 
-        int paddingRequired = (header.Length + paddedKey.Length) % blockSize;
+        int paddingRequired = (header.Length + paddedKey.Length) % this.BlockSize;
         Span<byte> data = stackalloc byte[header.Length + paddedKey.Length + paddingRequired];
         header.CopyTo(data[..header.Length]);
         paddedKey.CopyTo(data[header.Length..]);
@@ -259,28 +259,28 @@ public struct Tr31KeyBlock
             data[^paddingRequired..].Clear(); // Pad with zeros
             data[^paddingRequired] = 0x80; // Start of padding
 
-            Span<byte> lastBlock = data[^blockSize..];
+            Span<byte> lastBlock = data[^this.BlockSize..];
             KeyUtils.Xor(lastBlock, k2, lastBlock);
         }
         else
         {
             // No padding required. Use k1 in the final block.
-            Span<byte> lastBlock = data[^blockSize..];
+            Span<byte> lastBlock = data[^this.BlockSize..];
             KeyUtils.Xor(lastBlock, k1, lastBlock);
         }
 
-        Span<byte> iv = stackalloc byte[blockSize];
+        Span<byte> iv = stackalloc byte[this.BlockSize];
         iv.Clear(); // Ensure all zeros.
 
-        IBufferedCipher cipher = CipherUtilities.GetCipher(algorithm);
+        IBufferedCipher cipher = CipherUtilities.GetCipher(this.CipherAlgorithm);
         cipher.Init(forEncryption: true, new ParametersWithIV(new KeyParameter(authenticationKey), iv));
 
         Span<byte> mac = stackalloc byte[data.Length];
         int written = cipher.DoFinal(data, mac);
         mac = mac[..written];
 
-        mac[^blockSize..].CopyTo(computedMac);
-        return blockSize;
+        mac[^this.BlockSize..].CopyTo(computedMac);
+        return this.BlockSize;
     }
 
     private readonly (int k1Written, int k2Written) DeriveSubKeys(ReadOnlySpan<byte> authenticationKey, Span<byte> k1, Span<byte> k2)
