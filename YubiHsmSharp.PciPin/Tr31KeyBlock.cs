@@ -6,7 +6,6 @@ using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 
 namespace YubiHsmSharp.PciPin;
 
@@ -165,25 +164,25 @@ public readonly struct TR31KeyBlock
     {
         Span<byte> encryptionKey = stackalloc byte[keyBlockProtectionKey.Length];
         Span<byte> authenticationKey = stackalloc byte[keyBlockProtectionKey.Length];
-        (int writtenEncryption, int writtenAuthentication) = DeriveKeys(keyBlockProtectionKey, encryptionKey, authenticationKey);
-        encryptionKey = encryptionKey[..writtenEncryption];
-        authenticationKey = authenticationKey[..writtenAuthentication];
+        int written = DeriveKeys(keyBlockProtectionKey, encryptionKey, authenticationKey);
+        encryptionKey = encryptionKey[..written];
+        authenticationKey = authenticationKey[..written];
 
         ReadOnlySpan<byte> header = this.keyBlock.AsSpan(..this.HeaderLength);
         ReadOnlySpan<byte> givenMacHex = this.keyBlock.AsSpan(^(this.MacLength * 2)..);
         ReadOnlySpan<byte> encryptedKeyHex = this.keyBlock.AsSpan(header.Length..^givenMacHex.Length);
 
         Span<byte> encryptedKey = stackalloc byte[encryptedKeyHex.Length / 2];
-        OperationStatus status = Convert.FromHexString(encryptedKeyHex, encryptedKey, out int consumed, out int written);
+        OperationStatus status = Convert.FromHexString(encryptedKeyHex, encryptedKey, out int consumed, out written);
         Debug.Assert(status == OperationStatus.Done);
         Debug.Assert(consumed == encryptedKeyHex.Length);
-        Debug.Assert(written == encryptedKey.Length);
+        encryptedKey = encryptedKey[..written];
 
         Span<byte> givenMac = stackalloc byte[givenMacHex.Length / 2];
         status = Convert.FromHexString(givenMacHex, givenMac, out consumed, out written);
         Debug.Assert(status == OperationStatus.Done);
         Debug.Assert(consumed == givenMacHex.Length);
-        Debug.Assert(written == givenMac.Length);
+        givenMac = givenMac[..written];
 
         ReadOnlySpan<byte> iv = this.VersionId switch
         {
@@ -209,9 +208,51 @@ public readonly struct TR31KeyBlock
         return keyLengthBytes;
     }
 
-    private readonly (int writtenEncryption, int writtenAuthentication) DeriveKeys(ReadOnlySpan<byte> keyBlockProtectionKey, Span<byte> encryptionKey, Span<byte> authenticationKey)
+    private readonly int DeriveKeys(ReadOnlySpan<byte> keyBlockProtectionKey, Span<byte> encryptionKey, Span<byte> authenticationKey)
     {
-        throw new NotImplementedException();
+        Span<byte> derivationData = [
+            1, // Counter for number of CMAC calls
+            0, 0, // Key usage identifier, 0=encryption, 1=authentication
+            0, // Separator
+            0, 2, // Algorithm identifier, 2=AES128, 3=AES192, 4=AES256
+            0, 128, // Key length in bits
+        ];
+
+        if (this.VersionId != KeyBlockVersion.Deriviation2017)
+        {
+            throw new NotImplementedException("Only AES keys are currently supported.");
+        }
+
+        derivationData[5] = keyBlockProtectionKey.Length switch
+        {
+            16 => 2,
+            24 => 3,
+            32 => 4,
+            _ => throw new NotSupportedException($"The key length {keyBlockProtectionKey.Length} is not supported.")
+        };
+        BinaryPrimitives.WriteUInt16BigEndian(derivationData[6..8], (ushort)(keyBlockProtectionKey.Length * 8));
+
+        CMac cmac = new(AesUtilities.CreateEngine());
+        cmac.Init(new KeyParameter(keyBlockProtectionKey));
+        
+        int maxLoops = (int)Math.Ceiling((double)keyBlockProtectionKey.Length / cmac.GetMacSize());
+        int writtenEncryption = 0;
+        int writtenAuthentication = 0;
+
+        for (int i = 1; i <= maxLoops; i++)
+        {
+            derivationData[0] = (byte)i; // Loop counter
+
+            derivationData[2] = 0; // Encryption Key
+            cmac.BlockUpdate(derivationData);
+            writtenEncryption += cmac.DoFinal(encryptionKey[writtenEncryption..]);
+
+            derivationData[2] = 1; // Authentication Key
+            cmac.BlockUpdate(derivationData);
+            writtenAuthentication += cmac.DoFinal(authenticationKey[writtenAuthentication..]);
+        }
+
+        return keyBlockProtectionKey.Length; // Final keys are always the same length as the original.
     }
 
     private readonly int DecryptKeyBlock(ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> iv, ReadOnlySpan<byte> encryptedKey, Span<byte> paddedKey)
