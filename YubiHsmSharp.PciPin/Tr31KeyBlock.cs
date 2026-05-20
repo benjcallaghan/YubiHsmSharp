@@ -2,6 +2,8 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.Diagnostics;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -243,50 +245,20 @@ public readonly struct TR31KeyBlock
 
     private readonly int GenerateMac(ReadOnlySpan<byte> authenticationKey, ReadOnlySpan<byte> header, ReadOnlySpan<byte> paddedKey, Span<byte> computedMac)
     {
-        Span<byte> k1 = stackalloc byte[authenticationKey.Length];
-        Span<byte> k2 = stackalloc byte[authenticationKey.Length];
-        (int k1Written, int k2Written) = DeriveSubKeys(authenticationKey, k1, k2);
-        k1 = k1[..k1Written];
-        k2 = k2[..k2Written];
-
-        int paddingRequired = (header.Length + paddedKey.Length) % this.BlockSize;
-        Span<byte> data = stackalloc byte[header.Length + paddedKey.Length + paddingRequired];
+        Span<byte> data = stackalloc byte[header.Length + paddedKey.Length];
         header.CopyTo(data[..header.Length]);
         paddedKey.CopyTo(data[header.Length..]);
 
-        if (paddingRequired != 0)
+        IBlockCipher cipher = this.VersionId switch
         {
-            // Padding required. Use k2 in the final block.            
-            data[^paddingRequired..].Clear(); // Pad with zeros
-            data[^paddingRequired] = 0x80; // Start of padding
-
-            Span<byte> lastBlock = data[^this.BlockSize..];
-            Bytes.XorTo(lastBlock.Length, k2, lastBlock);
-        }
-        else
-        {
-            // No padding required. Use k1 in the final block.
-            Span<byte> lastBlock = data[^this.BlockSize..];
-            Bytes.XorTo(lastBlock.Length, k1, lastBlock);
-        }
-
-        Span<byte> iv = stackalloc byte[this.BlockSize];
-        iv.Clear(); // Ensure all zeros.
-
-        IBufferedCipher cipher = CipherUtilities.GetCipher(this.CipherAlgorithm);
-        cipher.Init(forEncryption: true, new ParametersWithIV(new KeyParameter(authenticationKey), iv));
-
-        Span<byte> mac = stackalloc byte[data.Length];
-        int written = cipher.DoFinal(data, mac);
-        mac = mac[..written];
-
-        mac[^this.BlockSize..].CopyTo(computedMac);
-        return this.BlockSize;
-    }
-
-    private readonly (int k1Written, int k2Written) DeriveSubKeys(ReadOnlySpan<byte> authenticationKey, Span<byte> k1, Span<byte> k2)
-    {
-        throw new NotImplementedException();
+            KeyBlockVersion.Derivation2010 => new DesEdeEngine(),
+            KeyBlockVersion.Deriviation2017 => AesUtilities.CreateEngine(),
+            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
+        };
+        CMac cmac = new(cipher);
+        cmac.Init(new KeyParameter(authenticationKey));
+        cmac.BlockUpdate(data);
+        return cmac.DoFinal(computedMac);
     }
 }
 
