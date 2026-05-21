@@ -32,7 +32,7 @@ public readonly struct Format4PinBlock
     /// <param name="pinEncryptionKey">The AES encryption key.</param>
     /// <param name="random">A random bytes generator to pad the pin block.</param>
     /// <param name="pin">The PIN to encipher.</param>
-    /// <param name="primaryAccountNumber">The Primary Account Number (PAN) associated with the PIN</param>
+    /// <param name="primaryAccountNumber">The Primary Account Number (PAN) associated with the PIN.</param>
     /// <returns>A Format 4 PIN Block containing the enciphered PIN.</returns>
     /// <exception cref="ArgumentException">Thrown if <paramref name="cipher"/> or <paramref name="pinEncryptionKey"/> are not compatible with AES-128.</exception>
     public static Format4PinBlock Encrypt(IBlockCipher cipher, KeyParameter pinEncryptionKey, IRandomGenerator random, string pin, string primaryAccountNumber)

@@ -106,5 +106,18 @@ public static class YubiSessionExtensions
             };
             return session.ImportAesKey(utf8Label, domains, in capabilities, algorithm, clearKey, keyId);
         }
+
+        /// <summary>
+        /// Encrypts a PIN into a Format 4 PIN Block using a stored symmetric key.
+        /// </summary>
+        /// <param name="pinEncryptionKeyId">The ID of the stored symmetric key.</param>
+        /// <param name="pin">The PIN to encipher.</param>
+        /// <param name="primaryAccountNumber">The Primary Account Number (PAN) associated with the PIN.</param>
+        /// <returns>A Format 4 PIN Block containing the enciphered PIN.</returns>
+        public Format4PinBlock EncryptPin(ushort pinEncryptionKeyId, string pin, string primaryAccountNumber)
+        {
+            YubiSymmetricKeyParameter keyParameter = session.GetSymmetricKeyParameter(pinEncryptionKeyId);
+            return Format4PinBlock.Encrypt(new YubiAesBlockCipher(session), keyParameter, new YubiRandomGenerator(session), pin, primaryAccountNumber);
+        }
     }
 }
