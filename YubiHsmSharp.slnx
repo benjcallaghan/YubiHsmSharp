@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="YubiHsmSharp.BouncyCastle/YubiHsmSharp.BouncyCastle.csproj" />
+  <Project Path="YubiHsmSharp.Hosting/YubiHsmSharp.Hosting.csproj" />
   <Project Path="YubiHsmSharp.PciPin.Tests/YubiHsmSharp.PciPin.Tests.csproj" />
   <Project Path="YubiHsmSharp.PciPin/YubiHsmSharp.PciPin.csproj" />
   <Project Path="YubiHsmSharp.Tests/YubiHsmSharp.Tests.csproj" />
