@@ -128,5 +128,22 @@ public static class YubiSessionExtensions
                 pin,
                 primaryAccountNumber);
         }
+
+        /// <summary>
+        /// Decrypts a PIN from a Format 4 PIN Block using a stored symmetric key.
+        /// </summary>
+        /// <remarks>
+        /// The authentication key used to create the session must have the following capabilities:
+        /// decrypt-ecb
+        /// </remarks>
+        /// <param name="pinEncryptionKeyId">The ID of the stored symmetric key.</param>
+        /// <param name="pinBlock">The PIN Block to decipher.</param>
+        /// <param name="primaryAccountNumber">The Primary Account Number (PAN) associated with the PIN.</param>
+        /// <returns>The deciphered PIN.</returns>
+        public string DecryptPin(ushort pinEncryptionKeyId, Format4PinBlock pinBlock, string primaryAccountNumber)
+        {
+            YubiSymmetricKeyParameter keyParameter = session.GetSymmetricKeyParameter(pinEncryptionKeyId);
+            return pinBlock.Decrypt(new YubiAesBlockCipher(session), keyParameter, primaryAccountNumber);
+        }
     }
 }

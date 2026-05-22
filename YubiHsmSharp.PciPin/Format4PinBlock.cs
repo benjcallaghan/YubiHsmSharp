@@ -54,6 +54,7 @@ public readonly struct Format4PinBlock
 
         cipher.Init(forEncryption: true, pinEncryptionKey);
         byte[] encryptedBlock = new byte[cipher.GetBlockSize()];
+
         int written = cipher.ProcessBlock(pinBlock, encryptedBlock);
         Debug.Assert(written == encryptedBlock.Length);
 
@@ -63,6 +64,76 @@ public readonly struct Format4PinBlock
         Debug.Assert(written == encryptedBlock.Length);
 
         return new Format4PinBlock(encryptedBlock);
+    }
+
+    /// <summary>
+    /// Decrypts the Format 4 PIN Block and extracts the clear PIN.
+    /// </summary>
+    /// <param name="cipher">The AES cipher to use for decryption.</param>
+    /// <param name="pinEncryptionKey">The AES encryption key.</param>
+    /// <param name="primaryAccountNumber">The Primary Account Number (PAN) associated with the PIN.</param>
+    /// <returns>The deciphered PIN.</returns>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="cipher"/> or <paramref name="pinEncryptionKey"/> are not compatible with AES-128.</exception>
+    public string Decrypt(IBlockCipher cipher, KeyParameter pinEncryptionKey, string primaryAccountNumber)
+    {
+        if (!cipher.AlgorithmName.Contains("aes", StringComparison.InvariantCultureIgnoreCase))
+        {
+            throw new ArgumentException("Only AES ciphers are supported for PIN Block Format 4.", nameof(cipher));
+        }
+        if (pinEncryptionKey.KeyLength != 16)
+        {
+            throw new ArgumentException("Only 128-bit keys are supported for PIN Block Format 4.", nameof(pinEncryptionKey));
+        }
+
+        cipher.Init(forEncryption: false, pinEncryptionKey);
+        Span<byte> pinBlock = stackalloc byte[16];
+
+        int written = cipher.ProcessBlock(this.pinBlock, pinBlock);
+        Debug.Assert(written == pinBlock.Length);
+
+        Span<byte> panBlock = stackalloc byte[16];
+        GeneratePanBlock(primaryAccountNumber, panBlock);
+        Bytes.XorTo(pinBlock.Length, panBlock, pinBlock);
+
+        written = cipher.ProcessBlock(pinBlock, pinBlock);
+        Debug.Assert(written == pinBlock.Length);
+
+        return ExtractPinFromBlock(pinBlock);
+    }
+
+    private static string ExtractPinFromBlock(Span<byte> pinBlock)
+    {
+        int header = pinBlock[0] % 0xF0 >> 4;
+        if (header != 4)
+        {
+            throw new ArgumentException("The PIN block is not Format 4.", nameof(pinBlock));
+        }
+
+        int pinLength = pinBlock[0] & 0x0F;
+        int pinBytes = pinLength / 2;
+        if (pinLength % 2 == 1)
+        {
+            // One extra byte is needed (high-nibble only)
+            pinBytes += 1;
+        }
+
+        return String.Create(pinLength, pinBlock.Slice(1, pinBytes), static (pin, pinBlock) =>
+        {
+            int pinIndex = 0;
+            int blockLength = pin.Length % 2 == 0 ? pinBlock.Length : pinBlock.Length - 1; // Treat the last (half) byte special.
+
+            for (int blockIndex = 0; blockIndex < blockLength; blockIndex++)
+            {
+                pin[pinIndex++] = (char)((pinBlock[blockIndex] & 0xF0 >> 4) + '0');
+                pin[pinIndex++] = (char)((pinBlock[blockIndex] & 0x0F) + '0');
+            }
+
+            if (blockLength != pinBlock.Length)
+            {
+                // Odd number of digits, so only keep the high nibble here.
+                pin[pinIndex++] = (char)((pinBlock[^1] & 0xF0 >> 4) + '0');
+            }
+        });
     }
 
     private static void GeneratePinBlock(IRandomGenerator random, string pin, Span<byte> pinBlock)
