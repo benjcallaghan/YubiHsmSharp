@@ -1,6 +1,6 @@
 # YubiHsmSharp.PciPin
 
-A library of cryptographic methods suitable for use with PIN transactions in a credit card environment.
+An implementation of PCI-compatible PIN cryptography methods that store sensitive keys in a YubiHSM 2.
 
 ## Design
 
