@@ -110,6 +110,10 @@ public static class YubiSessionExtensions
         /// <summary>
         /// Encrypts a PIN into a Format 4 PIN Block using a stored symmetric key.
         /// </summary>
+        /// <remarks>
+        /// The authentication key used to create the session must have the following capabilities:
+        /// encrypt-ecb, get-pseudo-random
+        /// </remarks>
         /// <param name="pinEncryptionKeyId">The ID of the stored symmetric key.</param>
         /// <param name="pin">The PIN to encipher.</param>
         /// <param name="primaryAccountNumber">The Primary Account Number (PAN) associated with the PIN.</param>
@@ -117,7 +121,12 @@ public static class YubiSessionExtensions
         public Format4PinBlock EncryptPin(ushort pinEncryptionKeyId, string pin, string primaryAccountNumber)
         {
             YubiSymmetricKeyParameter keyParameter = session.GetSymmetricKeyParameter(pinEncryptionKeyId);
-            return Format4PinBlock.Encrypt(new YubiAesBlockCipher(session), keyParameter, new YubiRandomGenerator(session), pin, primaryAccountNumber);
+            return Format4PinBlock.Encrypt(
+                new YubiAesBlockCipher(session),
+                keyParameter,
+                new YubiRandomGenerator(session),
+                pin,
+                primaryAccountNumber);
         }
     }
 }
