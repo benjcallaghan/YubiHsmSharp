@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\YubiHsmSharp\YubiHsmSharp.csproj" />
+      <ProjectReference Include="..\YubiHsmSharp.BouncyCastle\YubiHsmSharp.BouncyCastle.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Org.BouncyCastle.Crypto.Prng;
 
-namespace YubiHsmSharp.PciPin;
+namespace YubiHsmSharp.BouncyCastle;
 
 /// <summary>
 /// A random number generator that uses the pseudo-random functionality of the YubiHSM 2.

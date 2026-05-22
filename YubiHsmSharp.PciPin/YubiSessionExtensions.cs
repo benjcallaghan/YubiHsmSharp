@@ -1,4 +1,5 @@
 using Org.BouncyCastle.Crypto;
+using YubiHsmSharp.BouncyCastle;
 
 namespace YubiHsmSharp.PciPin;
 
@@ -34,17 +35,6 @@ public static class YubiSessionExtensions
                 _ => throw new ArgumentException("The provided key has an invalid length.", nameof(zoneMasterKey)),
             };
             return session.ImportAesKey(utf8Label, domains, in capabilities, algorithm, zoneMasterKey, keyId);
-        }
-
-        /// <summary>
-        /// Gets a BouncyCastle-compatible <see cref="ICipherParameters"/> representing a stored symmetric key.
-        /// </summary>
-        /// <param name="keyId">The ID of the stored symmetric key.</param>
-        /// <returns>A <see cref="YubiSymmetricKeyParameter"/> representing the stored symmetric key.</returns>
-        public YubiSymmetricKeyParameter GetSymmetricKeyParameter(ushort keyId)
-        {
-            ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.SymmetricKey);
-            return new YubiSymmetricKeyParameter(keyId, descriptor.Length);
         }
 
         /// <summary>
