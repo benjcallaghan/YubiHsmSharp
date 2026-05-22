@@ -1,4 +1,3 @@
-using Org.BouncyCastle.Crypto;
 using YubiHsmSharp.BouncyCastle;
 
 namespace YubiHsmSharp.PciPin;
