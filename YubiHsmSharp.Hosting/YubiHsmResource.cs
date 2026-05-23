@@ -1,10 +1,20 @@
 namespace Aspire.Hosting.ApplicationModel;
 
-public class YubiHsmResource(IResourceBuilder<ExternalServiceResource> external) : Resource(external.Resource.Name)
+/// <summary>
+/// Represents a YubiHSM 2 resource that can be used by an application.
+/// </summary>
+public class YubiHsmResource : Resource
 {
-    public IResourceBuilder<ExternalServiceResource> External => external;
+    private readonly IResourceBuilder<ExternalServiceResource> external;
 
-    public ParameterResource AuthKeyId { get; internal set; }
+    internal YubiHsmResource(IResourceBuilder<ExternalServiceResource> external) : base(external.Resource.Name)
+    {
+        this.external = external;
+    }
 
-    public ParameterResource Password { get; internal set; }
+    internal IResourceBuilder<ExternalServiceResource> External => external;
+
+    internal ParameterResource? AuthKeyId { get; set; }
+
+    internal ParameterResource? Password { get; set; }
 }

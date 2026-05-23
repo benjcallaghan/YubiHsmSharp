@@ -6,6 +6,7 @@ A collection of libraries for working with YubiHSM 2 in C#/.NET.
 
 * [`YubiHsmSharp`](./YubiHsmSharp/): A C# wrapper around libyubihsm with idomatic .NET types.
 * [`YubiHsmSharp.BouncyCastle`](./YubiHsmSharp.BouncyCastle/): A compatibility shim that exposes YubiHSM 2 operations through BouncyCastle-compatible interfaces.
+* [`YubiHsmSharp.Hosting`](./YubiHsmSharp.Hosting/): An extension to .NET Aspire to configure a shared YubiHSM 2 service.
 * [`YubiHsmSharp.PciPin`](./YubiHsmSharp.PciPin/): An implementation of PCI-compatible PIN cryptography methods that store sensitive keys in a YubiHSM 2.
 
 ## Demos
