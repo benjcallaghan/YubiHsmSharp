@@ -11,19 +11,19 @@ public static class YubiHsmSharpExtensions
 {
     extension(IHostApplicationBuilder builder)
     {
-        public void AddYubiHsmClient(string connectionName, Action<YubiHsmSharpSettings>? configure = null)
+        public void AddYubiHsmClient(string connectionName, Action<YubiHsmOptions>? configure = null)
         {
-            builder.AddYubiHsmClient(YubiHsmSharpSettings.DefaultConfigSectionName, configure, connectionName, serviceKey: null);
+            builder.AddYubiHsmClient(YubiHsmOptions.DefaultConfigSectionName, configure, connectionName, serviceKey: null);
         }
 
-        public void AddKeyedYubiHsmClient(string name, Action<YubiHsmSharpSettings>? configure = null)
+        public void AddKeyedYubiHsmClient(string name, Action<YubiHsmOptions>? configure = null)
         {
-            builder.AddYubiHsmClient($"{YubiHsmSharpSettings.DefaultConfigSectionName}:{name}", configure, connectionName: name, serviceKey: name);
+            builder.AddYubiHsmClient($"{YubiHsmOptions.DefaultConfigSectionName}:{name}", configure, connectionName: name, serviceKey: name);
         }
 
-        private void AddYubiHsmClient(string configurationSectionName, Action<YubiHsmSharpSettings>? configure, string connectionName, string? serviceKey)
+        private void AddYubiHsmClient(string configurationSectionName, Action<YubiHsmOptions>? configure, string connectionName, string? serviceKey)
         {
-            var options = builder.Services.AddOptionsWithValidateOnStart<YubiHsmSharpSettings>(serviceKey)
+            var options = builder.Services.AddOptionsWithValidateOnStart<YubiHsmOptions>(serviceKey)
                 .BindConfiguration(configurationSectionName);
 
             if (configure is not null)
@@ -48,7 +48,7 @@ public static class YubiHsmSharpExtensions
         private static YubiConnector CreateYubiConnector(IServiceProvider serviceProvider)
         {
             var module = serviceProvider.GetRequiredService<YubiModule>();
-            var options = serviceProvider.GetRequiredService<IOptionsSnapshot<YubiHsmSharpSettings>>();
+            var options = serviceProvider.GetRequiredService<IOptionsSnapshot<YubiHsmOptions>>();
 
             Span<byte> utf8Url = stackalloc byte[options.Value.Url.Length + 1]; // Null-terminated
             int written = Encoding.UTF8.GetBytes(options.Value.Url, utf8Url);
@@ -64,8 +64,8 @@ public static class YubiHsmSharpExtensions
                 ? serviceProvider.GetRequiredService<YubiConnector>()
                 : serviceProvider.GetRequiredKeyedService<YubiConnector>(serviceKey);
             var options = serviceKey is null
-                ? serviceProvider.GetRequiredService<IOptionsSnapshot<YubiHsmSharpSettings>>()
-                : serviceProvider.GetRequiredKeyedService<IOptionsSnapshot<YubiHsmSharpSettings>>(serviceKey);
+                ? serviceProvider.GetRequiredService<IOptionsSnapshot<YubiHsmOptions>>()
+                : serviceProvider.GetRequiredKeyedService<IOptionsSnapshot<YubiHsmOptions>>(serviceKey);
 
             if (!connector.HasDevice)
             {
