@@ -35,23 +35,23 @@ public static class YubiHsmSharpExtensions
 
             if (serviceKey is null)
             {
-                builder.Services.AddSingleton(CreateYubiConnector);
+                builder.Services.AddSingleton(sp => CreateYubiConnector(sp, serviceKey: null));
                 builder.Services.AddScoped(sp => CreateYubiSession(sp, serviceKey: null));
             }
             else
             {
-                builder.Services.AddKeyedSingleton(serviceKey, (sp, key) => CreateYubiConnector(sp));
+                builder.Services.AddKeyedSingleton(serviceKey, CreateYubiConnector);
                 builder.Services.AddKeyedScoped(serviceKey, CreateYubiSession);
-            }
+            }            
         }
 
-        private static YubiConnector CreateYubiConnector(IServiceProvider serviceProvider)
+        private static YubiConnector CreateYubiConnector(IServiceProvider serviceProvider, object? serviceKey)
         {
             var module = serviceProvider.GetRequiredService<YubiModule>();
-            var options = serviceProvider.GetRequiredService<IOptionsSnapshot<YubiHsmOptions>>();
+            var options = serviceProvider.GetRequiredService<IOptionsSnapshot<YubiHsmOptions>>().Get((string?)serviceKey);
 
-            Span<byte> utf8Url = stackalloc byte[options.Value.Url.Length + 1]; // Null-terminated
-            int written = Encoding.UTF8.GetBytes(options.Value.Url, utf8Url);
+            Span<byte> utf8Url = stackalloc byte[options.Url.Length + 1]; // Null-terminated
+            int written = Encoding.UTF8.GetBytes(options.Url, utf8Url);
             utf8Url = utf8Url[..(written + 1)]; // Null-terminated
             utf8Url[^1] = 0;
 
@@ -63,20 +63,18 @@ public static class YubiHsmSharpExtensions
             var connector = serviceKey is null
                 ? serviceProvider.GetRequiredService<YubiConnector>()
                 : serviceProvider.GetRequiredKeyedService<YubiConnector>(serviceKey);
-            var options = serviceKey is null
-                ? serviceProvider.GetRequiredService<IOptionsSnapshot<YubiHsmOptions>>()
-                : serviceProvider.GetRequiredKeyedService<IOptionsSnapshot<YubiHsmOptions>>(serviceKey);
+            var options = serviceProvider.GetRequiredService<IOptionsSnapshot<YubiHsmOptions>>().Get((string?)serviceKey);
 
             if (!connector.HasDevice)
             {
                 connector.Connect();
-            }
+            }            
 
-            Span<byte> utf8Password = stackalloc byte[options.Value.Password.Length];
-            int written = Encoding.UTF8.GetBytes(options.Value.Password, utf8Password);
+            Span<byte> utf8Password = stackalloc byte[options.Password.Length];
+            int written = Encoding.UTF8.GetBytes(options.Password, utf8Password);
             utf8Password = utf8Password[..written];
 
-            return connector.CreateSession(options.Value.AuthKeyId, utf8Password);
+            return connector.CreateSession(options.AuthKeyId, utf8Password);
         }
     }
 }
