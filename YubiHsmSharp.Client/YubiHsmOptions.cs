@@ -4,7 +4,7 @@ namespace YubiHsmSharp.Client;
 
 public class YubiHsmOptions
 {
-    internal const string DefaultConfigSectionName = "YubiHsm:Client";
+    internal const string DefaultConfigSectionName = "YubiHsm";
 
     [Required]
     public string Url { get; set; }

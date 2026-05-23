@@ -18,7 +18,7 @@ public static class YubiHsmResourceBuilderExtensions
         public IResourceBuilder<YubiHsmResource> AddYubiHsm(string name, string url)
         {
             var external = builder.AddExternalService(name, url);
-            return new YubiHsmResourceBuilder(external);
+            return new YubiHsmResourceBuilder(external, url);
         }
     }
 
@@ -64,15 +64,16 @@ public static class YubiHsmResourceBuilderExtensions
         /// <returns>The <see cref="IResourceBuilder{TDestination}"/> instance.</returns>
         public IResourceBuilder<TDestination> WithReference(IResourceBuilder<YubiHsmResource> yubihsm)
         {
-            builder = builder.WithReference(yubihsm.Resource.External);
+            builder = builder.WithReference(yubihsm.Resource.External)
+                .WithEnvironment($"{yubihsm.Resource.Name}__Url", yubihsm.Resource.Url);
 
             if (yubihsm.Resource.AuthKeyId is not null)
             {
-                builder = builder.WithEnvironment($"{yubihsm.Resource.Name.ToUpperInvariant()}_AUTHKEYID", yubihsm.Resource.AuthKeyId);
+                builder = builder.WithEnvironment($"{yubihsm.Resource.Name}__AuthKeyId", yubihsm.Resource.AuthKeyId);
             }
             if (yubihsm.Resource.Password is not null)
             {
-                builder = builder.WithEnvironment($"{yubihsm.Resource.Name.ToUpperInvariant()}_PASSWORD", yubihsm.Resource.Password);
+                builder = builder.WithEnvironment($"{yubihsm.Resource.Name}__Password", yubihsm.Resource.Password);
             }
 
             return builder;

@@ -24,9 +24,10 @@ public static class YubiHsmSharpExtensions
 
         private void AddYubiHsmClient(string configurationSectionName, Action<YubiHsmOptions>? configure, string connectionName, string? serviceKey)
         {
-            var options = builder.Services.AddOptionsWithValidateOnStart<YubiHsmOptions>(serviceKey)
+            var options = builder.Services.AddOptions<YubiHsmOptions>(serviceKey)
                 .BindConfiguration(configurationSectionName)
-                .ValidateDataAnnotations();
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
 
             if (configure is not null)
             {
