@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\YubiHsmSharp.Hosting\YubiHsmSharp.Hosting.csproj" />
+    <ProjectReference Include="..\YubiHsmSharp.Client\YubiHsmSharp.Client.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,7 @@
 var builder = WebApplication.CreateBuilder(args);
 
+builder.AddYubiHsmClient("yubihsm");
+
 var app = builder.Build();
 
 var summaries = new[]
