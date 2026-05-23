@@ -46,6 +46,7 @@ AskUserIfCorrect(keyCheckValue3);
 Span<byte> zoneMasterKey = stackalloc byte[keyComponent1.Length];
 written = KeyUtils.CombineComponents(keyComponent1, keyComponent2, keyComponent3, zoneMasterKey);
 zoneMasterKey = zoneMasterKey[..written];
+
 Span<byte> zoneMasterKeyCheckValue = stackalloc byte[3];
 written = KeyUtils.AesKeyCheckValue(zoneMasterKey, zoneMasterKeyCheckValue);
 zoneMasterKeyCheckValue = zoneMasterKeyCheckValue[..written];
