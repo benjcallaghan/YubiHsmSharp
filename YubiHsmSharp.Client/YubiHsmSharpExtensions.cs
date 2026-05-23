@@ -8,15 +8,29 @@ using YubiHsmSharp.Client;
 
 namespace Microsoft.Extensions.Hosting;
 
+/// <summary>
+/// Contains extension methods for registering YubiHSM clients in an application.
+/// </summary>
 public static class YubiHsmSharpExtensions
 {
     extension(IHostApplicationBuilder builder)
     {
+        /// <summary>
+        /// Registers 'Scoped' <see cref="YubiSession"/> for communicating with a YubiHSM 2.
+        /// </summary>
+        /// <param name="connectionName">A name used to retrieve configuration settings.</param>
+        /// <param name="configure">An optional delegate that can be used for customizing options.</param>
         public void AddYubiHsmClient(string connectionName, Action<YubiHsmOptions>? configure = null)
         {
             builder.AddYubiHsmClient(YubiHsmOptions.DefaultConfigSectionName, configure, connectionName, serviceKey: null);
         }
 
+        /// <summary>
+        /// Registers 'Scoped' <see cref="YubiSession"/> for communicating with a YubiHSM 2.
+        /// </summary>
+        /// <param name="name">The name of the component, which is used as the <see cref="ServiceDescriptor.ServiceKey"/>,
+        /// and also to retrieve configuration settings.</param>
+        /// <param name="configure">An optional delegate that can be used for customizing options.</param>
         public void AddKeyedYubiHsmClient(string name, Action<YubiHsmOptions>? configure = null)
         {
             builder.AddYubiHsmClient($"{YubiHsmOptions.DefaultConfigSectionName}:{name}", configure, connectionName: name, serviceKey: name);
@@ -51,7 +65,7 @@ public static class YubiHsmSharpExtensions
             var settings = tempProvider.GetRequiredService<IOptionsMonitor<YubiHsmOptions>>().Get(serviceKey);
 
             if (settings.DisableHealthChecks is false)
-            {                
+            {
                 builder.Services.AddHealthChecks()
                     .Add(new HealthCheckRegistration(
                         name: serviceKey is null ? "YubiHsm" : $"YubiHsm_{connectionName}",
