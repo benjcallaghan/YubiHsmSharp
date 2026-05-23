@@ -1,7 +1,7 @@
 namespace Aspire.Hosting.ApplicationModel;
 
 public sealed class YubiHsmResource([ResourceName] string name) : Resource(name),
-    IResourceWithEndpoints, IResourceWithoutLifetime, IResourceWithConnectionString
+    IResourceWithEndpoints, IResourceWithConnectionString
 {
     internal const string YubiHsmEndpointName = "yubihsm";
 

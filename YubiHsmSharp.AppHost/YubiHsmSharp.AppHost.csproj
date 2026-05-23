@@ -7,5 +7,10 @@
     <Nullable>enable</Nullable>
     <UserSecretsId>a7206813-5846-4b48-9cc1-ac057ce8073c</UserSecretsId>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\YubiHsmSharp.Hosting\YubiHsmSharp.Hosting.csproj" IsAspireProjectResource="false" />
+    <ProjectReference Include="..\YubiHsmSharp.Demo\YubiHsmSharp.Demo.csproj" />
+  </ItemGroup>
 
 </Project>
