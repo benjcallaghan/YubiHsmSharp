@@ -23,7 +23,7 @@ public static class YubiHsmResourceBuilderExtensions
                     ResourceType = "YubiHsm",
                     Properties = [],
                     CreationTimeStamp = DateTime.UtcNow,
-                    IconName = "AzureKeyVault",
+                    IconName = "KeyMultiple",
                     IconVariant = IconVariant.Regular,
                     State = KnownResourceStates.Running,
                     Urls = [new("Connector", url, IsInternal: true)],                    
