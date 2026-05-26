@@ -31,6 +31,7 @@ internal partial class DebugFile : IDisposable
     private readonly SafeFileHandle readHandle;
     private readonly SafeFileHandle writeHandle;
     private readonly nint writeFile;
+    private readonly FileStream readStream;
 
     public DebugFile()
     {
@@ -66,6 +67,8 @@ internal partial class DebugFile : IDisposable
             rc = posix_setvbuf(this.writeFile, 0, POSIX_IOLBF, bufferSize);
             ThrowIfError(rc);
         }
+
+        this.readStream = new FileStream(this.readHandle, FileAccess.Read, bufferSize, isAsync: false);
     }
 
     public void Dispose()
