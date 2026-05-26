@@ -1,7 +1,7 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 var authKeyId = builder.AddParameter("YubiHsm-AuthKeyId");
-var password = builder.AddParameter("YubiHsm-Password");
+var password = builder.AddParameter("YubiHsm-Password", secret: true);
 
 var yubihsm = builder.AddYubiHsm("yubihsm", "http://localhost:12345")
     .WithPassword(authKeyId, password);
