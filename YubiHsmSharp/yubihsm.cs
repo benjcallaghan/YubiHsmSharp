@@ -508,7 +508,7 @@ internal static partial class yubihsm
     /// <param name="connector">If not NULL, the debug messages will be written to the specified output file</param>
     /// <param name="output">The destination of the debug messages</param>
     [LibraryImport(nameof(yubihsm))]
-    // TODO: Add a stronger handle-like type for FILE *output.
+    // FIXME: Add a stronger handle-like type for FILE *output.
     public static partial void yh_set_debug_output(SafeConnectorHandle connector, nint output);
 
     /// <summary>

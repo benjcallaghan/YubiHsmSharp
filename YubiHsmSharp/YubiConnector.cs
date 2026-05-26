@@ -1,4 +1,5 @@
 using System.Runtime.Versioning;
+using System.Text;
 
 namespace YubiHsmSharp;
 
@@ -76,6 +77,46 @@ public sealed class YubiConnector : IDisposable
     {
         yh_rc err = yh_set_verbosity(this.handle, verbosity);
         YubiHsmException.ThrowIfError(err);
+    }
+
+    /// <summary>
+    /// Set file for debug output
+    /// </summary>
+    /// <param name="output">A callback to execute for each line of debug messages.</param>
+    public static void SetGlobalDebugOutput(Action<string> output)
+    {
+        // Run in a background task as this will live for the entire lifetime.
+        _ = Task.Run(async () =>
+        {
+            using DebugFile debug = new();
+            yh_set_debug_output(NullConnectorHandle, debug.WriteFile);
+
+            using StreamReader reader = new(debug.ReadStream, Encoding.UTF8);
+            while (await reader.ReadLineAsync() is string line)
+            {
+                output(line);
+            }
+        });
+    }
+
+    /// <summary>
+    /// Set file for debug output
+    /// </summary>
+    /// <param name="output">A callback to execute for each line of debug messages.</param>
+    public void SetDebugOutput(Action<string> output)
+    {
+        // Run in a background task as this will live for the entire lifetime.
+        _ = Task.Run(async () =>
+        {
+            using DebugFile debug = new();
+            yh_set_debug_output(this.handle, debug.WriteFile);
+
+            using StreamReader reader = new(debug.ReadStream, Encoding.UTF8);
+            while (await reader.ReadLineAsync() is string line)
+            {
+                output(line);
+            }
+        });
     }
 
     /// <summary>

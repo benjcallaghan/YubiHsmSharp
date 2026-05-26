@@ -30,8 +30,9 @@ internal partial class DebugFile : IDisposable
 
     private readonly SafeFileHandle readHandle;
     private readonly SafeFileHandle writeHandle;
-    private readonly nint writeFile;
-    private readonly FileStream readStream;
+    
+    public nint WriteFile { get; }
+    public Stream ReadStream { get; }
 
     public DebugFile()
     {
@@ -47,10 +48,10 @@ internal partial class DebugFile : IDisposable
             this.readHandle = new(fds[0], ownsHandle: true);
             this.writeHandle = new(fds[1], ownsHandle: true);
 
-            this.writeFile = win_fdopen((int)this.writeHandle.DangerousGetHandle(), "w"u8);
-            ThrowIfNull(this.writeFile);
+            this.WriteFile = win_fdopen((int)this.writeHandle.DangerousGetHandle(), "w"u8);
+            ThrowIfNull(this.WriteFile);
 
-            rc = win_setvbuf(this.writeFile, 0, WIN_IOLBF, bufferSize);
+            rc = win_setvbuf(this.WriteFile, 0, WIN_IOLBF, bufferSize);
             ThrowIfError(rc);
         }
         else
@@ -61,14 +62,14 @@ internal partial class DebugFile : IDisposable
             this.readHandle = new(fds[0], ownsHandle: true);
             this.writeHandle = new(fds[1], ownsHandle: true);
 
-            this.writeFile = posix_fdopen((int)this.writeHandle.DangerousGetHandle(), "w"u8);
-            ThrowIfNull(this.writeFile);
+            this.WriteFile = posix_fdopen((int)this.writeHandle.DangerousGetHandle(), "w"u8);
+            ThrowIfNull(this.WriteFile);
 
-            rc = posix_setvbuf(this.writeFile, 0, POSIX_IOLBF, bufferSize);
+            rc = posix_setvbuf(this.WriteFile, 0, POSIX_IOLBF, bufferSize);
             ThrowIfError(rc);
         }
 
-        this.readStream = new FileStream(this.readHandle, FileAccess.Read, bufferSize, isAsync: false);
+        this.ReadStream = new FileStream(this.readHandle, FileAccess.Read, bufferSize, isAsync: false);
     }
 
     public void Dispose()
