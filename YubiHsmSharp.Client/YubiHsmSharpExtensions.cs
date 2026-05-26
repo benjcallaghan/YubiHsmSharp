@@ -65,6 +65,16 @@ public static class YubiHsmSharpExtensions
             using var tempProvider = builder.Services.BuildServiceProvider();
             var settings = tempProvider.GetRequiredService<IOptionsMonitor<YubiHsmOptions>>().Get(serviceKey);
 
+            bool shouldEnableTelemetryService = settings.DisableMetrics is false || settings.DisableDeviceLogs is false;
+            if (shouldEnableTelemetryService)
+            {
+                builder.Services.AddHostedService(sp => new DeviceTelemetryService(
+                    sp.GetRequiredService<IServiceScopeFactory>(),
+                    sp.GetRequiredService<ILogger<DeviceTelemetryService>>(),
+                    sp.GetRequiredService<IOptionsMonitor<YubiHsmOptions>>(),
+                    serviceKey));
+            }
+
             if (settings.DisableHealthChecks is false)
             {
                 builder.Services.AddHealthChecks()
@@ -84,12 +94,8 @@ public static class YubiHsmSharpExtensions
 
             if (settings.DisableMetrics is false)
             {
-                builder.Services.AddHostedService(sp => new DeviceTelemetryService(
-                    sp.GetRequiredService<IServiceScopeFactory>(),
-                    sp.GetRequiredService<ILogger<DeviceTelemetryService>>(),
-                    serviceKey));
                 builder.Services.AddOpenTelemetry()
-                    .WithMetrics(metrics => metrics.AddMeter());
+                    .WithMetrics(metrics => metrics.AddMeter(DeviceTelemetryService.MeterName));
             }
         }
 

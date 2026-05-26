@@ -3,11 +3,16 @@ using System.Diagnostics.Metrics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace YubiHsmSharp.Client;
 
-internal partial class DeviceTelemetryService(IServiceScopeFactory scopeFactory, ILogger<DeviceTelemetryService> logger, string? serviceKey)
- : BackgroundService
+internal partial class DeviceTelemetryService(
+    IServiceScopeFactory scopeFactory,
+    ILogger<DeviceTelemetryService> logger,
+    IOptionsMonitor<YubiHsmOptions> options,
+    string? serviceKey
+) : BackgroundService
 {
     internal const string MeterName = "YubiHsmSharp.Client";
     private static readonly Meter Meter = new(MeterName);
@@ -36,19 +41,17 @@ internal partial class DeviceTelemetryService(IServiceScopeFactory scopeFactory,
     [LoggerMessage(Level = LogLevel.Information, Message = "Received log entry from device: {LogEntry}.")]
     private partial void LogDeviceEntry(LogEntry logEntry);
 
-    [LoggerMessage(Level =  LogLevel.Error, Message = "Failed to read telemetry from YubiHSM 2 device.")]
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to read telemetry from YubiHSM 2 device.")]
     private partial void LogPollException(Exception ex);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        TimeSpan recurrence = TimeSpan.FromMinutes(5);
-        PeriodicTimer timer = new(recurrence);
-
+        PeriodicTimer timer = new(options.Get(serviceKey).TelemetryPollInterval);
         do
         {
             try
             {
-                await PollDevice();
+                PollDevice();
             }
             catch (Exception e)
             {
@@ -57,24 +60,32 @@ internal partial class DeviceTelemetryService(IServiceScopeFactory scopeFactory,
         } while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 
-    private async Task PollDevice()
+    private void PollDevice()
     {
-        await using var scope = scopeFactory.CreateAsyncScope();
+        using var scope = scopeFactory.CreateScope();
         var connector = serviceKey is null
             ? scope.ServiceProvider.GetRequiredService<YubiConnector>()
             : scope.ServiceProvider.GetRequiredKeyedService<YubiConnector>(serviceKey);
-        var session = serviceKey is null
-            ? scope.ServiceProvider.GetRequiredService<YubiSession>()
-            : scope.ServiceProvider.GetRequiredKeyedService<YubiSession>(serviceKey);
 
         var device = connector.GetDeviceInfo();
         TagList deviceTags = [
             new("yubihsm.version", $"{device.Major}.{device.Minor}.{device.Patch}"),
             new("yubihsm.serial", device.Serial),
         ];
-
         LogTotal.Record(device.LogTotal, in deviceTags);
         LogUsed.Record(device.LogUsed, in deviceTags);
+
+        if (!options.Get(serviceKey).DisableDeviceLogs)
+        {
+            ReadLogs(scope, in deviceTags);
+        }
+    }
+
+    private void ReadLogs(IServiceScope scope, in TagList deviceTags)
+    {
+        var session = serviceKey is null
+            ? scope.ServiceProvider.GetRequiredService<YubiSession>()
+            : scope.ServiceProvider.GetRequiredKeyedService<YubiSession>(serviceKey);
 
         Span<LogEntry> logs = stackalloc LogEntry[62]; // Maximum number of log entries supported in device
         var (unloggedBoot, unloggedAuth, logsLength) = session.GetLogEntries(logs);

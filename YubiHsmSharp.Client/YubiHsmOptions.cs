@@ -26,6 +26,19 @@ public class YubiHsmOptions
     public bool DisableMetrics { get; set; }
 
     /// <summary>
+    /// Gets or sets whether device logs pulled from the YubiHSM 2 should be disabled.
+    /// </summary>
+    public bool DisableDeviceLogs { get; set; }
+
+    /// <summary>
+    /// Gets or sets the interval at which the YubiHSM 2 should be polled for metrics and logs.
+    /// </summary>
+    /// <remarks>
+    /// This value is ignored if both <see cref="DisableMetrics"/> and <see cref="DisableDeviceLogs"/> are true.
+    /// </remarks>
+    public TimeSpan TelemetryPollInterval { get; set; } = TimeSpan.FromMinutes(5);
+
+    /// <summary>
     /// Gets or sets the ID of the Authentication Key used to connect.
     /// </summary>
     [Required]
