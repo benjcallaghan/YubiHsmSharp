@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -44,6 +45,13 @@ public static partial class YubiHsmSharpExtensions
         {
             var options = builder.Services.AddOptions<YubiHsmOptions>(serviceKey)
                 .BindConfiguration(configurationSectionName)
+                .Configure(settings =>
+                {
+                    if (builder.Configuration.GetConnectionString(connectionName) is string connectionString)
+                    {
+                        settings.ParseConnectionString(connectionString);
+                    }
+                })
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
 

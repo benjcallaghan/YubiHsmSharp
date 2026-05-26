@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Data.Common;
 
 namespace YubiHsmSharp.Client;
 
@@ -53,4 +54,30 @@ public class YubiHsmOptions
     /// </summary>
     [Required]
     public string Password { get; set; } = null!;
+
+    internal void ParseConnectionString(string? connectionString)
+    {
+        if (String.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException("Connection string is missing. It should be provided in 'ConnectionStrings:<connectionName>'.");
+        }
+
+        var builder = new DbConnectionStringBuilder
+        {
+            ConnectionString = connectionString
+        };
+        
+        if (builder.TryGetValue("Url", out var url))
+        {
+            this.Url = Convert.ToString(url)!;
+        }
+        if (builder.TryGetValue("AuthKeyId", out var authKeyId))
+        {
+            this.AuthKeyId = Convert.ToUInt16(authKeyId);
+        }
+        if (builder.TryGetValue("Password", out var password))
+        {
+            this.Password = Convert.ToString(password)!;
+        }
+    }
 }

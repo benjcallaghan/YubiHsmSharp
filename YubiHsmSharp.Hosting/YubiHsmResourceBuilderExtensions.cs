@@ -62,21 +62,21 @@ public static class YubiHsmResourceBuilderExtensions
         /// </remarks>
         /// <param name="yubihsm">The YubiHSM 2 service to reference.</param>
         /// <returns>The <see cref="IResourceBuilder{TDestination}"/> instance.</returns>
-        public IResourceBuilder<TDestination> WithReference(IResourceBuilder<YubiHsmResource> yubihsm)
-        {
-            builder = builder.WithReference(yubihsm.Resource.External)
-                .WithEnvironment($"{yubihsm.Resource.Name}__Url", yubihsm.Resource.Url);
+        // public IResourceBuilder<TDestination> WithReference(IResourceBuilder<YubiHsmResource> yubihsm)
+        // {
+        //     builder = builder.WithReference(yubihsm.Resource.External)
+        //         .WithEnvironment($"{yubihsm.Resource.Name}__Url", yubihsm.Resource.Url);
 
-            if (yubihsm.Resource.AuthKeyId is not null)
-            {
-                builder = builder.WithEnvironment($"{yubihsm.Resource.Name}__AuthKeyId", yubihsm.Resource.AuthKeyId);
-            }
-            if (yubihsm.Resource.Password is not null)
-            {
-                builder = builder.WithEnvironment($"{yubihsm.Resource.Name}__Password", yubihsm.Resource.Password);
-            }
+        //     if (yubihsm.Resource.AuthKeyId is not null)
+        //     {
+        //         builder = builder.WithEnvironment($"{yubihsm.Resource.Name}__AuthKeyId", yubihsm.Resource.AuthKeyId);
+        //     }
+        //     if (yubihsm.Resource.Password is not null)
+        //     {
+        //         builder = builder.WithEnvironment($"{yubihsm.Resource.Name}__Password", yubihsm.Resource.Password);
+        //     }
 
-            return builder;
-        }
+        //     return builder;
+        // }
     }
 }
