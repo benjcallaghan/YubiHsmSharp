@@ -20,6 +20,16 @@ internal class DeviceTelemetryService(IServiceScopeFactory scopeFactory, string?
         unit: "{logs}",
         description: "The current number of used logs stored in the device"
     );
+    private static readonly Counter<ushort> UnloggedBoot = Meter.CreateCounter<ushort>(
+        name: "yubihsm.unlogged.boot",
+        unit: "{logs}",
+        description: "The number of unlogged boot entries due to a full buffer"
+    );
+    private static readonly Counter<ushort> UnloggedAuth = Meter.CreateCounter<ushort>(
+        name: "yubihsm.unlogged.auth",
+        unit: "{logs}",
+        description: "The number of unlogged authentication entries due to a full buffer"
+    );
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -47,14 +57,24 @@ internal class DeviceTelemetryService(IServiceScopeFactory scopeFactory, string?
         var connector = serviceKey is null
             ? scope.ServiceProvider.GetRequiredService<YubiConnector>()
             : scope.ServiceProvider.GetRequiredKeyedService<YubiConnector>(serviceKey);
+        var session = serviceKey is null
+            ? scope.ServiceProvider.GetRequiredService<YubiSession>()
+            : scope.ServiceProvider.GetRequiredKeyedService<YubiSession>(serviceKey);
 
         var device = connector.GetDeviceInfo();
         TagList deviceTags = [
             new("yubihsm.version", $"{device.Major}.{device.Minor}.{device.Patch}"),
-                new("yubihsm.serial", device.Serial),
-            ];
+            new("yubihsm.serial", device.Serial),
+        ];
 
         LogTotal.Record(device.LogTotal, in deviceTags);
         LogUsed.Record(device.LogUsed, in deviceTags);
+
+        Span<LogEntry> logs = stackalloc LogEntry[62]; // Maximum number of log entries supported in device
+        var (unloggedBoot, unloggedAuth, logsLength) = session.GetLogEntries(logs);
+        logs = logs[..logsLength];
+
+        UnloggedBoot.Add(unloggedBoot, in deviceTags);
+        UnloggedAuth.Add(unloggedAuth, in deviceTags);
     }
 }
