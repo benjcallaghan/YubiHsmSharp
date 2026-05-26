@@ -36,6 +36,9 @@ internal partial class DeviceTelemetryService(IServiceScopeFactory scopeFactory,
     [LoggerMessage(Level = LogLevel.Information, Message = "Received log entry from device: {LogEntry}.")]
     private partial void LogDeviceEntry(LogEntry logEntry);
 
+    [LoggerMessage(Level =  LogLevel.Error, Message = "Failed to read telemetry from YubiHSM 2 device.")]
+    private partial void LogPollException(Exception ex);
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         TimeSpan recurrence = TimeSpan.FromMinutes(5);
@@ -47,11 +50,9 @@ internal partial class DeviceTelemetryService(IServiceScopeFactory scopeFactory,
             {
                 await PollDevice();
             }
-            catch
+            catch (Exception e)
             {
-                // We shouldn't crash the service if a single polling cycle fails.
-                // FIXME: What should we do with the error?
-                // It should still be reported somehow.
+                LogPollException(e);
             }
         } while (await timer.WaitForNextTickAsync(stoppingToken));
     }
