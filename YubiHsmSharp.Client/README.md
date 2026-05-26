@@ -9,7 +9,9 @@ The extension method `AddYubiHsmClient` registers the following types:
 * `YubiConnector` - Scoped, pre-configured with URL
 * `YubiSession` - Scoped, pre-configured with Authentication Key ID and Password
 
-The method also registers a health check for the corresponding `YubiSession`, unless the setting `DisableHealthChecks=true`. The default behavior is to register health checks.
+The method also registers the following internal types, used to enhance observability, but not exposed to the application:
+* A health check that verifies connectivity and authentication for the corresponding `YubiSession`, unless `DisableHealthChecks=true`.
+* A background service that pulls metrics and logs from the corresponding `YubiSession`, unless both `DisableMetrics=true` and `DisableDeviceLogs=true`.
 
 ## Example
 

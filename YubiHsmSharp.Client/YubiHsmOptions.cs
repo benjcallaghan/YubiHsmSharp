@@ -28,6 +28,10 @@ public class YubiHsmOptions
     /// <summary>
     /// Gets or sets whether device logs pulled from the YubiHSM 2 should be disabled.
     /// </summary>
+    /// <remarks>
+    /// When false, the authentication key identified by <see cref="AuthKeyId"/> must have the following capabilities:
+    /// get-log-entries.
+    /// </remarks>
     public bool DisableDeviceLogs { get; set; }
 
     /// <summary>
