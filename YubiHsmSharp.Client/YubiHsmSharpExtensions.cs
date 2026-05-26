@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using YubiHsmSharp;
 using YubiHsmSharp.Client;
@@ -83,8 +84,10 @@ public static class YubiHsmSharpExtensions
 
             if (settings.DisableMetrics is false)
             {
-                builder.Services.AddHostedService(sp => 
-                    new DeviceTelemetryService(sp.GetRequiredService<IServiceScopeFactory>(), serviceKey));
+                builder.Services.AddHostedService(sp => new DeviceTelemetryService(
+                    sp.GetRequiredService<IServiceScopeFactory>(),
+                    sp.GetRequiredService<ILogger<DeviceTelemetryService>>(),
+                    serviceKey));
                 builder.Services.AddOpenTelemetry()
                     .WithMetrics(metrics => metrics.AddMeter());
             }

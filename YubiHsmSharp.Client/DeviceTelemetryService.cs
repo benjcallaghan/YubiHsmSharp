@@ -2,10 +2,12 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace YubiHsmSharp.Client;
 
-internal class DeviceTelemetryService(IServiceScopeFactory scopeFactory, string? serviceKey) : BackgroundService
+internal partial class DeviceTelemetryService(IServiceScopeFactory scopeFactory, ILogger<DeviceTelemetryService> logger, string? serviceKey)
+ : BackgroundService
 {
     internal const string MeterName = "YubiHsmSharp.Client";
     private static readonly Meter Meter = new(MeterName);
@@ -30,6 +32,9 @@ internal class DeviceTelemetryService(IServiceScopeFactory scopeFactory, string?
         unit: "{logs}",
         description: "The number of unlogged authentication entries due to a full buffer"
     );
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Received log entry from device: {LogEntry}.")]
+    private partial void LogDeviceEntry(LogEntry logEntry);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -76,5 +81,12 @@ internal class DeviceTelemetryService(IServiceScopeFactory scopeFactory, string?
 
         UnloggedBoot.Add(unloggedBoot, in deviceTags);
         UnloggedAuth.Add(unloggedAuth, in deviceTags);
+
+        foreach (var log in logs)
+        {
+            LogDeviceEntry(log);
+        }
+
+        session.SetLogIndex(logs[^1].Number);
     }
 }
