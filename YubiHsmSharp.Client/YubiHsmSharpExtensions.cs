@@ -64,12 +64,12 @@ public static partial class YubiHsmSharpExtensions
 
             if (serviceKey is null)
             {
-                builder.Services.AddSingleton(sp => CreateYubiConnector(sp, serviceKey: null));
+                builder.Services.AddScoped(sp => CreateYubiConnector(sp, serviceKey: null));
                 builder.Services.AddScoped(sp => CreateYubiSession(sp, serviceKey: null));
             }
             else
             {
-                builder.Services.AddKeyedSingleton(serviceKey, CreateYubiConnector);
+                builder.Services.AddKeyedScoped(serviceKey, CreateYubiConnector);
                 builder.Services.AddKeyedScoped(serviceKey, CreateYubiSession);
             }
 
@@ -91,13 +91,7 @@ public static partial class YubiHsmSharpExtensions
                 builder.Services.AddHealthChecks()
                     .Add(new HealthCheckRegistration(
                         name: serviceKey is null ? "YubiHsm" : $"YubiHsm_{connectionName}",
-                        factory: sp =>
-                        {
-                            var session = serviceKey is null
-                                ? sp.GetRequiredService<YubiSession>()
-                                : sp.GetRequiredKeyedService<YubiSession>(serviceKey);
-                            return new YubiHsmHealthCheck(session);
-                        },
+                        factory: sp => new YubiHsmHealthCheck(sp, serviceKey),
                         failureStatus: HealthStatus.Unhealthy,
                         tags: ["yubihsm"]
                     ));
