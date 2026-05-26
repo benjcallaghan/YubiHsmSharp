@@ -80,6 +80,14 @@ public static class YubiHsmSharpExtensions
                         tags: ["yubihsm"]
                     ));
             }
+
+            if (settings.DisableMetrics is false)
+            {
+                builder.Services.AddHostedService(sp => 
+                    new DeviceTelemetryService(sp.GetRequiredService<IServiceScopeFactory>(), serviceKey));
+                builder.Services.AddOpenTelemetry()
+                    .WithMetrics(metrics => metrics.AddMeter());
+            }
         }
 
         private static YubiConnector CreateYubiConnector(IServiceProvider serviceProvider, object? serviceKey)

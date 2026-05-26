@@ -21,6 +21,11 @@ public class YubiHsmOptions
     public bool DisableHealthChecks { get; set; }
 
     /// <summary>
+    /// Gets or sets whether device metrics pulled from the YubiHSM 2 should be disabled.
+    /// </summary>
+    public bool DisableMetrics { get; set; }
+
+    /// <summary>
     /// Gets or sets the ID of the Authentication Key used to connect.
     /// </summary>
     [Required]
