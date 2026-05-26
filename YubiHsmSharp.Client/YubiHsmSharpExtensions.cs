@@ -12,8 +12,11 @@ namespace Microsoft.Extensions.Hosting;
 /// <summary>
 /// Contains extension methods for registering YubiHSM clients in an application.
 /// </summary>
-public static class YubiHsmSharpExtensions
+public static partial class YubiHsmSharpExtensions
 {
+    [LoggerMessage(Level = LogLevel.Debug, Message = "{Line}")]
+    private static partial void LogConnectorOutput(ILogger logger, string line);
+
     extension(IHostApplicationBuilder builder)
     {
         /// <summary>
@@ -49,7 +52,7 @@ public static class YubiHsmSharpExtensions
                 options = options.Configure(configure);
             }
 
-            builder.Services.TryAddSingleton<YubiModule>();
+            builder.Services.TryAddSingleton(CreateYubiModule);
 
             if (serviceKey is null)
             {
@@ -98,37 +101,46 @@ public static class YubiHsmSharpExtensions
                     .WithMetrics(metrics => metrics.AddMeter(DeviceTelemetryService.MeterName));
             }
         }
+    }
 
-        private static YubiConnector CreateYubiConnector(IServiceProvider serviceProvider, object? serviceKey)
+    private static YubiModule CreateYubiModule(IServiceProvider serviceProvider)
+    {
+        var logger = serviceProvider.GetRequiredService<ILogger<YubiConnector>>();
+
+        var module = new YubiModule();
+        YubiConnector.SetGlobalDebugOutput(line => LogConnectorOutput(logger, line));
+        return module;
+    }
+
+    private static YubiConnector CreateYubiConnector(IServiceProvider serviceProvider, object? serviceKey)
+    {
+        var module = serviceProvider.GetRequiredService<YubiModule>();
+        var options = serviceProvider.GetRequiredService<IOptionsSnapshot<YubiHsmOptions>>().Get((string?)serviceKey);
+
+        Span<byte> utf8Url = stackalloc byte[options.Url.Length + 1]; // Null-terminated
+        int written = Encoding.UTF8.GetBytes(options.Url, utf8Url);
+        utf8Url = utf8Url[..(written + 1)]; // Null-terminated
+        utf8Url[^1] = 0;
+
+        return module.InitConnector(utf8Url);
+    }
+
+    private static YubiSession CreateYubiSession(IServiceProvider serviceProvider, object? serviceKey)
+    {
+        var connector = serviceKey is null
+            ? serviceProvider.GetRequiredService<YubiConnector>()
+            : serviceProvider.GetRequiredKeyedService<YubiConnector>(serviceKey);
+        var options = serviceProvider.GetRequiredService<IOptionsSnapshot<YubiHsmOptions>>().Get((string?)serviceKey);
+
+        if (!connector.HasDevice)
         {
-            var module = serviceProvider.GetRequiredService<YubiModule>();
-            var options = serviceProvider.GetRequiredService<IOptionsSnapshot<YubiHsmOptions>>().Get((string?)serviceKey);
-
-            Span<byte> utf8Url = stackalloc byte[options.Url.Length + 1]; // Null-terminated
-            int written = Encoding.UTF8.GetBytes(options.Url, utf8Url);
-            utf8Url = utf8Url[..(written + 1)]; // Null-terminated
-            utf8Url[^1] = 0;
-
-            return module.InitConnector(utf8Url);
+            connector.Connect();
         }
 
-        private static YubiSession CreateYubiSession(IServiceProvider serviceProvider, object? serviceKey)
-        {
-            var connector = serviceKey is null
-                ? serviceProvider.GetRequiredService<YubiConnector>()
-                : serviceProvider.GetRequiredKeyedService<YubiConnector>(serviceKey);
-            var options = serviceProvider.GetRequiredService<IOptionsSnapshot<YubiHsmOptions>>().Get((string?)serviceKey);
+        Span<byte> utf8Password = stackalloc byte[options.Password.Length];
+        int written = Encoding.UTF8.GetBytes(options.Password, utf8Password);
+        utf8Password = utf8Password[..written];
 
-            if (!connector.HasDevice)
-            {
-                connector.Connect();
-            }
-
-            Span<byte> utf8Password = stackalloc byte[options.Password.Length];
-            int written = Encoding.UTF8.GetBytes(options.Password, utf8Password);
-            utf8Password = utf8Password[..written];
-
-            return connector.CreateSession(options.AuthKeyId, utf8Password);
-        }
+        return connector.CreateSession(options.AuthKeyId, utf8Password);
     }
 }
