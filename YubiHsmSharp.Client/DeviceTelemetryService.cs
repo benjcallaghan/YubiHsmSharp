@@ -28,19 +28,33 @@ internal class DeviceTelemetryService(IServiceScopeFactory scopeFactory, string?
 
         do
         {
-            await using var scope = scopeFactory.CreateAsyncScope();
-            var connector = serviceKey is null
-                ? scope.ServiceProvider.GetRequiredService<YubiConnector>()
-                : scope.ServiceProvider.GetRequiredKeyedService<YubiConnector>(serviceKey);
+            try
+            {
+                await PollDevice();
+            }
+            catch
+            {
+                // We shouldn't crash the service if a single polling cycle fails.
+                // FIXME: What should we do with the error?
+                // It should still be reported somehow.
+            }
+        } while (await timer.WaitForNextTickAsync(stoppingToken));
+    }
 
-            var device = connector.GetDeviceInfo();
-            TagList deviceTags = [
-                new("yubihsm.version", $"{device.Major}.{device.Minor}.{device.Patch}"),
+    private async Task PollDevice()
+    {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var connector = serviceKey is null
+            ? scope.ServiceProvider.GetRequiredService<YubiConnector>()
+            : scope.ServiceProvider.GetRequiredKeyedService<YubiConnector>(serviceKey);
+
+        var device = connector.GetDeviceInfo();
+        TagList deviceTags = [
+            new("yubihsm.version", $"{device.Major}.{device.Minor}.{device.Patch}"),
                 new("yubihsm.serial", device.Serial),
             ];
 
-            LogTotal.Record(device.LogTotal, in deviceTags);
-            LogUsed.Record(device.LogUsed, in deviceTags);
-        } while (await timer.WaitForNextTickAsync(stoppingToken));
+        LogTotal.Record(device.LogTotal, in deviceTags);
+        LogUsed.Record(device.LogUsed, in deviceTags);
     }
 }
