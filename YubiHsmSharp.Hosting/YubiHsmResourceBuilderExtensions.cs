@@ -17,8 +17,17 @@ public static class YubiHsmResourceBuilderExtensions
         /// <returns>An <see cref="IResourceBuilder{YubiHsmResource}"/> instance.</returns>
         public IResourceBuilder<YubiHsmResource> AddYubiHsm(string name, string url)
         {
-            var external = builder.AddExternalService(name, url);
-            return new YubiHsmResourceBuilder(external, url);
+            return builder.AddResource(new YubiHsmResource(name, url))
+                .WithInitialState(new CustomResourceSnapshot
+                {
+                    ResourceType = "YubiHsm",
+                    Properties = [],
+                    CreationTimeStamp = DateTime.UtcNow,
+                    IconName = "AzureKeyVault",
+                    IconVariant = IconVariant.Regular,
+                    State = KnownResourceStates.Running,
+                    Urls = [new("Connector", url, IsInternal: true)],                    
+                });
         }
     }
 
@@ -36,47 +45,5 @@ public static class YubiHsmResourceBuilderExtensions
             builder.Resource.Password = password.Resource;
             return builder;
         }
-    }
-
-    extension<TDestination>(IResourceBuilder<TDestination> builder) where TDestination : IResourceWithEnvironment
-    {
-        /// <summary>
-        /// Injects service discovery information for the YubiHSM 2 service into the destination resource.
-        /// </summary>
-        /// <remarks>
-        /// The following properties will be injected as environment variables:
-        /// <list type="bullet">
-        ///     <item>
-        ///         <term>services__{name}__default__0</term>
-        ///         <description>The URI of the YubiHSM 2 service, compatible with service discovery.</description>
-        ///     </item>       
-        ///     <item>
-        ///         <term>{name}_AUTHKEYID</term>
-        ///         <description>The ID of the authentication key used to connect to the YubiHSM 2 service.</description>
-        ///     </item>        
-        ///     <item>
-        ///         <term>{name}_PASSWORD</term>
-        ///         <description>The password used to connect to the YubiHSM 2 service.</description>
-        ///     </item>
-        /// </list>
-        /// </remarks>
-        /// <param name="yubihsm">The YubiHSM 2 service to reference.</param>
-        /// <returns>The <see cref="IResourceBuilder{TDestination}"/> instance.</returns>
-        // public IResourceBuilder<TDestination> WithReference(IResourceBuilder<YubiHsmResource> yubihsm)
-        // {
-        //     builder = builder.WithReference(yubihsm.Resource.External)
-        //         .WithEnvironment($"{yubihsm.Resource.Name}__Url", yubihsm.Resource.Url);
-
-        //     if (yubihsm.Resource.AuthKeyId is not null)
-        //     {
-        //         builder = builder.WithEnvironment($"{yubihsm.Resource.Name}__AuthKeyId", yubihsm.Resource.AuthKeyId);
-        //     }
-        //     if (yubihsm.Resource.Password is not null)
-        //     {
-        //         builder = builder.WithEnvironment($"{yubihsm.Resource.Name}__Password", yubihsm.Resource.Password);
-        //     }
-
-        //     return builder;
-        // }
     }
 }
