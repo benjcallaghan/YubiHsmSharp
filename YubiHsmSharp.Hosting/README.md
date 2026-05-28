@@ -1,6 +1,6 @@
 # YubiHsmSharp.Hosting
 
-An extension to .NET Aspire to configure a shared YubiHSM 2 service within a distributed application.
+A .NET Aspire Hosting Integration that defines a YubiHSM 2 resource.
 
 ## Example
 

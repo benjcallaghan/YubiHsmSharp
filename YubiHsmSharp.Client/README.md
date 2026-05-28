@@ -1,6 +1,6 @@
 # YubiHsmSharp.Client
 
-An extension to .NET Hosting to configure a YubiHSM client for an application.
+A .NET Aspire Client Integration that automatically configures a YubiHSM 2 client.
 
 ## Registrations
 
