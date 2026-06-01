@@ -5,5 +5,7 @@ A compatibility shim that exposes YubiHSM 2 operations through BouncyCastle-comp
 ## Supported Types
 
 * `YubiAesBlockCipher` implements `IBlockCipher`
+* `YubiAsymmetricKeyParameter` implements `KeyParameter`
 * `YubiRandomGenerator` implements `IRandomGenerator`
+* `YubiRsaPkcs1v15Signer` implements `ISigner`
 * `YubiSymmetricKeyParameter` implements `KeyParameter`
