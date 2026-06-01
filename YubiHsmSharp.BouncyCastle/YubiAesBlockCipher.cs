@@ -28,7 +28,7 @@ public class YubiAesBlockCipher : IBlockCipher
     }
 
     /// <inheritdoc />
-    public string AlgorithmName => "YubiHSM2/AES/ECB/NoPadding";
+    public string AlgorithmName => "AES";
 
     /// <inheritdoc />
     public int GetBlockSize() => 16;
