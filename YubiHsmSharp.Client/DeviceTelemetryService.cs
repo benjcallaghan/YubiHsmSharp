@@ -37,6 +37,31 @@ internal partial class DeviceTelemetryService(
         unit: "{logs}",
         description: "The number of unlogged authentication entries due to a full buffer"
     );
+    private static readonly Gauge<ushort> TotalRecords = Meter.CreateGauge<ushort>(
+        name: "yubihsm.storage.total_records",
+        unit: "{records}",
+        description: "The current number of records stored in the device"
+    );
+    private static readonly Gauge<ushort> FreeRecords = Meter.CreateGauge<ushort>(
+        name: "yubihsm.storage.free_records",
+        unit: "{records}",
+        description: "The current number of free record slots in the device"
+    );
+    private static readonly Gauge<ushort> TotalPages = Meter.CreateGauge<ushort>(
+        name: "yubihsm.storage.total_pages",
+        unit: "{pages}",
+        description: "The current number of pages stored in the device"
+    );
+    private static readonly Gauge<ushort> FreePages = Meter.CreateGauge<ushort>(
+        name: "yubihsm.storage.free_pages",
+        unit: "{pages}",
+        description: "The current number of free pages in the device"
+    );
+    private static readonly Gauge<ushort> PageSize = Meter.CreateGauge<ushort>(
+        name: "yubihsm.storage.page_size",
+        unit: "By",
+        description: "The size of a page in the device"
+    );
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Received log entry from device: {LogEntry}.")]
     private partial void LogDeviceEntry(LogEntry logEntry);
@@ -75,17 +100,30 @@ internal partial class DeviceTelemetryService(
         LogTotal.Record(device.LogTotal, in deviceTags);
         LogUsed.Record(device.LogUsed, in deviceTags);
 
-        if (!options.Get(serviceKey).DisableDeviceLogs)
-        {
-            ReadLogs(scope, in deviceTags);
-        }
-    }
-
-    private void ReadLogs(IServiceScope scope, in TagList deviceTags)
-    {
         var session = serviceKey is null
             ? scope.ServiceProvider.GetRequiredService<YubiSession>()
             : scope.ServiceProvider.GetRequiredKeyedService<YubiSession>(serviceKey);
+
+        ReadStorageInfo(session, in deviceTags);
+        ReadLogs(session, in deviceTags);
+    }
+
+    private static void ReadStorageInfo(YubiSession session, in TagList deviceTags)
+    {
+        var storageInfo = session.GetStorageInfo();
+        TotalRecords.Record(storageInfo.TotalRecords, in deviceTags);
+        FreeRecords.Record(storageInfo.FreeRecords, in deviceTags);
+        TotalPages.Record(storageInfo.TotalPages, in deviceTags);
+        FreePages.Record(storageInfo.FreePages, in deviceTags);
+        PageSize.Record(storageInfo.PageSize, in deviceTags);
+    }
+
+    private void ReadLogs(YubiSession session, in TagList deviceTags)
+    {
+        if (!options.Get(serviceKey).DisableDeviceLogs)
+        {
+            return;
+        }
 
         Span<LogEntry> logs = stackalloc LogEntry[62]; // Maximum number of log entries supported in device
         var (unloggedBoot, unloggedAuth, logsLength) = session.GetLogEntries(logs);
