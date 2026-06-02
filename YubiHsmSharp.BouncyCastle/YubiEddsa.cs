@@ -11,7 +11,7 @@ namespace YubiHsmSharp.BouncyCastle;
 /// sign-eddsa.
 /// </remarks>
 /// <param name="session">The authenticated session with the YubiHSM 2.</param>
-public class YubiEddsaSigner(YubiSession session) : ISigner
+public class YubiEddsa(YubiSession session) : ISigner
 {
     private readonly MemoryStream data = new();
     private ushort keyId;

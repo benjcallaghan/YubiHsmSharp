@@ -15,7 +15,7 @@ namespace YubiHsmSharp.BouncyCastle;
 /// nor does it support encryption with the public key. For those operations, use the standard BouncyCastle RSA engine.
 /// </remarks>
 /// <param name="session">The authenticated session to the YubiHSM 2.</param>
-public class YubiRsaPkcsBlockCipher(YubiSession session) : IAsymmetricBlockCipher
+public class YubiRsaPkcs(YubiSession session) : IAsymmetricBlockCipher
 {
     private bool forEncryption;
     private int modulusLength;

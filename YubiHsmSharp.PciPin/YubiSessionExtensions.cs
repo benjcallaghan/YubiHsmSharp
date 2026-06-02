@@ -83,7 +83,7 @@ public static class YubiSessionExtensions
             YubiSymmetricKeyParameter keyParameter = session.GetSymmetricKeyParameter(zoneMasterKeyId);
 
             Span<byte> clearKey = stackalloc byte[keyParameter.KeyLength];
-            int written = keyBlock.Decrypt(new YubiAesBlockCipher(session), keyParameter, clearKey);
+            int written = keyBlock.Decrypt(new YubiAes(session), keyParameter, clearKey);
             clearKey = clearKey[..written];
 
             Algorithm algorithm = clearKey.Length switch
@@ -111,7 +111,7 @@ public static class YubiSessionExtensions
         {
             YubiSymmetricKeyParameter keyParameter = session.GetSymmetricKeyParameter(pinEncryptionKeyId);
             return Format4PinBlock.Encrypt(
-                new YubiAesBlockCipher(session),
+                new YubiAes(session),
                 keyParameter,
                 new YubiRandomGenerator(session),
                 pin,
@@ -132,7 +132,7 @@ public static class YubiSessionExtensions
         public string DecryptPin(ushort pinEncryptionKeyId, Format4PinBlock pinBlock, string primaryAccountNumber)
         {
             YubiSymmetricKeyParameter keyParameter = session.GetSymmetricKeyParameter(pinEncryptionKeyId);
-            return pinBlock.Decrypt(new YubiAesBlockCipher(session), keyParameter, primaryAccountNumber);
+            return pinBlock.Decrypt(new YubiAes(session), keyParameter, primaryAccountNumber);
         }
     }
 }

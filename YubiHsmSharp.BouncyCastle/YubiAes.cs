@@ -9,7 +9,7 @@ namespace YubiHsmSharp.BouncyCastle;
 /// <remarks>
 /// Electronic Code Book (ECB) block mode is used because BouncyCastle handles its own block-chaining modes.
 /// </remarks>
-public class YubiAesBlockCipher : IBlockCipher
+public class YubiAes : IBlockCipher
 {
     private readonly YubiSession session;
     private bool forEncryption;
@@ -23,7 +23,7 @@ public class YubiAesBlockCipher : IBlockCipher
     /// encrypt-ecb (for encryption), decrypt-ecb (for decryption)
     /// </remarks>
     /// <param name="session">The authenticated session to the YubiHSM 2.</param>
-    public YubiAesBlockCipher(YubiSession session)
+    public YubiAes(YubiSession session)
     {
         this.session = session;
     }
