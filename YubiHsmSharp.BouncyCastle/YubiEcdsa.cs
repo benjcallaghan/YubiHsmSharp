@@ -1,6 +1,8 @@
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Math.EC;
 
 namespace YubiHsmSharp.BouncyCastle;
 
@@ -59,5 +61,39 @@ public class YubiEcdsa(YubiSession session) : IDsa
     public bool VerifySignature(byte[] message, BigInteger r, BigInteger s)
     {
         throw new NotSupportedException("This cipher only supports private key operations. For public key operations, use the standard BouncyCastle ECDSA engine.");
+    }
+}
+
+/// <summary>
+/// An EC private key, stored within a YubiHSM 2, suitable for use in Yubi/BouncyCastle ciphers.
+/// </summary>
+public class YubiECPrivateKeyParameters : ECPrivateKeyParameters
+{
+    /// <summary>
+    /// The object ID of the asymmetric key within the YubiHSM 2.
+    /// </summary>
+    public ushort KeyId { get; }
+
+    internal YubiECPrivateKeyParameters(ushort keyId, ECDomainParameters parameters)
+        : base(BigInteger.Zero, parameters)
+    {
+        this.KeyId = keyId;
+    }
+}
+
+/// <summary>
+/// The public portion of an elliptic curve key, stored within a YubiHSM 2, suitable for use in Yubi/BouncyCastle ciphers.
+/// </summary>
+public class YubiECPublicKeyParameters : ECPublicKeyParameters
+{
+    /// <summary>
+    /// The object ID of the asymmetric key within the YubiHSM 2.
+    /// </summary>
+    public ushort KeyId { get; }
+
+    internal YubiECPublicKeyParameters(ushort keyId, ECPoint q, ECDomainParameters parameters)
+        : base(q, parameters)
+    {
+        this.KeyId = keyId;
     }
 }
