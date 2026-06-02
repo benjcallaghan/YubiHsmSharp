@@ -111,5 +111,32 @@ public static class YubiSessionExtensions
             );
             return new YubiECPublicKeyParameters(keyId, q, ECDomainParameters.FromX9ECParameters(parameters));
         }
+
+        /// <summary>
+        /// Gets a BouncyCastle-compatible <see cref="ICipherParameters"/> representing a stored Ed25519 private key.
+        /// </summary>
+        /// <param name="keyId">The ID of the stored asymmetric key.</param>
+        /// <returns>A <see cref="YubiEd25519PrivateKeyParameters"/> representing the stored Ed25519 private key.</returns>
+        public YubiEd25519PrivateKeyParameters GetPrivateEd25519Parameters(ushort keyId)
+        {
+            ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.AsymmetricKey);
+            return new YubiEd25519PrivateKeyParameters(keyId, descriptor.Length);
+        }
+
+        /// <summary>
+        /// Gets a BouncyCastle-compatible <see cref="ICipherParameters"/> representing the public portion of a stored Ed25519 asymmetric key.
+        /// </summary>
+        /// <param name="keyId">The ID of the stored asymmetric key.</param>
+        /// <returns>A <see cref="YubiEd25519PublicKeyParameters"/> representing the public portion of the stored Ed25519 asymmetric key.</returns>
+        public YubiEd25519PublicKeyParameters GetPublicEd25519Parameters(ushort keyId)
+        {
+            ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.AsymmetricKey);
+
+            Span<byte> publicKey = stackalloc byte[descriptor.Length];
+            (Algorithm _, int written) = session.GetPublicKey(keyId, publicKey);
+            publicKey = publicKey[..written];
+
+            return new YubiEd25519PublicKeyParameters(keyId, publicKey);
+        }
     }
 }
