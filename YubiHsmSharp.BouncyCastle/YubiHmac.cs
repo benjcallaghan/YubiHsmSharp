@@ -98,7 +98,7 @@ public class YubiHmacKeyParameter : KeyParameter
 /// </summary>
 /// <remarks>
 /// The authentication key used to create the session must have the following capabilities:
-/// generate-symmetric-key
+/// generate-hmac-key
 /// </remarks>
 /// <param name="session">The authenticated session to the YubiHSM 2.</param>
 public class YubiHmacKeyGenerator(YubiSession session) : CipherKeyGenerator
@@ -116,7 +116,7 @@ public class YubiHmacKeyGenerator(YubiSession session) : CipherKeyGenerator
     }
 
     /// <summary>
-    /// Generates a new symmetric key and returns it directly.
+    /// Generates a new HMAC key and returns it directly.
     /// </summary>
     /// <returns>The generated key.</returns>
     /// <exception cref="NotSupportedException">Always thrown.</exception>
@@ -126,7 +126,7 @@ public class YubiHmacKeyGenerator(YubiSession session) : CipherKeyGenerator
     }
 
     /// <summary>
-    /// Generates a new symmetric key within the YubiHSM 2.
+    /// Generates a new HMAC key within the YubiHSM 2.
     /// </summary>
     /// <returns>A parameter representing the generated key.</returns>
     protected override KeyParameter EngineGenerateKeyParameter()
