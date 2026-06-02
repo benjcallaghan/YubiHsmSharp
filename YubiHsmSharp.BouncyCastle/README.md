@@ -7,5 +7,6 @@ A compatibility shim that exposes YubiHSM 2 operations through BouncyCastle-comp
 * `YubiAesBlockCipher` implements `IBlockCipher`
 * `YubiAsymmetricKeyParameter` implements `KeyParameter`
 * `YubiRandomGenerator` implements `IRandomGenerator`
-* `YubiRsaPkcs1v15Signer` implements `ISigner`
+* `YubiRsaKeyParameters` implements `RsaKeyParameters`
+* `YubiRsaPkcsBlockCipher` implements `IAsyncBlockCipher`
 * `YubiSymmetricKeyParameter` implements `KeyParameter`
