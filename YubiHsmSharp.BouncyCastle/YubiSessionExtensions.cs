@@ -149,5 +149,16 @@ public static class YubiSessionExtensions
             ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.HmacKey);
             return new YubiHmacKeyParameter(keyId, descriptor.Algorithm, descriptor.Length);
         }
+
+        /// <summary>
+        /// Gets a BouncyCastle-compatible <see cref="ICipherParameters"/> representing a stored symmetric key.
+        /// </summary>
+        /// <param name="keyId">The ID of the stored symmetric key.</param>
+        /// <returns>A <see cref="YubiWrapKeyParameter"/> representing the stored symmetric key.</returns>
+        public YubiWrapKeyParameter GetWrapKeyParameter(ushort keyId)
+        {
+            ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.WrapKey);
+            return new YubiWrapKeyParameter(keyId, descriptor.Length);
+        }
     }
 }

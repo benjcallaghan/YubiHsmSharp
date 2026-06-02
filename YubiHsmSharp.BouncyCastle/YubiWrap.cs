@@ -5,6 +5,50 @@ using Org.BouncyCastle.Crypto.Parameters;
 namespace YubiHsmSharp.BouncyCastle;
 
 /// <summary>
+/// A data wrapper using the Wrap mode of the YubiHSM 2.
+/// </summary>
+/// <remarks>
+/// The authentication key used to create the session must have the following capabilities:
+/// wrap-data (for wrapping), unwrap-data (for unwrapping)
+/// </remarks>
+/// <param name="session">The authenticated session to the YubiHSM 2.</param>
+public class YubiWrap(YubiSession session) : IWrapper
+{
+    private ushort keyId;
+
+    /// <inheritdoc />
+    public string AlgorithmName => "AES/CCM";
+
+    /// <inheritdoc />
+    public void Init(bool forWrapping, ICipherParameters parameters)
+    {
+        if (parameters is YubiWrapKeyParameter yubiKey)
+        {
+            this.keyId = yubiKey.KeyId;
+        }
+    }
+
+    /// <inheritdoc />
+    public byte[] Unwrap(byte[] input, int inOff, int length)
+    {
+        Span<byte> unwrapped = stackalloc byte[length]; // Unwrapped data should be smaller than wrapped data.
+        int written = session.UnwrapData(this.keyId, input.AsSpan(inOff, length), unwrapped);
+        return unwrapped[..written].ToArray();
+    }
+
+    /// <inheritdoc />
+    public byte[] Wrap(byte[] input, int inOff, int length)
+    {
+         // Wrapped data should be larger, but unknown how much larger.
+        const int nonceLength = 13;
+        const int macLength = 16;
+        Span<byte> wrapped = stackalloc byte[(length + nonceLength + macLength) * 2];
+        int written = session.WrapData(this.keyId, input.AsSpan(inOff, length), wrapped);
+        return wrapped[..written].ToArray();
+    }
+}
+
+/// <summary>
 /// A key generator that creates new symmetric Wrap keys within the YubiHSM 2 device.
 /// </summary>
 /// <remarks>
@@ -61,7 +105,24 @@ public class YubiWrapKeyGenerator(YubiSession session) : CipherKeyGenerator
             this.parameters.KeyId
         );
 
-        return session.GetSymmetricKeyParameter(keyId);
+        return session.GetWrapKeyParameter(keyId);
+    }
+}
+
+/// <summary>
+/// A wrap key, stored within a YubiHSM 2, suitable for use in Yubi/BouncyCastle ciphers.
+/// </summary>
+public class YubiWrapKeyParameter : KeyParameter
+{
+    /// <summary>
+    /// The object ID of the wrap key within the YubiHSM 2.
+    /// </summary>
+    public ushort KeyId { get; }
+
+    // Store an empty array of the correct length so the base KeyLength property is accurate.
+    internal YubiWrapKeyParameter(ushort keyId, int keyLength) : base(new byte[keyLength])
+    {
+        this.KeyId = keyId;
     }
 }
 

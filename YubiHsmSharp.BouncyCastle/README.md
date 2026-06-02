@@ -33,6 +33,7 @@ A compatibility shim that exposes YubiHSM 2 operations through BouncyCastle-comp
 * `YubiHmacKeyParameter` - Contains the Object ID of an HMAC key. Usable only with `YubiHmac`.
 * `YubiRsaKeyParameters` - Contains the Object ID and may contain the public portion of an asymmetric key. Private keys are only usable with `YubiRsaOaep`, `YubiRsaPkcs`, and `YubiRsaPss`. Public keys are usable with all BouncyCastle ciphers.
 * `YubiSymmetricKeyParameter` - Contains the Object ID of a symmetric key. Usable only with `YubiAes`.
+* `YubiWrapKeyParameter` - Contains the Object ID of a wrap key. Usable only with `YubiWrap`.
 
 ### `IDsa`
 * `YubiEcdsa` - Signs data using on-device ECDSA.
@@ -49,3 +50,6 @@ A compatibility shim that exposes YubiHSM 2 operations through BouncyCastle-comp
 
 ### `ISigner`
 * `YubiEddsa` - Signs data using on-device Ed25519.
+
+### `IWrapper`
+* `YubiWrap` - Wraps and unwraps data using on-device Wrap methods.
