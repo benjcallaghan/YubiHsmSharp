@@ -7,7 +7,7 @@ using Org.BouncyCastle.Math.EC;
 namespace YubiHsmSharp.BouncyCastle;
 
 /// <summary>
-/// Extensions to <see cref="YubiSession"/> to perform PIN-related cryptographic operations.
+/// Extensions to <see cref="YubiSession"/> to retrieve stored keys as BouncyCastle-compatible <see cref="ICipherParameters"/>.
 /// </summary>
 public static class YubiSessionExtensions
 {
@@ -137,6 +137,17 @@ public static class YubiSessionExtensions
             publicKey = publicKey[..written];
 
             return new YubiEd25519PublicKeyParameters(keyId, publicKey);
+        }
+
+        /// <summary>
+        /// Gets a BouncyCastle-compatible <see cref="ICipherParameters"/> representing a stored HMAC key.
+        /// </summary>
+        /// <param name="keyId">The ID of the stored HMAC key.</param>
+        /// <returns>A <see cref="YubiHmacKeyParameter"/> representing the stored HMAC key.</returns>
+        public YubiHmacKeyParameter GetHmacKeyParameter(ushort keyId)
+        {
+            ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.HmacKey);
+            return new YubiHmacKeyParameter(keyId, descriptor.Algorithm, descriptor.Length);
         }
     }
 }

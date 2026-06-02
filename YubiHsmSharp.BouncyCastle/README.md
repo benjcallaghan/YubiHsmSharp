@@ -16,11 +16,15 @@ A compatibility shim that exposes YubiHSM 2 operations through BouncyCastle-comp
 * `YubiECPublicKeyParameters` - Contains the Object ID and public portion of an asymmetric key. Usable with all BouncyCastle ciphers.
 * `YubiEd25519PrivateKeyParameters` - Contains the Object ID of an asymmetric key. Usable only with `YubiEddsa`.
 * `YubiEd25519PublicKeyParameters` - Contains the Object ID and public portion of an asymmetric key. Usable with all BouncyCastle ciphers.
+* `YubiHmacKeyParameter` - Contains the Object ID of an HMAC key. Usable only with `YubiHmac`.
 * `YubiRsaKeyParameters` - Contains the Object ID and may contain the public portion of an asymmetric key. Private keys are only usable with `YubiRsaPkcs` and `YubiRsaPss`. Public keys are usable with all BouncyCastle ciphers.
 * `YubiSymmetricKeyParameter` - Contains the Object ID of a symmetric key. Usable only with `YubiAes`.
 
 ### `IDsa`
 * `YubiEcdsa` - Signs data using on-device ECDSA.
+
+### `IMac`
+* `YubiHmac` - Signs data using on-device HMAC.
 
 ### `IRandomGenerator`
 * `YubiRandomGenerator` - Generates pseudo-random bytes directly on the device.
