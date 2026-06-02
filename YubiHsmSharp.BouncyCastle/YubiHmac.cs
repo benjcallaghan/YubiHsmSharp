@@ -1,3 +1,4 @@
+using System.Text;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 
@@ -89,5 +90,65 @@ public class YubiHmacKeyParameter : KeyParameter
     {
         this.KeyId = keyId;
         this.Algorithm = algorithm;
+    }
+}
+
+/// <summary>
+/// A key generator that creates new HMAC keys within the YubiHSM 2 device.
+/// </summary>
+/// <remarks>
+/// The authentication key used to create the session must have the following capabilities:
+/// generate-symmetric-key
+/// </remarks>
+/// <param name="session">The authenticated session to the YubiHSM 2.</param>
+public class YubiHmacKeyGenerator(YubiSession session) : CipherKeyGenerator
+{
+    private YubiKeyGenerationParameters? parameters;
+
+    /// <summary>
+    /// Initializes the key generator with the specified parameters.
+    /// </summary>
+    /// <param name="parameters">Parameters of type <see cref="YubiKeyGenerationParameters"/>.</param>
+    protected override void EngineInit(KeyGenerationParameters parameters)
+    {
+        this.parameters = parameters as YubiKeyGenerationParameters
+            ?? throw new ArgumentException($"Invalid parameters: {parameters}. Expected type: {typeof(YubiKeyGenerationParameters)}", nameof(parameters));
+    }
+
+    /// <summary>
+    /// Generates a new symmetric key and returns it directly.
+    /// </summary>
+    /// <returns>The generated key.</returns>
+    /// <exception cref="NotSupportedException">Always thrown.</exception>
+    protected override byte[] EngineGenerateKey()
+    {
+        throw new NotSupportedException("Generated keys must be stored within the YubiHSM device.");
+    }
+
+    /// <summary>
+    /// Generates a new symmetric key within the YubiHSM 2.
+    /// </summary>
+    /// <returns>A parameter representing the generated key.</returns>
+    protected override KeyParameter EngineGenerateKeyParameter()
+    {
+        if (this.parameters is null)
+        {
+            throw new InvalidOperationException("Generator not initialized with parameters.");
+        }
+
+        Span<byte> utf8Label = stackalloc byte[this.parameters.Label.Length + 1];
+        int bytesWritten = Encoding.UTF8.GetBytes(this.parameters.Label, utf8Label);
+        utf8Label = utf8Label[..(bytesWritten + 1)];
+        utf8Label[^1] = 0;
+
+        ushort keyId = session.GenerateHmacKey(
+            utf8Label,
+            this.parameters.Domains,
+            this.parameters.Capabilities,
+            this.parameters.Algorithm,
+            this.parameters.KeyId
+        );
+
+        return session.GetHmacKeyParameter(keyId);
     }
 }

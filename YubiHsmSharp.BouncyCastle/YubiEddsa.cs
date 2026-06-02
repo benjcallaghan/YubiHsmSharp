@@ -1,3 +1,4 @@
+using System.Text;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 
@@ -111,5 +112,58 @@ public class YubiEd25519PublicKeyParameters : AsymmetricKeyParameter
     {
         this.KeyId = keyId;
         this.Parameters = new Ed25519PublicKeyParameters(publicKey.ToArray());
+    }
+}
+
+/// <summary>
+/// A key generator that creates new EC keys within the YubiHSM 2 device.
+/// </summary>
+/// <remarks>
+/// The authentication key used to create the session must have the following capabilities:
+/// generate-asymmetric-key
+/// </remarks>
+/// <param name="session">The authenticated session to the YubiHSM 2.</param>
+public class YubiEddsaKeyGenerator(YubiSession session) : IAsymmetricCipherKeyPairGenerator
+{
+    private YubiKeyGenerationParameters? parameters;
+
+    /// <summary>
+    /// Generates a new RSA key pair within the YubiHSM 2 device.
+    /// </summary>
+    /// <returns>An <see cref="AsymmetricCipherKeyPair"/> representing the generated key pair.</returns>
+    public AsymmetricCipherKeyPair GenerateKeyPair()
+    {
+        if (this.parameters is null)
+        {
+            throw new InvalidOperationException("Generator not initialized with parameters.");
+        }
+
+        Span<byte> utf8Label = stackalloc byte[this.parameters.Label.Length + 1];
+        int bytesWritten = Encoding.UTF8.GetBytes(this.parameters.Label, utf8Label);
+        utf8Label = utf8Label[..(bytesWritten + 1)];
+        utf8Label[^1] = 0;
+
+        ushort keyId = session.GenerateEDKey(
+            utf8Label,
+            this.parameters.Domains,
+            this.parameters.Capabilities,
+            this.parameters.Algorithm,
+            this.parameters.KeyId
+        );
+
+        return new AsymmetricCipherKeyPair(
+            session.GetPublicEd25519Parameters(keyId),
+            session.GetPrivateEd25519Parameters(keyId)
+        );
+    }
+
+    /// <summary>
+    /// Initializes the key generator with the specified parameters.
+    /// </summary>
+    /// <param name="parameters">Parameters of type <see cref="YubiKeyGenerationParameters"/>.</param>
+    public void Init(KeyGenerationParameters parameters)
+    {
+        this.parameters = parameters as YubiKeyGenerationParameters
+            ?? throw new ArgumentException($"Invalid parameters: {parameters}. Expected type: {typeof(YubiKeyGenerationParameters)}", nameof(parameters));
     }
 }

@@ -8,8 +8,17 @@ A compatibility shim that exposes YubiHSM 2 operations through BouncyCastle-comp
 * `YubiRsaPkcs` - Signs and decrypts data using on-device RSA-PKCS#1v1.5.
 * `YubiRsaPss` - Signs data using on-device RSA-PSS.
 
+### `IAsymmetricCipherKeyPairGenerator`
+* `YubiEcdsaKeyGenerator` - Generates and stores an EC key pair directly on the device.
+* `YubiEddsaKeyGenerator` - Generates and stores an ED key pair directly on the device.
+* `YubiRsaKeyGenerator` - Generates and stores an RSA key pair directly on the device.
+
 ### `IBlockCipher`
 * `YubiAes` - Encrypts and decrypts data using on-device AES.
+
+### `CipherKeyGenerator`
+* `YubiAesKeyGenerator` - Generates and stores a new AES key directly on the device.
+* `YubiHmacKeyGenerator` - Generates and stores a new HMAC key directly on the device.
 
 ### `ICipherParameters`
 * `YubiECPrivateKeyParameters` - Contains the Object ID of an asymmetric key. Usable only with `YubiEcdsa`.
@@ -22,6 +31,9 @@ A compatibility shim that exposes YubiHSM 2 operations through BouncyCastle-comp
 
 ### `IDsa`
 * `YubiEcdsa` - Signs data using on-device ECDSA.
+
+### `KeyGenerationParameters`
+* `YubiKeyGenerationParameters` - Contains metadata to be associated with a generated and stored key. Only usable with `Yubi...KeyGenerator` generators.
 
 ### `IMac`
 * `YubiHmac` - Signs data using on-device HMAC.
