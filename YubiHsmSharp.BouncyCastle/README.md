@@ -23,6 +23,7 @@ A compatibility shim that exposes YubiHSM 2 operations through BouncyCastle-comp
 ### `CipherKeyGenerator`
 * `YubiAesKeyGenerator` - Generates and stores a new AES key directly on the device.
 * `YubiHmacKeyGenerator` - Generates and stores a new HMAC key directly on the device.
+* `YubiWrapKeyGenerator` - Generates and stores a new Wrap key directly only the device.
 
 ### `ICipherParameters`
 * `YubiECPrivateKeyParameters` - Contains the Object ID of an asymmetric key. Usable only with `YubiEcdsa`.
@@ -38,6 +39,7 @@ A compatibility shim that exposes YubiHSM 2 operations through BouncyCastle-comp
 
 ### `KeyGenerationParameters`
 * `YubiKeyGenerationParameters` - Contains metadata to be associated with a generated and stored key. Only usable with `Yubi...KeyGenerator` generators.
+* `YubiDelegationKeyGenerationParameters` - Contains metadata to be associated with a generated and stored key. Only usable with `YubiWrapKeyGenerator`.
 
 ### `IMac`
 * `YubiHmac` - Signs data using on-device HMAC.
