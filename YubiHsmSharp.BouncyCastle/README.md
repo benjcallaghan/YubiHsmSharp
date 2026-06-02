@@ -4,12 +4,15 @@ A compatibility shim that exposes YubiHSM 2 operations through BouncyCastle-comp
 
 ## Supported Types
 
-* `YubiAesBlockCipher` implements `IBlockCipher`
-* `YubiRandomGenerator` implements `IRandomGenerator`
-* `YubiRsaKeyParameters` implements `RsaKeyParameters`
-* `YubiRsaPkcsBlockCipher` implements `IAsymmetricBlockCipher`
-* `YubiRsaPssBlockCipher` implements `IAsymmetricBlockCipher`
-* `YubiSymmetricKeyParameter` implements `KeyParameter`
+### `IAsymmetricBlockCipher`
+* `YubiRsaPkcsBlockCipher` - Signs and decrypts data using on-device RSA-PKCS#1v1.5.
+* `YubiRsaPssBlockCipher` - Signs data using on-device RSA-PSS.
+
+### `IBlockCipher`
+* `YubiAesBlockCipher` - Encrypts and decrypts data using on-device AES.
+
+### `IRandomGenerator`
+* `YubiRandomGenerator` - Generates pseudo-random bytes directly on the device.
 
 ### Key Parameters
 
