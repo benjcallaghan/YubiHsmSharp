@@ -11,9 +11,11 @@ A compatibility shim that exposes YubiHSM 2 operations through BouncyCastle-comp
 ### `IBlockCipher`
 * `YubiAesBlockCipher` - Encrypts and decrypts data using on-device AES.
 
+### `ICipherParameters`
+* `YubiECPrivateKeyParameters` - Contains the Object ID of an asymmetric key. Usable only with `YubiEcdsa`.
+* `YubiECPublicKeyParameters` - Contains the Object ID and public portion of an asymmetric key. Usable with all BouncyCastle ciphers.
+* `YubiRsaKeyParameters` - Contains the Object ID and may contain the public portion of an asymmetric key. Private keys are only usable with `YubiRsaPkcsBlockCipher` and `YubiRsaPssBlockCipher`. Public keys are usable with all BouncyCastle ciphers.
+* `YubiSymmetricKeyParameter` - Contains the Object ID of a symmetric key. Usable only with `YubiAesBlockCipher`.
+
 ### `IRandomGenerator`
 * `YubiRandomGenerator` - Generates pseudo-random bytes directly on the device.
-
-### Key Parameters
-
-The provided implementations of `ICipherParameters` only work with the ciphers and implementations provided by this library. The key parameters contain only the identifier of the key within a YubiHSM 2 device. Thus, there is no key data to use with standard BouncyCastle-implemented ciphers.
