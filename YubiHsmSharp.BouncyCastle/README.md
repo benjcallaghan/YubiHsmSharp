@@ -14,6 +14,9 @@ A compatibility shim that exposes YubiHSM 2 operations through BouncyCastle-comp
 * `YubiEddsaKeyGenerator` - Generates and stores an ED key pair directly on the device.
 * `YubiRsaKeyGenerator` - Generates and stores an RSA key pair directly on the device.
 
+### `IBasicAgreement`
+* `YubiEcdh` - Generates a shared ECDH secret using a stored private key.
+
 ### `IBlockCipher`
 * `YubiAes` - Encrypts and decrypts data using on-device AES.
 
