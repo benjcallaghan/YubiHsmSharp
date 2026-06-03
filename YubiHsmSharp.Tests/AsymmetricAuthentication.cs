@@ -60,7 +60,7 @@ public class AsymmetricAuthentication
 
             Capabilities caps = Capabilities.From("change-authentication-key,get-pseudo-random"u8);
 
-            authKeyId = session.ImportAuthenticationKey("EC Auth Key"u8, new Domains(0xffff), caps, caps,
+            authKeyId = session.ImportAuthenticationKey("EC Auth Key"u8, new Domains(0xffff), in caps, in caps,
                 clientPublicKey[1..], [], authKeyId);
         }
 

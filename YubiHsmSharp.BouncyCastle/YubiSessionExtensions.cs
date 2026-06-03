@@ -62,19 +62,19 @@ public static class YubiSessionExtensions
         public YubiECPrivateKeyParameters GetPrivateECParameters(ushort keyId)
         {
             ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.AsymmetricKey);
-            X9ECParameters parameters = descriptor.Algorithm switch
+            string curveName = descriptor.Algorithm switch
             {
-                Algorithm.Ecp224 => ECNamedCurveTable.GetByName("secp224r1"),
-                Algorithm.Ecp256 => ECNamedCurveTable.GetByName("secp256r1"),
-                Algorithm.Ecp384 => ECNamedCurveTable.GetByName("secp384r1"),
-                Algorithm.Ecp521 => ECNamedCurveTable.GetByName("secp521r1"),
-                Algorithm.Eck256 => ECNamedCurveTable.GetByName("secp256k1"),
-                Algorithm.Ecbp256 => ECNamedCurveTable.GetByName("brainpoolP256r1"),
-                Algorithm.Ecbp384 => ECNamedCurveTable.GetByName("brainpoolP384r1"),
-                Algorithm.Ecbp512 => ECNamedCurveTable.GetByName("brainpoolP512r1"),
+                Algorithm.Ecp224 => "secp224r1",
+                Algorithm.Ecp256 => "secp256r1",
+                Algorithm.Ecp384 => "secp384r1",
+                Algorithm.Ecp521 => "secp521r1",
+                Algorithm.Eck256 => "secp256k1",
+                Algorithm.Ecbp256 => "brainpoolP256r1",
+                Algorithm.Ecbp384 => "brainpoolP384r1",
+                Algorithm.Ecbp512 => "brainpoolP512r1",
                 _ => throw new NotSupportedException($"Unsupported algorithm {descriptor.Algorithm} for EC key."),
             };
-            return new YubiECPrivateKeyParameters(keyId, ECDomainParameters.FromX9ECParameters(parameters));
+            return new YubiECPrivateKeyParameters(keyId, ECDomainParameters.LookupName(curveName));
         }
 
         /// <summary>
@@ -85,18 +85,19 @@ public static class YubiSessionExtensions
         public YubiECPublicKeyParameters GetPublicECParameters(ushort keyId)
         {
             ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.AsymmetricKey);
-            X9ECParameters parameters = descriptor.Algorithm switch
+            string curveName = descriptor.Algorithm switch
             {
-                Algorithm.Ecp224 => ECNamedCurveTable.GetByName("secp224r1"),
-                Algorithm.Ecp256 => ECNamedCurveTable.GetByName("secp256r1"),
-                Algorithm.Ecp384 => ECNamedCurveTable.GetByName("secp384r1"),
-                Algorithm.Ecp521 => ECNamedCurveTable.GetByName("secp521r1"),
-                Algorithm.Eck256 => ECNamedCurveTable.GetByName("secp256k1"),
-                Algorithm.Ecbp256 => ECNamedCurveTable.GetByName("brainpoolP256r1"),
-                Algorithm.Ecbp384 => ECNamedCurveTable.GetByName("brainpoolP384r1"),
-                Algorithm.Ecbp512 => ECNamedCurveTable.GetByName("brainpoolP512r1"),
+                Algorithm.Ecp224 => "secp224r1",
+                Algorithm.Ecp256 => "secp256r1",
+                Algorithm.Ecp384 => "secp384r1",
+                Algorithm.Ecp521 => "secp521r1",
+                Algorithm.Eck256 => "secp256k1",
+                Algorithm.Ecbp256 => "brainpoolP256r1",
+                Algorithm.Ecbp384 => "brainpoolP384r1",
+                Algorithm.Ecbp512 => "brainpoolP512r1",
                 _ => throw new NotSupportedException($"Unsupported algorithm {descriptor.Algorithm} for EC key."),
             };
+            ECDomainParameters domain = ECDomainParameters.LookupName(curveName);
 
             Span<byte> publicKey = stackalloc byte[descriptor.Length];
             (Algorithm _, int written) = session.GetPublicKey(keyId, publicKey);
@@ -105,11 +106,11 @@ public static class YubiSessionExtensions
             Span<byte> x = publicKey[..(publicKey.Length / 2)];
             Span<byte> y = publicKey[(publicKey.Length / 2)..];
 
-            ECPoint q = parameters.Curve.CreatePoint(
+            ECPoint q = domain.Curve.CreatePoint(
                 new BigInteger(1, x, bigEndian: true),
                 new BigInteger(1, y, bigEndian: true)
             );
-            return new YubiECPublicKeyParameters(keyId, q, ECDomainParameters.FromX9ECParameters(parameters));
+            return new YubiECPublicKeyParameters(keyId, q, domain);
         }
 
         /// <summary>
