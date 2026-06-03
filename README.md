@@ -14,3 +14,4 @@ A collection of libraries for working with YubiHSM 2 in C#/.NET.
 
 * [`YubiHsmSharp.AppHost`](./YubiHsmSharp.AppHost/): A demo AppHost project showing how to use YubiHsmSharp in a .NET Aspire workspace.
 * [`YubiHsmSharp.Demo`](./YubiHsmSharp.Demo/): A demo Web API project showing how to use YubiHsmSharp in a .NET application.
+* [`YubiHsmSharp.Examples`](./YubiHsmSharp.Examples/): A deep-dive into YubiHsmSharp with runnable example code.

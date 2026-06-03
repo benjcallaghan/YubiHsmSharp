@@ -18,7 +18,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.X509;
 
-namespace YubiHsmSharp.Tests;
+namespace YubiHsmSharp.Examples;
 
 public class Attestation
 {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-namespace YubiHsmSharp.Tests;
+namespace YubiHsmSharp.Examples;
 
 public class AsymmetricAuthentication
 {

@@ -3,6 +3,7 @@
   <Project Path="YubiHsmSharp.BouncyCastle/YubiHsmSharp.BouncyCastle.csproj" />
   <Project Path="YubiHsmSharp.Client/YubiHsmSharp.Client.csproj" />
   <Project Path="YubiHsmSharp.Demo/YubiHsmSharp.Demo.csproj" />
+  <Project Path="YubiHsmSharp.Examples/YubiHsmSharp.Examples.csproj" />
   <Project Path="YubiHsmSharp.Hosting/YubiHsmSharp.Hosting.csproj" />
   <Project Path="YubiHsmSharp.PciPin.Tests/YubiHsmSharp.PciPin.Tests.csproj" />
   <Project Path="YubiHsmSharp.PciPin/YubiHsmSharp.PciPin.csproj" />
