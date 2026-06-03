@@ -20,6 +20,9 @@ A compatibility shim that exposes YubiHSM 2 operations through BouncyCastle-comp
 ### `IBlockCipher`
 * `YubiAes` - Encrypts and decrypts data using on-device AES.
 
+### `IBufferedCipher`
+* `YubiAesCbc` - Encrypts and decrypts data using on-device AES/CBC.
+
 ### `CipherKeyGenerator`
 * `YubiAesKeyGenerator` - Generates and stores a new AES key directly on the device.
 * `YubiHmacKeyGenerator` - Generates and stores a new HMAC key directly on the device.
@@ -32,7 +35,7 @@ A compatibility shim that exposes YubiHSM 2 operations through BouncyCastle-comp
 * `YubiEd25519PublicKeyParameters` - Contains the Object ID and public portion of an asymmetric key. Usable with all BouncyCastle ciphers.
 * `YubiHmacKeyParameter` - Contains the Object ID of an HMAC key. Usable only with `YubiHmac`.
 * `YubiRsaKeyParameters` - Contains the Object ID and may contain the public portion of an asymmetric key. Private keys are only usable with `YubiRsaOaep`, `YubiRsaPkcs`, and `YubiRsaPss`. Public keys are usable with all BouncyCastle ciphers.
-* `YubiSymmetricKeyParameter` - Contains the Object ID of a symmetric key. Usable only with `YubiAes`.
+* `YubiSymmetricKeyParameter` - Contains the Object ID of a symmetric key. Usable only with `YubiAes` and `YubiAesCbc`.
 * `YubiWrapKeyParameter` - Contains the Object ID of a wrap key. Usable only with `YubiWrap`.
 
 ### `IDsa`
