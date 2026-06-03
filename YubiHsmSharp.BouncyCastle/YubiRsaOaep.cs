@@ -35,7 +35,7 @@ public class YubiRsaOaep(YubiSession session, Algorithm maskGenerationFunction) 
     /// <inheritdoc />
     public void Init(bool forEncryption, ICipherParameters parameters)
     {
-        if (!forEncryption)
+        if (forEncryption)
         {
             throw new NotSupportedException("This cipher only supports private key operations. For public key operations, use the standard BouncyCastle RSA engine.");
         }
