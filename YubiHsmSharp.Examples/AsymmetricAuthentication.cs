@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+using System.Text;
+using Xunit.Abstractions;
+
 namespace YubiHsmSharp.Examples;
 
-public class AsymmetricAuthentication
+public class AsymmetricAuthentication(ITestOutputHelper output)
 {
     [Fact]
     public void Main()
@@ -30,11 +33,13 @@ public class AsymmetricAuthentication
         connector.SetVerbosity(Verbosity.All);
 
         DeviceInfo device = connector.GetDeviceInfo();
-        if (device.Algorithms.Contains(Algorithm.ECP256YubicoAuthentication))
+        if (!device.Algorithms.Contains(Algorithm.ECP256YubicoAuthentication))
         {
-            return; // Device does not support asymmetric authentication.
+            output.WriteLine("Skipping this test because the device does not support asymmetric authentication.");
+            return;
         }
 
+        output.WriteLine("Send a plain (unencrypted, unauthenticated) echo command.");
         ReadOnlySpan<byte> requestData = "sudo make me a sandwich"u8;
         Span<byte> responseData = stackalloc byte[requestData.Length];
         (Command response, int responseLength) = connector.SendMessage(Command.Echo, requestData, responseData);
@@ -44,6 +49,7 @@ public class AsymmetricAuthentication
         Span<byte> clientPublicKey = stackalloc byte[65];
         ushort authKeyId = 1;
 
+        // By default, the HSM does not contain any asymmetric authentication keys.
         using (YubiSession session = connector.CreateSession(authKeyId, "password"u8))
         {
             authKeyId = 2;
@@ -53,13 +59,14 @@ public class AsymmetricAuthentication
             }
             catch
             {
-                // Ignoring result
+                // Ignoring "not found" error; ensures auth key 2 does not exist.
             }
 
             module.GenerateECP256Key(clientPrivateKey, clientPublicKey);
 
             Capabilities caps = Capabilities.From("change-authentication-key,get-pseudo-random"u8);
 
+            // The first byte of an EC public key is the "uncompressed" marker 0x04, which should not be included during import.
             authKeyId = session.ImportAuthenticationKey("EC Auth Key"u8, new Domains(0xffff), in caps, in caps,
                 clientPublicKey[1..], [], authKeyId);
         }
@@ -73,12 +80,15 @@ public class AsymmetricAuthentication
         using (YubiSession session = connector.CreateSessionAsymmetric(authKeyId, clientPrivateKey, devicePublicKey))
         {
             byte sessionId = session.SessionId;
+            output.WriteLine($"Successfully established session {sessionId}.");
 
             session.GetPseudoRandom(buffer);
 
+            output.WriteLine("Send a secure echo command.");
             Span<byte> response2Data = stackalloc byte[requestData.Length];
             (Command response2, int response2Length) = session.SendMessage(Command.Echo, requestData, response2Data);
             response2Data = response2Data[..response2Length];
+            output.WriteLine($"Response ({response2Length} bytes): {Encoding.UTF8.GetString(response2Data)}");
             Assert.Equal(responseData, response2Data);
 
             module.GenerateECP256Key(clientPrivateKey, clientPublicKey);

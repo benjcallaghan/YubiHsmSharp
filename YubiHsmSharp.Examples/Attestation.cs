@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.X509;
+using Xunit.Abstractions;
 
 namespace YubiHsmSharp.Examples;
 
-public class Attestation
+public class Attestation(ITestOutputHelper output)
 {
     [Fact]
     public void Main()
@@ -32,12 +34,16 @@ public class Attestation
         ushort authKeyId = 1;
         using YubiSession session = connector.CreateSession(authKeyId, "password"u8);
         byte sessionId = session.SessionId;
+        output.WriteLine($"Successfully established session {sessionId}.");
 
         ReadOnlySpan<byte> keyLabel = "label"u8;
         Capabilities capabilities = Capabilities.From("sign-attestation-certificate"u8);
         Domains domainFive = Domains.From("5"u8);
         ushort attestingKeyId = session.GenerateECKey(keyLabel, domainFive, in capabilities, Algorithm.Ecp256);
+        output.WriteLine($"Generated attesting key with ID {attestingKeyId}.");
 
+        // The exported public key is the raw X,Y point on the EC curve.
+        // Most parsers expect a 0x04 "uncompressed" flag as the first byte.
         Span<byte> publicKey = stackalloc byte[256];
         (Algorithm algo, int written) = session.GetPublicKey(attestingKeyId, publicKey[1..]);
         publicKey = publicKey[..(written + 1)];
@@ -63,6 +69,7 @@ public class Attestation
         ECPoint point = domain.Curve.DecodePoint(publicKey);
         ECPublicKeyParameters attestingKeyPublic = new(point, domain);
 
+        // The imported certificate is expected to be in DER format.
         byte[] attestationTemplatePem = """
             -----BEGIN CERTIFICATE-----
             MIIC8TCCAdmgAwIBAgIJAI4siOgx84SNMA0GCSqGSIb3DQEBCwUAMA8xDTALBgNV
@@ -87,32 +94,76 @@ public class Attestation
         X509Certificate attestationTemplate = parser.ReadCertificate(attestationTemplatePem);
         byte[] attestationTemplateDer = attestationTemplate.GetEncoded();
 
+        // The attestation template used must have the same Object ID as the attesting key.
         capabilities = default;
-        attestingKeyId = session.ImportOpaque(keyLabel, domainFive, capabilities, Algorithm.OpaqueX509Certificate,
+        ushort templateId = session.ImportOpaque(keyLabel, domainFive, capabilities, Algorithm.OpaqueX509Certificate,
             attestationTemplateDer, attestingKeyId);
+        Assert.Equal(attestingKeyId, templateId);
 
         Span<byte> buffer = stackalloc byte[3072];
         written = session.GetOpaque(attestingKeyId, buffer);
         buffer = buffer[..written];
         Assert.Equal(attestationTemplateDer, buffer);
 
+        // Only keys generated within the YubiHSM 2 can be attested.
         capabilities = Capabilities.From("sign-ecdsa"u8);
         ushort attestedKeyId = session.GenerateECKey(keyLabel, domainFive, capabilities, Algorithm.Ecp256);
+        output.WriteLine($"Generated attested key with ID {attestedKeyId}");
 
         Span<byte> attestation = stackalloc byte[2048];
         written = session.SignAttestationCertificate(attestedKeyId, attestingKeyId, attestation);
         X509Certificate x509 = new(attestation[..written].ToArray());
+        output.WriteLine(x509.ToString());
+        PrintYubiExtensions(x509);
         Assert.True(x509.CertificateStructure.Extensions.Count >= 6);
         x509.Verify(attestingKeyPublic);
 
         written = session.SignAttestationCertificate(attestingKeyId, attestingKeyId, attestation);
         x509 = new(attestation[..written].ToArray());
+        output.WriteLine(x509.ToString());
+        PrintYubiExtensions(x509);
         Assert.True(x509.CertificateStructure.Extensions.Count >= 6);
         x509.Verify(attestingKeyPublic);
 
-        written = session.SignAttestationCertificate(0, attestingKeyId, attestation);
+        // By default, the HSM contains one asymmetric key for attestation, with Object ID 0.
+        // The HSM also contains an attestation template with Object ID 0.
+        // The public portion of this key is returned by connector.GetDevicePublicKey.
+        ushort devicePublicKeyId = 0;
+        written = session.SignAttestationCertificate(devicePublicKeyId, attestingKeyId, attestation);
         x509 = new(attestation[..written].ToArray());
+        output.WriteLine(x509.ToString());
+        PrintYubiExtensions(x509);
         Assert.True(x509.CertificateStructure.Extensions.Count >= 6);
         x509.Verify(attestingKeyPublic);
+    }
+
+    private void PrintYubiExtensions(X509Certificate x509)
+    {
+        var firmwareVersion = x509.GetExtension(new DerObjectIdentifier("1.3.6.1.4.1.41482.4.1"));
+        output.WriteLine($"Firmware version: {firmwareVersion.GetParsedValue()}");
+
+        var serialNumber = x509.GetExtension(new DerObjectIdentifier("1.3.6.1.4.1.41482.4.2"));
+        output.WriteLine($"Serial number: {serialNumber.GetParsedValue()}");
+
+        var origin = x509.GetExtension(new DerObjectIdentifier("1.3.6.1.4.1.41482.4.3"));
+        output.WriteLine($"Origin: {origin.GetParsedValue()}");
+
+        var domains = x509.GetExtension(new DerObjectIdentifier("1.3.6.1.4.1.41482.4.4"));
+        output.WriteLine($"Domains: {domains.GetParsedValue()}");
+
+        var capabilities = x509.GetExtension(new DerObjectIdentifier("1.3.6.1.4.1.41482.4.5"));
+        output.WriteLine($"Capabilities: {capabilities.GetParsedValue()}");
+
+        var objectId = x509.GetExtension(new DerObjectIdentifier("1.3.6.1.4.1.41482.4.6"));
+        output.WriteLine($"Object ID: {objectId.GetParsedValue()}");
+
+        var label = x509.GetExtension(new DerObjectIdentifier("1.3.6.1.4.1.41482.4.9"));
+        output.WriteLine($"Label: {label.GetParsedValue()}");
+
+        var fipsCertifiedInt = x509.GetExtension(new DerObjectIdentifier("1.3.6.1.4.1.41482.4.10"));
+        output.WriteLine($"FIPS certified: {fipsCertifiedInt.GetParsedValue()}");
+
+        var fipsCertifiedBool = x509.GetExtension(new DerObjectIdentifier("1.3.6.1.4.1.41482.4.12"));
+        output.WriteLine($"FIPS certified: {fipsCertifiedBool.GetParsedValue()}");
     }
 }
