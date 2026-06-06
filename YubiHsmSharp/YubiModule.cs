@@ -49,17 +49,27 @@ public sealed class YubiModule : IDisposable
     /// <exception cref="ArgumentException">Thrown if <paramref name="privateKey"/> or <paramref name="publicKey"/> is too small.</exception>
     public void DeriveECP256Key(ReadOnlySpan<byte> password, Span<byte> privateKey, Span<byte> publicKey)
     {
-        Debug.Assert(this.handle != null, "YubiModule must be initialized before deriving keys.");
-
         if (privateKey.Length < YH_EC_P256_PRIVKEY_LEN)
             throw new ArgumentException($"Private key buffer must be at least {YH_EC_P256_PRIVKEY_LEN} bytes long.", nameof(privateKey));
         if (publicKey.Length < YH_EC_P256_PUBKEY_LEN)
             throw new ArgumentException($"Public key buffer must be at least {YH_EC_P256_PUBKEY_LEN} bytes long.", nameof(publicKey));
 
-        yh_rc err = yh_util_derive_ec_p256_key(password, (nuint)password.Length,
-            privateKey, (nuint)privateKey.Length,
-            publicKey, (nuint)publicKey.Length);
-        YubiHsmException.ThrowIfError(err);
+        bool added = false;
+        try
+        {
+            this.handle.DangerousAddRef(ref added);
+            yh_rc err = yh_util_derive_ec_p256_key(password, (nuint)password.Length,
+                privateKey, (nuint)privateKey.Length,
+                publicKey, (nuint)publicKey.Length);
+            YubiHsmException.ThrowIfError(err);
+        }
+        finally
+        {
+            if (added)
+            {
+                this.handle.DangerousRelease();
+            }
+        }
     }
 
     /// <summary>
@@ -70,17 +80,27 @@ public sealed class YubiModule : IDisposable
     /// <exception cref="ArgumentException">Thrown if <paramref name="privateKey"/> or <paramref name="publicKey"/> is too small.</exception>
     public void GenerateECP256Key(Span<byte> privateKey, Span<byte> publicKey)
     {
-        Debug.Assert(this.handle != null, "YubiModule must be initialized before generating keys.");
-
         if (privateKey.Length < YH_EC_P256_PRIVKEY_LEN)
             throw new ArgumentException($"Private key buffer must be at least {YH_EC_P256_PRIVKEY_LEN} bytes long.", nameof(privateKey));
         if (publicKey.Length < YH_EC_P256_PUBKEY_LEN)
             throw new ArgumentException($"Public key buffer must be at least {YH_EC_P256_PUBKEY_LEN} bytes long.", nameof(publicKey));
 
-        yh_rc err = yh_util_generate_ec_p256_key(
-            privateKey, (nuint)privateKey.Length,
-            publicKey, (nuint)publicKey.Length);
-        YubiHsmException.ThrowIfError(err);
+        bool added = false;
+        try
+        {
+            this.handle.DangerousAddRef(ref added);
+            yh_rc err = yh_util_generate_ec_p256_key(
+                privateKey, (nuint)privateKey.Length,
+                publicKey, (nuint)publicKey.Length);
+            YubiHsmException.ThrowIfError(err);
+        }
+        finally
+        {
+            if (added)
+            {
+                this.handle.DangerousRelease();
+            }
+        }
     }
 
     /// <summary>
@@ -92,11 +112,21 @@ public sealed class YubiModule : IDisposable
     /// <returns>The length of the padded data.</returns>
     public int PadPkcs7(Span<byte> data, int currentLength, byte blockSize)
     {
-        Debug.Assert(this.handle != null, "YubiModule must be initialized before padding data.");
-
-        nuint length = (nuint)currentLength;
-        yh_rc err = yh_util_pad_pkcs7(data, ref length, (nuint)data.Length, blockSize);
-        return (int)length;
+        bool added = false;
+        try
+        {
+            this.handle.DangerousAddRef(ref added);
+            nuint length = (nuint)currentLength;
+            yh_rc err = yh_util_pad_pkcs7(data, ref length, (nuint)data.Length, blockSize);
+            return (int)length;
+        }
+        finally
+        {
+            if (added)
+            {
+                this.handle.DangerousRelease();
+            }
+        }
     }
 
     /// <summary>
@@ -110,12 +140,22 @@ public sealed class YubiModule : IDisposable
     /// <returns>The length of the un padded data.</returns>
     public int UnpadPkcs7(Span<byte> data, byte blockSize)
     {
-        Debug.Assert(this.handle != null, "YubiModule must be initialized before unpadding data.");
-
-        nuint length = (nuint)data.Length;
-        yh_rc err = yh_util_unpad_pkcs7(data, ref length, blockSize);
-        YubiHsmException.ThrowIfError(err);
-        return (int)length;
+        bool added = false;
+        try
+        {
+            this.handle.DangerousAddRef(ref added);
+            nuint length = (nuint)data.Length;
+            yh_rc err = yh_util_unpad_pkcs7(data, ref length, blockSize);
+            YubiHsmException.ThrowIfError(err);
+            return (int)length;
+        }
+        finally
+        {
+            if (added)
+            {
+                this.handle.DangerousRelease();
+            }
+        }
     }
 
     /// <summary>
@@ -138,6 +178,7 @@ public sealed class YubiModule : IDisposable
     }
 
     // There is never an actual handle here. We're just relying on the cleanup of SafeHandle.
+    // Because this handle is never passed to P/Invoke methods, reference counting is handled manually.
     private class SafeModuleHandle : SafeHandle
     {
         public SafeModuleHandle() : base(IntPtr.Zero, true) { }
