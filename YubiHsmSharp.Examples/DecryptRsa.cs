@@ -63,7 +63,7 @@ public class DecryptRsa(ITestOutputHelper output)
         ReadOnlySpan<byte> sha1EmptyString = [0xda, 0x39, 0xa3, 0xee, 0x5e, 0x6b, 0x4b,
                                               0x0d, 0x32, 0x55, 0xbf, 0xef, 0x95, 0x60,
                                               0x18, 0x90, 0xaf, 0xd8, 0x07, 0x09];
-        ushort authKeyId = 1;
+        ObjectId authKeyId = new(1);
 
         using YubiModule module = new();
         using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
@@ -80,7 +80,7 @@ public class DecryptRsa(ITestOutputHelper output)
 
         Capabilities capabilities = Capabilities.From("decrypt-pkcs,decrypt-oaep"u8);
         Domains domainFive = Domains.From("5"u8);
-        ushort keyId = session.ImportRsaKey(keyLabel, domainFive, in capabilities, Algorithm.Rsa2048,
+        ObjectId keyId = session.ImportRsaKey(keyLabel, domainFive, in capabilities, Algorithm.Rsa2048,
             rsaPrivateKey.P.ToByteArray(), rsaPrivateKey.Q.ToByteArray());
         output.WriteLine($"Key imported with ID {keyId}.");
 

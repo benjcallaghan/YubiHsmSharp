@@ -14,7 +14,7 @@ namespace YubiHsmSharp.BouncyCastle;
 /// <param name="session">The authenticated session to the YubiHSM 2.</param>
 public class YubiWrap(YubiSession session) : IWrapper
 {
-    private ushort keyId;
+    private ObjectId keyId;
 
     /// <inheritdoc />
     public string AlgorithmName => "AES/CCM";
@@ -96,7 +96,7 @@ public class YubiWrapKeyGenerator(YubiSession session) : CipherKeyGenerator
         utf8Label = utf8Label[..(bytesWritten + 1)];
         utf8Label[^1] = 0;
 
-        ushort keyId = session.GenerateWrapKey(
+        ObjectId keyId = session.GenerateWrapKey(
             utf8Label,
             this.parameters.Domains,
             this.parameters.Capabilities,
@@ -117,10 +117,10 @@ public class YubiWrapKeyParameter : KeyParameter
     /// <summary>
     /// The object ID of the wrap key within the YubiHSM 2.
     /// </summary>
-    public ushort KeyId { get; }
+    public ObjectId KeyId { get; }
 
     // Store an empty array of the correct length so the base KeyLength property is accurate.
-    internal YubiWrapKeyParameter(ushort keyId, int keyLength) : base(new byte[keyLength])
+    internal YubiWrapKeyParameter(ObjectId keyId, int keyLength) : base(new byte[keyLength])
     {
         this.KeyId = keyId;
     }

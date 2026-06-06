@@ -18,7 +18,7 @@ public static class YubiSessionExtensions
         /// </summary>
         /// <param name="keyId">The ID of the stored symmetric key.</param>
         /// <returns>A <see cref="YubiSymmetricKeyParameter"/> representing the stored symmetric key.</returns>
-        public YubiSymmetricKeyParameter GetSymmetricKeyParameter(ushort keyId)
+        public YubiSymmetricKeyParameter GetSymmetricKeyParameter(ObjectId keyId)
         {
             ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.SymmetricKey);
             return new YubiSymmetricKeyParameter(keyId, descriptor.Length);
@@ -29,7 +29,7 @@ public static class YubiSessionExtensions
         /// </summary>
         /// <param name="keyId">The ID of the stored private asymmetric key.</param>
         /// <returns>A <see cref="YubiRsaKeyParameters"/> representing the stored private asymmetric key.</returns>
-        public YubiRsaKeyParameters GetPrivateRsaParameters(ushort keyId)
+        public YubiRsaKeyParameters GetPrivateRsaParameters(ObjectId keyId)
         {
             ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.AsymmetricKey);
             return new YubiRsaKeyParameters(keyId, descriptor.Length);
@@ -40,7 +40,7 @@ public static class YubiSessionExtensions
         /// </summary>
         /// <param name="keyId">The ID of the stored asymmetric key.</param>
         /// <returns>A <see cref="YubiRsaKeyParameters"/> representing the public portion of the stored asymmetric key.</returns>
-        public YubiRsaKeyParameters GetPublicRsaParameters(ushort keyId)
+        public YubiRsaKeyParameters GetPublicRsaParameters(ObjectId keyId)
         {
             ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.AsymmetricKey);
 
@@ -59,7 +59,7 @@ public static class YubiSessionExtensions
         /// </summary>
         /// <param name="keyId">The ID of the stored asymmetric key.</param>
         /// <returns>A <see cref="YubiECPrivateKeyParameters"/> representing the stored EC private key.</returns>
-        public YubiECPrivateKeyParameters GetPrivateECParameters(ushort keyId)
+        public YubiECPrivateKeyParameters GetPrivateECParameters(ObjectId keyId)
         {
             ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.AsymmetricKey);
             string curveName = descriptor.Algorithm switch
@@ -82,7 +82,7 @@ public static class YubiSessionExtensions
         /// </summary>
         /// <param name="keyId">The ID of the stored asymmetric key.</param>
         /// <returns>A <see cref="YubiECPublicKeyParameters"/> representing the public portion of the stored asymmetric key.</returns>
-        public YubiECPublicKeyParameters GetPublicECParameters(ushort keyId)
+        public YubiECPublicKeyParameters GetPublicECParameters(ObjectId keyId)
         {
             ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.AsymmetricKey);
             string curveName = descriptor.Algorithm switch
@@ -118,7 +118,7 @@ public static class YubiSessionExtensions
         /// </summary>
         /// <param name="keyId">The ID of the stored asymmetric key.</param>
         /// <returns>A <see cref="YubiEd25519PrivateKeyParameters"/> representing the stored Ed25519 private key.</returns>
-        public YubiEd25519PrivateKeyParameters GetPrivateEd25519Parameters(ushort keyId)
+        public YubiEd25519PrivateKeyParameters GetPrivateEd25519Parameters(ObjectId keyId)
         {
             ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.AsymmetricKey);
             return new YubiEd25519PrivateKeyParameters(keyId, descriptor.Length);
@@ -129,7 +129,7 @@ public static class YubiSessionExtensions
         /// </summary>
         /// <param name="keyId">The ID of the stored asymmetric key.</param>
         /// <returns>A <see cref="YubiEd25519PublicKeyParameters"/> representing the public portion of the stored Ed25519 asymmetric key.</returns>
-        public YubiEd25519PublicKeyParameters GetPublicEd25519Parameters(ushort keyId)
+        public YubiEd25519PublicKeyParameters GetPublicEd25519Parameters(ObjectId keyId)
         {
             ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.AsymmetricKey);
 
@@ -145,7 +145,7 @@ public static class YubiSessionExtensions
         /// </summary>
         /// <param name="keyId">The ID of the stored HMAC key.</param>
         /// <returns>A <see cref="YubiHmacKeyParameter"/> representing the stored HMAC key.</returns>
-        public YubiHmacKeyParameter GetHmacKeyParameter(ushort keyId)
+        public YubiHmacKeyParameter GetHmacKeyParameter(ObjectId keyId)
         {
             ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.HmacKey);
             return new YubiHmacKeyParameter(keyId, descriptor.Algorithm, descriptor.Length);
@@ -156,7 +156,7 @@ public static class YubiSessionExtensions
         /// </summary>
         /// <param name="keyId">The ID of the stored symmetric key.</param>
         /// <returns>A <see cref="YubiWrapKeyParameter"/> representing the stored symmetric key.</returns>
-        public YubiWrapKeyParameter GetWrapKeyParameter(ushort keyId)
+        public YubiWrapKeyParameter GetWrapKeyParameter(ObjectId keyId)
         {
             ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.WrapKey);
             return new YubiWrapKeyParameter(keyId, descriptor.Length);

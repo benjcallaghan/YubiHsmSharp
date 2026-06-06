@@ -14,7 +14,7 @@ namespace YubiHsmSharp.BouncyCastle;
 /// <param name="maskGenerationFunction">The mask generation function to use.</param>
 public class YubiRsaPss(YubiSession session, Algorithm maskGenerationFunction) : IAsymmetricBlockCipher
 {
-    private ushort keyId;
+    private ObjectId keyId;
     private int modulusLength;
 
     /// <inheritdoc />

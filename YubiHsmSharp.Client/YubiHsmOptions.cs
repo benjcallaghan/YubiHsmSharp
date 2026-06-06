@@ -47,7 +47,7 @@ public class YubiHsmOptions
     /// Gets or sets the ID of the Authentication Key used to connect.
     /// </summary>
     [Required]
-    public ushort AuthKeyId { get; set; }
+    public ObjectId AuthKeyId { get; set; }
 
     /// <summary>
     /// Gets or sets the password associated with the Authentication Key.
@@ -73,7 +73,7 @@ public class YubiHsmOptions
         }
         if (builder.TryGetValue("AuthKeyId", out var authKeyId))
         {
-            this.AuthKeyId = Convert.ToUInt16(authKeyId);
+            this.AuthKeyId = new ObjectId(Convert.ToUInt16(authKeyId));
         }
         if (builder.TryGetValue("Password", out var password))
         {

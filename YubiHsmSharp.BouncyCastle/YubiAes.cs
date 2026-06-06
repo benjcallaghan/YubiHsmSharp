@@ -17,7 +17,7 @@ namespace YubiHsmSharp.BouncyCastle;
 public class YubiAes(YubiSession session) : IBlockCipher
 {
     private bool forEncryption;
-    private ushort keyId;
+    private ObjectId keyId;
 
     /// <inheritdoc />
     public string AlgorithmName => "AES";
@@ -61,10 +61,10 @@ public class YubiSymmetricKeyParameter : KeyParameter
     /// <summary>
     /// The object ID of the symmetric key within the YubiHSM 2.
     /// </summary>
-    public ushort KeyId { get; }
+    public ObjectId KeyId { get; }
 
     // Store an empty array of the correct length so the base KeyLength property is accurate.
-    internal YubiSymmetricKeyParameter(ushort keyId, int keyLength) : base(new byte[keyLength])
+    internal YubiSymmetricKeyParameter(ObjectId keyId, int keyLength) : base(new byte[keyLength])
     {
         this.KeyId = keyId;
     }
@@ -98,7 +98,7 @@ public class YubiKeyGenerationParameters() : KeyGenerationParameters(new SecureR
     /// <summary>
     /// The ID of the generated key.
     /// </summary>
-    public ushort KeyId { get; init; }
+    public ObjectId KeyId { get; init; }
 }
 
 /// <summary>
@@ -149,7 +149,7 @@ public class YubiAesKeyGenerator(YubiSession session) : CipherKeyGenerator
         utf8Label = utf8Label[..(bytesWritten + 1)];
         utf8Label[^1] = 0;
 
-        ushort keyId = session.GenerateAesKey(
+        ObjectId keyId = session.GenerateAesKey(
             utf8Label,
             this.parameters.Domains,
             this.parameters.Capabilities,

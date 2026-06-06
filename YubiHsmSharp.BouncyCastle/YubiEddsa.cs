@@ -15,7 +15,7 @@ namespace YubiHsmSharp.BouncyCastle;
 public class YubiEddsa(YubiSession session) : ISigner
 {
     private readonly MemoryStream data = new();
-    private ushort keyId;
+    private ObjectId keyId;
 
     /// <inheritdoc />
     public string AlgorithmName => "Ed25519";
@@ -77,7 +77,7 @@ public class YubiEd25519PrivateKeyParameters : AsymmetricKeyParameter
     /// <summary>
     /// The object ID of the asymmetric key within the YubiHSM 2.
     /// </summary>
-    public ushort KeyId { get; }
+    public ObjectId KeyId { get; }
 
     /// <summary>
     /// The BouncyCastle-compatible public key parameters, containing the public key bytes and associated algorithm information.
@@ -85,7 +85,7 @@ public class YubiEd25519PrivateKeyParameters : AsymmetricKeyParameter
     // The BouncyCastle type is sealed, so we can't inherit from it directly.
     public Ed25519PrivateKeyParameters Parameters { get; }
 
-    internal YubiEd25519PrivateKeyParameters(ushort keyId, int keyLength) : base(privateKey: true)
+    internal YubiEd25519PrivateKeyParameters(ObjectId keyId, int keyLength) : base(privateKey: true)
     {
         this.KeyId = keyId;
         this.Parameters = new Ed25519PrivateKeyParameters(new byte[keyLength]);
@@ -100,7 +100,7 @@ public class YubiEd25519PublicKeyParameters : AsymmetricKeyParameter
     /// <summary>
     /// The object ID of the asymmetric key within the YubiHSM 2.
     /// </summary>
-    public ushort KeyId { get; }
+    public ObjectId KeyId { get; }
 
     /// <summary>
     /// The BouncyCastle-compatible public key parameters, containing the public key bytes and associated algorithm information.
@@ -108,7 +108,7 @@ public class YubiEd25519PublicKeyParameters : AsymmetricKeyParameter
     // The BouncyCastle type is sealed, so we can't inherit from it directly.
     public Ed25519PublicKeyParameters Parameters { get; }
 
-    internal YubiEd25519PublicKeyParameters(ushort keyId, ReadOnlySpan<byte> publicKey) : base(privateKey: false)
+    internal YubiEd25519PublicKeyParameters(ObjectId keyId, ReadOnlySpan<byte> publicKey) : base(privateKey: false)
     {
         this.KeyId = keyId;
         this.Parameters = new Ed25519PublicKeyParameters(publicKey.ToArray());
@@ -143,7 +143,7 @@ public class YubiEddsaKeyGenerator(YubiSession session) : IAsymmetricCipherKeyPa
         utf8Label = utf8Label[..(bytesWritten + 1)];
         utf8Label[^1] = 0;
 
-        ushort keyId = session.GenerateEDKey(
+        ObjectId keyId = session.GenerateEDKey(
             utf8Label,
             this.parameters.Domains,
             this.parameters.Capabilities,

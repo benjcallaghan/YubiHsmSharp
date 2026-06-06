@@ -23,7 +23,7 @@ public static class YubiSessionExtensions
         /// <param name="keyId">The ID of the ZMK. 0 if the ID should be assigned by the device.</param>
         /// <returns>The ID of the imported key.</returns>
         /// <exception cref="ArgumentException">Thrown if the ZMK is not a valid AES-128, AES-192, or AES-256 key.</exception>
-        public ushort ImportZoneMasterKey(ReadOnlySpan<byte> utf8Label, Domains domains, ReadOnlySpan<byte> zoneMasterKey, ushort keyId = 0)
+        public ObjectId ImportZoneMasterKey(ReadOnlySpan<byte> utf8Label, Domains domains, ReadOnlySpan<byte> zoneMasterKey, ObjectId keyId = default)
         {
             Capabilities capabilities = Capabilities.From("encrypt-ecb,decrypt-ecb"u8);
             Algorithm algorithm = zoneMasterKey.Length switch
@@ -54,8 +54,8 @@ public static class YubiSessionExtensions
         /// <returns>The ID of the imported key.</returns>
         /// <exception cref="ArgumentException">Thrown if the imported key is not a valid AES-128, AES-192, or AES-256 key,
         /// or if the key block has an unsupported Mode of Use, or if the key block has an unsupported Exporatability.</exception>
-        public ushort ImportAesKey(TR31KeyBlock keyBlock, ushort zoneMasterKeyId, ReadOnlySpan<byte> utf8Label,
-            Domains domains, ushort keyId = 0)
+        public ObjectId ImportAesKey(TR31KeyBlock keyBlock, ObjectId zoneMasterKeyId, ReadOnlySpan<byte> utf8Label,
+            Domains domains, ObjectId keyId = default)
         {
             if (keyBlock.Algorithm != KeyAlgorithm.AdvancedEncryptionStandard)
             {
@@ -107,7 +107,7 @@ public static class YubiSessionExtensions
         /// <param name="pin">The PIN to encipher.</param>
         /// <param name="primaryAccountNumber">The Primary Account Number (PAN) associated with the PIN.</param>
         /// <returns>A Format 4 PIN Block containing the enciphered PIN.</returns>
-        public Format4PinBlock EncryptPin(ushort pinEncryptionKeyId, string pin, string primaryAccountNumber)
+        public Format4PinBlock EncryptPin(ObjectId pinEncryptionKeyId, string pin, string primaryAccountNumber)
         {
             YubiSymmetricKeyParameter keyParameter = session.GetSymmetricKeyParameter(pinEncryptionKeyId);
             return Format4PinBlock.Encrypt(
@@ -129,7 +129,7 @@ public static class YubiSessionExtensions
         /// <param name="pinBlock">The PIN Block to decipher.</param>
         /// <param name="primaryAccountNumber">The Primary Account Number (PAN) associated with the PIN.</param>
         /// <returns>The deciphered PIN.</returns>
-        public string DecryptPin(ushort pinEncryptionKeyId, Format4PinBlock pinBlock, string primaryAccountNumber)
+        public string DecryptPin(ObjectId pinEncryptionKeyId, Format4PinBlock pinBlock, string primaryAccountNumber)
         {
             YubiSymmetricKeyParameter keyParameter = session.GetSymmetricKeyParameter(pinEncryptionKeyId);
             return pinBlock.Decrypt(new YubiAes(session), keyParameter, primaryAccountNumber);

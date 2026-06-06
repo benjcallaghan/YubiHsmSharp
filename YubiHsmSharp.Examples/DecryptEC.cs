@@ -32,7 +32,7 @@ public class DecryptEC(ITestOutputHelper output)
     {
         ReadOnlySpan<byte> keyLabel = "label"u8;
         ReadOnlySpan<byte> password = "password"u8;
-        ushort authKeyId = 1;
+        ObjectId authKeyId = new(1);
 
         using YubiModule module = new();
         using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
@@ -44,7 +44,7 @@ public class DecryptEC(ITestOutputHelper output)
 
         Capabilities capabilities = Capabilities.From("derive-ecdh"u8);
         Domains domainFive = Domains.From("5"u8);
-        ushort keyId = session.GenerateECKey(keyLabel, domainFive, in capabilities, Algorithm.Ecp256);
+        ObjectId keyId = session.GenerateECKey(keyLabel, domainFive, in capabilities, Algorithm.Ecp256);
         output.WriteLine($"Generated key with ID {keyId}.");
 
         // The exported public key is the raw X,Y point on the EC curve.

@@ -31,7 +31,7 @@ public class Attestation(ITestOutputHelper output)
         using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
         connector.Connect();
 
-        ushort authKeyId = 1;
+        ObjectId authKeyId = new(1);
         using YubiSession session = connector.CreateSession(authKeyId, "password"u8);
         byte sessionId = session.SessionId;
         output.WriteLine($"Successfully established session {sessionId}.");
@@ -39,7 +39,7 @@ public class Attestation(ITestOutputHelper output)
         ReadOnlySpan<byte> keyLabel = "label"u8;
         Capabilities capabilities = Capabilities.From("sign-attestation-certificate"u8);
         Domains domainFive = Domains.From("5"u8);
-        ushort attestingKeyId = session.GenerateECKey(keyLabel, domainFive, in capabilities, Algorithm.Ecp256);
+        ObjectId attestingKeyId = session.GenerateECKey(keyLabel, domainFive, in capabilities, Algorithm.Ecp256);
         output.WriteLine($"Generated attesting key with ID {attestingKeyId}.");
 
         // The exported public key is the raw X,Y point on the EC curve.
@@ -96,7 +96,7 @@ public class Attestation(ITestOutputHelper output)
 
         // The attestation template used must have the same Object ID as the attesting key.
         capabilities = default;
-        ushort templateId = session.ImportOpaque(keyLabel, domainFive, capabilities, Algorithm.OpaqueX509Certificate,
+        ObjectId templateId = session.ImportOpaque(keyLabel, domainFive, capabilities, Algorithm.OpaqueX509Certificate,
             attestationTemplateDer, attestingKeyId);
         Assert.Equal(attestingKeyId, templateId);
 
@@ -107,7 +107,7 @@ public class Attestation(ITestOutputHelper output)
 
         // Only keys generated within the YubiHSM 2 can be attested.
         capabilities = Capabilities.From("sign-ecdsa"u8);
-        ushort attestedKeyId = session.GenerateECKey(keyLabel, domainFive, capabilities, Algorithm.Ecp256);
+        ObjectId attestedKeyId = session.GenerateECKey(keyLabel, domainFive, capabilities, Algorithm.Ecp256);
         output.WriteLine($"Generated attested key with ID {attestedKeyId}");
 
         Span<byte> attestation = stackalloc byte[2048];
@@ -128,7 +128,7 @@ public class Attestation(ITestOutputHelper output)
         // By default, the HSM contains one asymmetric key for attestation, with Object ID 0.
         // The HSM also contains an attestation template with Object ID 0.
         // The public portion of this key is returned by connector.GetDevicePublicKey.
-        ushort devicePublicKeyId = 0;
+        ObjectId devicePublicKeyId = new(0);
         written = session.SignAttestationCertificate(devicePublicKeyId, attestingKeyId, attestation);
         x509 = new(attestation[..written].ToArray());
         output.WriteLine(x509.ToString());

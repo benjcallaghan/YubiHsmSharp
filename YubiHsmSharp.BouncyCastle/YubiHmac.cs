@@ -15,7 +15,7 @@ namespace YubiHsmSharp.BouncyCastle;
 public class YubiHmac(YubiSession session) : IMac
 {
     private readonly MemoryStream data = new();
-    private ushort keyId;
+    private ObjectId keyId;
     private Algorithm algorithm;
 
     /// <inheritdoc />
@@ -79,14 +79,14 @@ public class YubiHmacKeyParameter : KeyParameter
     /// <summary>
     /// The object ID of the HMAC key within the YubiHSM 2.
      /// </summary>
-    public ushort KeyId { get; set; }
+    public ObjectId KeyId { get; set; }
 
     /// <summary>
     /// The HMAC algorithm to use with the key.
      /// </summary>
     public Algorithm Algorithm { get; set; }
 
-    internal YubiHmacKeyParameter(ushort keyId, Algorithm algorithm, int keyLength) : base(new byte[keyLength])
+    internal YubiHmacKeyParameter(ObjectId keyId, Algorithm algorithm, int keyLength) : base(new byte[keyLength])
     {
         this.KeyId = keyId;
         this.Algorithm = algorithm;
@@ -141,7 +141,7 @@ public class YubiHmacKeyGenerator(YubiSession session) : CipherKeyGenerator
         utf8Label = utf8Label[..(bytesWritten + 1)];
         utf8Label[^1] = 0;
 
-        ushort keyId = session.GenerateHmacKey(
+        ObjectId keyId = session.GenerateHmacKey(
             utf8Label,
             this.parameters.Domains,
             this.parameters.Capabilities,

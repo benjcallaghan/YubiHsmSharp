@@ -20,7 +20,7 @@ public class YubiRsaPkcs(YubiSession session) : IAsymmetricBlockCipher
 {
     private bool forEncryption;
     private int modulusLength;
-    private ushort keyId;
+    private ObjectId keyId;
 
     /// <inheritdoc />
     public string AlgorithmName => "RSA-PKCS#1v1.5";
@@ -67,15 +67,15 @@ public class YubiRsaKeyParameters : RsaKeyParameters
     /// <summary>
     /// The object ID of the asymmetric key within the YubiHSM 2.
     /// </summary>
-    public ushort KeyId { get; }
+    public ObjectId KeyId { get; }
 
-    internal YubiRsaKeyParameters(ushort keyId, int keyLength)
+    internal YubiRsaKeyParameters(ObjectId keyId, int keyLength)
         : base(isPrivate: true, new BigInteger(new byte[keyLength]), new BigInteger(new byte[keyLength]))
     {
         this.KeyId = keyId;
     }
 
-    internal YubiRsaKeyParameters(ushort keyId, BigInteger modulus, BigInteger exponent)
+    internal YubiRsaKeyParameters(ObjectId keyId, BigInteger modulus, BigInteger exponent)
         : base(isPrivate: false, modulus, exponent)
     {
         this.KeyId = keyId;
@@ -110,7 +110,7 @@ public class YubiRsaKeyGenerator(YubiSession session) : IAsymmetricCipherKeyPair
         utf8Label = utf8Label[..(bytesWritten + 1)];
         utf8Label[^1] = 0;
 
-        ushort keyId = session.GenerateRsaKey(
+        ObjectId keyId = session.GenerateRsaKey(
             utf8Label,
             this.parameters.Domains,
             this.parameters.Capabilities,

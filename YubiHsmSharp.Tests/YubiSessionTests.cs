@@ -36,7 +36,7 @@ public class YubiSessionTests
         connector.Connect();
 
         Span<byte> key = [0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f];
-        using YubiSession session = connector.CreateSession(0, key, key, recreateSession: false);
+        using YubiSession session = connector.CreateSession(new(0), key, key, recreateSession: false);
 
         Span<byte> requestData = stackalloc byte[length];
         requestData.Fill(0x0f);

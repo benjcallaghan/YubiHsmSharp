@@ -47,12 +47,12 @@ public class AsymmetricAuthentication(ITestOutputHelper output)
 
         Span<byte> clientPrivateKey = stackalloc byte[32];
         Span<byte> clientPublicKey = stackalloc byte[65];
-        ushort authKeyId = 1;
+        ObjectId authKeyId = new(1);
 
         // By default, the HSM does not contain any asymmetric authentication keys.
         using (YubiSession session = connector.CreateSession(authKeyId, "password"u8))
         {
-            authKeyId = 2;
+            authKeyId = new(2);
             try
             {
                 session.DeleteObject(authKeyId, ObjectType.AuthenticationKey);

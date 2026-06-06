@@ -26,7 +26,7 @@ public class GenerateHmac(ITestOutputHelper output)
         ReadOnlySpan<byte> keyLabel = "label"u8;
         ReadOnlySpan<byte> password = "password"u8;
         ReadOnlySpan<byte> data = "sudo make me a sandwich"u8;
-        ushort authKeyId = 1;
+        ObjectId authKeyId = new(1);
 
         using YubiModule module = new();
         using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
@@ -38,7 +38,7 @@ public class GenerateHmac(ITestOutputHelper output)
 
         Capabilities capabilities = Capabilities.From("sign-hmac:verify-hmac"u8);
         Domains domainFive = Domains.From("5"u8);
-        ushort keyId = session.GenerateHmacKey(keyLabel, domainFive, in capabilities, Algorithm.HmacSha256);
+        ObjectId keyId = session.GenerateHmacKey(keyLabel, domainFive, in capabilities, Algorithm.HmacSha256);
         output.WriteLine($"Generated HMAC-SHA256 key with ID {keyId}.");
 
         Span<byte> hmacData = stackalloc byte[64];

@@ -102,11 +102,11 @@ public sealed class YubiSession : IDisposable
     /// <returns>The number of objects returned.</returns>
     public int ListObjects(
         Span<ObjectDescriptor> objects,
-        ushort id = 0,
-        ObjectType type = 0,
+        ObjectId id = default,
+        ObjectType type = default,
         Domains domains = default,
         in Capabilities capabilities = default,
-        Algorithm algorithm = 0,
+        Algorithm algorithm = default,
         ReadOnlySpan<byte> utf8Label = default)
     {
         yh_rc err = yh_util_list_objects(this.handle, id, type, domains, in capabilities, algorithm, utf8Label, objects, out nuint n_objects);
@@ -120,7 +120,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="id">The ID of the object to retrieve.</param>
     /// <param name="type">The type of the object to retrieve.</param>
     /// <returns>The metadata of the object.</returns>
-    public ObjectDescriptor GetObject(ushort id, ObjectType type)
+    public ObjectDescriptor GetObject(ObjectId id, ObjectType type)
     {
         yh_rc err = yh_util_get_object_info(this.handle, id, type, out ObjectDescriptor desc);
         YubiHsmException.ThrowIfError(err);
@@ -133,7 +133,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="id">The ID of the public key to retrieve.</param>
     /// <param name="publicKey">The buffer to receive the public key value.</param>
     /// <returns>A tuple containing the algorithm of the public key and its length.</returns>
-    public (Algorithm algorithm, int publicKeyLength) GetPublicKey(ushort id, Span<byte> publicKey)
+    public (Algorithm algorithm, int publicKeyLength) GetPublicKey(ObjectId id, Span<byte> publicKey)
     {
         yh_rc err = yh_util_get_public_key(this.handle, id, publicKey, out nuint publicKeyLen, out Algorithm algorithm);
         YubiHsmException.ThrowIfError(err);
@@ -147,7 +147,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="id">The ID of the public key to retrieve.</param>
     /// <param name="publicKey">The buffer to receive the public key value.</param>
     /// <returns>A tuple containing the algorithm of the public key and its length.</returns>
-    public (Algorithm algorithm, int publicKeyLength) GetPublicKey(ObjectType type, ushort id, Span<byte> publicKey)
+    public (Algorithm algorithm, int publicKeyLength) GetPublicKey(ObjectType type, ObjectId id, Span<byte> publicKey)
     {
         yh_rc err = yh_util_get_public_key_ex(this.handle, type, id, publicKey, out nuint publicKeyLen, out Algorithm algorithm);
         YubiHsmException.ThrowIfError(err);
@@ -166,7 +166,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="data">The data to sign.</param>
     /// <param name="signature">The buffer to receive the signature.</param>
     /// <returns>The length of the signature.</returns>
-    public int SignPkcs1v15(ushort keyId, bool hashed, ReadOnlySpan<byte> data, Span<byte> signature)
+    public int SignPkcs1v15(ObjectId keyId, bool hashed, ReadOnlySpan<byte> data, Span<byte> signature)
     {
         yh_rc err = yh_util_sign_pkcs1v1_5(this.handle, keyId, hashed, data, (nuint)data.Length, signature, out nuint signatureLen);
         YubiHsmException.ThrowIfError(err);
@@ -185,7 +185,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="saltLength">The length of the salt.</param>
     /// <param name="maskGenerationFunction">The algorithm for mask generation.</param>
     /// <returns>The length of the signature.</returns>
-    public int SignPss(ushort keyId, ReadOnlySpan<byte> data, Span<byte> signature,
+    public int SignPss(ObjectId keyId, ReadOnlySpan<byte> data, Span<byte> signature,
         int saltLength, Algorithm maskGenerationFunction)
     {
         yh_rc err = yh_util_sign_pss(this.handle, keyId, data, (nuint)data.Length, signature, out nuint signatureLen,
@@ -204,7 +204,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="data">The data to sign.</param>
     /// <param name="signature">The buffer to receive the signature.</param>
     /// <returns>The length of the signature.</returns>
-    public int SignEcdsa(ushort keyId, ReadOnlySpan<byte> data, Span<byte> signature)
+    public int SignEcdsa(ObjectId keyId, ReadOnlySpan<byte> data, Span<byte> signature)
     {
         yh_rc err = yh_util_sign_ecdsa(this.handle, keyId, data, (nuint)data.Length, signature, out nuint signatureLen);
         YubiHsmException.ThrowIfError(err);
@@ -218,7 +218,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="data">The data to sign.</param>
     /// <param name="signature">The buffer to receive the signature.</param>
     /// <returns>The length of the signature.</returns>
-    public int SignEddsa(ushort keyId, ReadOnlySpan<byte> data, Span<byte> signature)
+    public int SignEddsa(ObjectId keyId, ReadOnlySpan<byte> data, Span<byte> signature)
     {
         yh_rc err = yh_util_sign_eddsa(this.handle, keyId, data, (nuint)data.Length, signature, out nuint signatureLen);
         YubiHsmException.ThrowIfError(err);
@@ -232,7 +232,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="data">The data to sign.</param>
     /// <param name="signature">The buffer to receive the signature.</param>
     /// <returns>The length of the signature.</returns>
-    public int SignHmac(ushort keyId, ReadOnlySpan<byte> data, Span<byte> signature)
+    public int SignHmac(ObjectId keyId, ReadOnlySpan<byte> data, Span<byte> signature)
     {
         yh_rc err = yh_util_sign_hmac(this.handle, keyId, data, (nuint)data.Length, signature, out nuint signatureLen);
         YubiHsmException.ThrowIfError(err);
@@ -261,7 +261,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="key">The key data.</param>
     /// <param name="keyId">The ID of the key to import. 0 if the ID should be generated by the device.</param>
     /// <returns>The ID of the imported key.</returns>
-    public ushort ImportAesKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ReadOnlySpan<byte> key, ushort keyId = 0)
+    public ObjectId ImportAesKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ReadOnlySpan<byte> key, ObjectId keyId = default)
     {
         yh_rc err = yh_util_import_aes_key(this.handle, ref keyId, utf8Label, domains, in capabilities, algorithm, key);
         YubiHsmException.ThrowIfError(err);
@@ -279,7 +279,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="q">Q component of the RSA key.</param>
     /// <param name="keyId">The ID of the key to import. 0 if the ID should be generated by the device.</param>
     /// <returns>The ID of the imported key.</returns>
-    public ushort ImportRsaKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ReadOnlySpan<byte> p, ReadOnlySpan<byte> q, ushort keyId = 0)
+    public ObjectId ImportRsaKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ReadOnlySpan<byte> p, ReadOnlySpan<byte> q, ObjectId keyId = default)
     {
         yh_rc err = yh_util_import_rsa_key(this.handle, ref keyId, utf8Label, domains, in capabilities, algorithm, p, q);
         YubiHsmException.ThrowIfError(err);
@@ -296,7 +296,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="key">The key data.</param>
     /// <param name="keyId">The ID of the key to import. 0 if the ID should be generated by the device.</param>
     /// <returns>The ID of the imported key.</returns>
-    public ushort ImportECKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ReadOnlySpan<byte> key, ushort keyId = 0)
+    public ObjectId ImportECKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ReadOnlySpan<byte> key, ObjectId keyId = default)
     {
         yh_rc err = yh_util_import_ec_key(this.handle, ref keyId, utf8Label, domains, in capabilities, algorithm, key);
         YubiHsmException.ThrowIfError(err);
@@ -313,7 +313,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="key">The key data.</param>
     /// <param name="keyId">The ID of the key to import. 0 if the ID should be generated by the device.</param>
     /// <returns>The ID of the imported key.</returns>
-    public ushort ImportEDKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ReadOnlySpan<byte> key, ushort keyId = 0)
+    public ObjectId ImportEDKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ReadOnlySpan<byte> key, ObjectId keyId = default)
     {
         yh_rc err = yh_util_import_ed_key(this.handle, ref keyId, utf8Label, domains, in capabilities, algorithm, key);
         YubiHsmException.ThrowIfError(err);
@@ -330,7 +330,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="key">The key data.</param>
     /// <param name="keyId">The ID of the key to import. 0 if the ID should be generated by the device.</param>
     /// <returns>The ID of the imported key.</returns>
-    public ushort ImportHmacKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ReadOnlySpan<byte> key, ushort keyId = 0)
+    public ObjectId ImportHmacKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ReadOnlySpan<byte> key, ObjectId keyId = default)
     {
         yh_rc err = yh_util_import_hmac_key(this.handle, ref keyId, utf8Label, domains, in capabilities, algorithm, key, (nuint)key.Length);
         YubiHsmException.ThrowIfError(err);
@@ -346,7 +346,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="algorithm">The algorithm of the key.</param>
     /// <param name="keyId">The ID of the key to generate. 0 if the ID should be generated by the device.</param>
     /// <returns>The ID of the generated key.</returns>
-    public ushort GenerateAesKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ushort keyId = 0)
+    public ObjectId GenerateAesKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ObjectId keyId = default)
     {
         yh_rc err = yh_util_generate_aes_key(this.handle, ref keyId, utf8Label, domains, in capabilities, algorithm);
         YubiHsmException.ThrowIfError(err);
@@ -362,7 +362,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="algorithm">The algorithm of the key.</param>
     /// <param name="keyId">The ID of the key to generate. 0 if the ID should be generated by the device.</param>
     /// <returns>The ID of the generated key.</returns>
-    public ushort GenerateRsaKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ushort keyId = 0)
+    public ObjectId GenerateRsaKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ObjectId keyId = default)
     {
         yh_rc err = yh_util_generate_rsa_key(this.handle, ref keyId, utf8Label, domains, in capabilities, algorithm);
         YubiHsmException.ThrowIfError(err);
@@ -378,7 +378,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="algorithm">The algorithm of the key.</param>
     /// <param name="keyId">The ID of the key to generate. 0 if the ID should be generated by the device.</param>
     /// <returns>The ID of the generated key.</returns>
-    public ushort GenerateECKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ushort keyId = 0)
+    public ObjectId GenerateECKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ObjectId keyId = default)
     {
         yh_rc err = yh_util_generate_ec_key(this.handle, ref keyId, utf8Label, domains, in capabilities, algorithm);
         YubiHsmException.ThrowIfError(err);
@@ -394,7 +394,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="algorithm">The algorithm of the key.</param>
     /// <param name="keyId">The ID of the key to generate. 0 if the ID should be generated by the device.</param>
     /// <returns>The ID of the generated key.</returns>
-    public ushort GenerateEDKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ushort keyId = 0)
+    public ObjectId GenerateEDKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ObjectId keyId = default)
     {
         yh_rc err = yh_util_generate_ed_key(this.handle, ref keyId, utf8Label, domains, in capabilities, algorithm);
         YubiHsmException.ThrowIfError(err);
@@ -410,7 +410,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="algorithm">The algorithm of the key.</param>
     /// <param name="keyId">The ID of the key to generate. 0 if the ID should be generated by the device.</param>
     /// <returns>The ID of the generated key.</returns>
-    public ushort GenerateHmacKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ushort keyId = 0)
+    public ObjectId GenerateHmacKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities, Algorithm algorithm, ObjectId keyId = default)
     {
         yh_rc err = yh_util_generate_hmac_key(this.handle, ref keyId, utf8Label, domains, in capabilities, algorithm);
         YubiHsmException.ThrowIfError(err);
@@ -424,7 +424,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="signature">The HMAC signature to verify.</param>
     /// <param name="data">The data to verify.</param>
     /// <returns>true if the signature is valid, false otherwise.</returns>
-    public bool VerifyHmac(ushort keyId, ReadOnlySpan<byte> signature, ReadOnlySpan<byte> data)
+    public bool VerifyHmac(ObjectId keyId, ReadOnlySpan<byte> signature, ReadOnlySpan<byte> data)
     {
         yh_rc err = yh_util_verify_hmac(this.handle, keyId, signature, (nuint)signature.Length, data, (nuint)data.Length, out bool verified);
         YubiHsmException.ThrowIfError(err);
@@ -438,7 +438,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="ciphertext">The ciphertext to decrypt.</param>
     /// <param name="plaintext">The buffer to store the decrypted plaintext.</param>
     /// <returns>The length of the decrypted plaintext.</returns>
-    public int DecryptPkcs1v15(ushort keyId, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext)
+    public int DecryptPkcs1v15(ObjectId keyId, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext)
     {
         yh_rc err = yh_util_decrypt_pkcs1v1_5(this.handle, keyId, ciphertext, (nuint)ciphertext.Length, plaintext, out nuint plaintextLen);
         YubiHsmException.ThrowIfError(err);
@@ -454,7 +454,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="label">Hash of OAEP label.</param>
     /// <param name="maskGenerationFunction">The algorithm for generating the mask.</param>
     /// <returns>The length of the decrypted plaintext.</returns>
-    public int DecryptOaep(ushort keyId, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext, ReadOnlySpan<byte> label, Algorithm maskGenerationFunction)
+    public int DecryptOaep(ObjectId keyId, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext, ReadOnlySpan<byte> label, Algorithm maskGenerationFunction)
     {
         yh_rc err = yh_util_decrypt_oaep(this.handle, keyId, ciphertext, (nuint)ciphertext.Length, plaintext, out nuint plaintextLen, label, (nuint)label.Length, maskGenerationFunction);
         YubiHsmException.ThrowIfError(err);
@@ -468,7 +468,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="publicKey">The public key for the ECDH agreement.</param>
     /// <param name="sharedSecret">The buffer to store the derived shared secret.</param>
     /// <returns>The length of the derived shared secret.</returns>
-    public int DeriveEcdh(ushort keyId, ReadOnlySpan<byte> publicKey, Span<byte> sharedSecret)
+    public int DeriveEcdh(ObjectId keyId, ReadOnlySpan<byte> publicKey, Span<byte> sharedSecret)
     {
         yh_rc err = yh_util_derive_ecdh(this.handle, keyId, publicKey, (nuint)publicKey.Length, sharedSecret, out nuint sharedSecretLen);
         YubiHsmException.ThrowIfError(err);
@@ -480,7 +480,7 @@ public sealed class YubiSession : IDisposable
     /// </summary>
     /// <param name="id">The ID of the object to delete.</param>
     /// <param name="type">The type of the object to delete.</param>
-    public void DeleteObject(ushort id, ObjectType type)
+    public void DeleteObject(ObjectId id, ObjectType type)
     {
         yh_rc err = yh_util_delete_object(this.handle, id, type);
         YubiHsmException.ThrowIfError(err);
@@ -495,7 +495,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="wrappedKey">The buffer to store the wrapped key.</param>
     /// <returns>The length of the wrapped key.</returns>
     /// <seealso cref="ImportWrapped"/>
-    public int ExportWrapped(ushort wrapKeyId, ObjectType targetType, ushort targetId, Span<byte> wrappedKey)
+    public int ExportWrapped(ObjectId wrapKeyId, ObjectType targetType, ObjectId targetId, Span<byte> wrappedKey)
     {
         yh_rc err = yh_util_export_wrapped(this.handle, wrapKeyId, targetType, targetId, wrappedKey, out nuint wrappedKeyLen);
         YubiHsmException.ThrowIfError(err);
@@ -512,7 +512,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="wrappedKey">The buffer to store the wrapped key.</param>
     /// <returns>The length of the wrapped key.</returns>
     /// <seealso cref="ImportWrapped"/>
-    public int ExportWrapped(ushort wrapKeyId, ObjectType targetType, ushort targetId, bool includeSeed, Span<byte> wrappedKey)
+    public int ExportWrapped(ObjectId wrapKeyId, ObjectType targetType, ObjectId targetId, bool includeSeed, Span<byte> wrappedKey)
     {
         yh_rc err = yh_util_export_wrapped_ex(this.handle, wrapKeyId, targetType, targetId, includeSeed, wrappedKey, out nuint wrappedKeyLen);
         YubiHsmException.ThrowIfError(err);
@@ -525,10 +525,10 @@ public sealed class YubiSession : IDisposable
     /// <param name="wrapKeyId">The ID of the wrapping key to use.</param>
     /// <param name="wrappedKey">The buffer containing the wrapped key.</param>
     /// <returns>A tuple containing the type and ID of the imported object.</returns>
-    /// <seealso cref="ExportWrapped(ushort, ObjectType, ushort, bool, Span{byte})"/>
-    public (ObjectType targetType, ushort targetId) ImportWrapped(ushort wrapKeyId, ReadOnlySpan<byte> wrappedKey)
+    /// <seealso cref="ExportWrapped(ObjectId, ObjectType, ObjectId, bool, Span{byte})"/>
+    public (ObjectType targetType, ObjectId targetId) ImportWrapped(ObjectId wrapKeyId, ReadOnlySpan<byte> wrappedKey)
     {
-        yh_rc err = yh_util_import_wrapped(this.handle, wrapKeyId, wrappedKey, (nuint)wrappedKey.Length, out ObjectType targetType, out ushort targetId);
+        yh_rc err = yh_util_import_wrapped(this.handle, wrapKeyId, wrappedKey, (nuint)wrappedKey.Length, out ObjectType targetType, out ObjectId targetId);
         YubiHsmException.ThrowIfError(err);
         return (targetType, targetId);
     }
@@ -546,7 +546,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="wrappedKey">The buffer to store the wrapped key.</param>
     /// <returns>The length of the wrapped key.</returns>
     /// <seealso cref="PutRsaWrappedKey"/> 
-    public int GetRsaWrappedKey(ushort wrapKeyId, ObjectType targetType, ushort targetId,
+    public int GetRsaWrappedKey(ObjectId wrapKeyId, ObjectType targetType, ObjectId targetId,
         Algorithm aes, Algorithm hash, Algorithm maskGenerationFunction, ReadOnlySpan<byte> oaepLabel, Span<byte> wrappedKey)
     {
         yh_rc err = yh_util_get_rsa_wrapped_key(this.handle, wrapKeyId, targetType, targetId,
@@ -568,7 +568,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="wrappedKey">The buffer to store the wrapped key.</param>
     /// <returns>The length of the wrapped key.</returns>
     /// <seealso cref="ImportRsaWrapped"/> 
-    public int ExportRsaWrapped(ushort wrapKeyId, ObjectType targetType, ushort targetId,
+    public int ExportRsaWrapped(ObjectId wrapKeyId, ObjectType targetType, ObjectId targetId,
         Algorithm aes, Algorithm hash, Algorithm maskGenerationFunction, ReadOnlySpan<byte> oaepLabel, Span<byte> wrappedKey)
     {
         yh_rc err = yh_util_export_rsa_wrapped(this.handle, wrapKeyId, targetType, targetId,
@@ -587,12 +587,12 @@ public sealed class YubiSession : IDisposable
     /// <param name="wrappedKey">The buffer containing the wrapped key.</param>
     /// <returns>A tuple containing the type and ID of the imported object.</returns>
     /// <seealso cref="ExportRsaWrapped"/>
-    public (ObjectType targetType, ushort targetId) ImportRsaWrapped(ushort wrapKeyId,
+    public (ObjectType targetType, ObjectId targetId) ImportRsaWrapped(ObjectId wrapKeyId,
         Algorithm hash, Algorithm maskGenerationFunction, ReadOnlySpan<byte> oaepLabel, ReadOnlySpan<byte> wrappedKey)
     {
         yh_rc err = yh_util_import_rsa_wrapped(this.handle, wrapKeyId,
             hash, maskGenerationFunction, oaepLabel, (nuint)oaepLabel.Length, wrappedKey, (nuint)wrappedKey.Length,
-            out ObjectType targetType, out ushort targetId);
+            out ObjectType targetType, out ObjectId targetId);
         YubiHsmException.ThrowIfError(err);
         return (targetType, targetId);
     }
@@ -613,9 +613,9 @@ public sealed class YubiSession : IDisposable
     /// <param name="targetId">The ID of the object to import. 0 if the ID should be assigned by the device.</param>
     /// <returns>The ID of the imported object.</returns>
     /// <seealso cref="GetRsaWrappedKey"/>
-    public ushort PutRsaWrappedKey(ushort wrapKeyId, ObjectType targetType, Algorithm algorithm, ReadOnlySpan<byte> label,
+    public ObjectId PutRsaWrappedKey(ObjectId wrapKeyId, ObjectType targetType, Algorithm algorithm, ReadOnlySpan<byte> label,
         Domains domains, in Capabilities capabilities, Algorithm hash, Algorithm maskGenerationFunction,
-        ReadOnlySpan<byte> oaepLabel, ReadOnlySpan<byte> wrappedKey, ushort targetId = 0)
+        ReadOnlySpan<byte> oaepLabel, ReadOnlySpan<byte> wrappedKey, ObjectId targetId = default)
     {
         yh_rc err = yh_util_put_rsa_wrapped_key(this.handle, wrapKeyId, targetType, ref targetId, algorithm,
             label, domains, in capabilities, hash, maskGenerationFunction, oaepLabel, (nuint)oaepLabel.Length,
@@ -635,8 +635,8 @@ public sealed class YubiSession : IDisposable
     /// <param name="key">The buffer containing the wrap key material.</param>
     /// <param name="keyId">The ID of the wrap key. 0 if the ID should be assigned by the device.</param>
     /// <returns>The ID of the imported wrap key.</returns>
-    public ushort ImportWrapKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
-        Algorithm algorithm, in Capabilities delegatedCapabilities, ReadOnlySpan<byte> key, ushort keyId = 0)
+    public ObjectId ImportWrapKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
+        Algorithm algorithm, in Capabilities delegatedCapabilities, ReadOnlySpan<byte> key, ObjectId keyId = default)
     {
         yh_rc err = yh_util_import_wrap_key(this.handle, ref keyId, utf8Label, domains, in capabilities,
             algorithm, in delegatedCapabilities, key, (nuint)key.Length);
@@ -655,8 +655,8 @@ public sealed class YubiSession : IDisposable
     /// <param name="key">The buffer containing the public wrap key material.</param>
     /// <param name="keyId">The ID of the public wrap key. 0 if the ID should be assigned by the device.</param>
     /// <returns>The ID of the imported public wrap key.</returns>
-    public ushort ImportPublicWrapKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
-        Algorithm algorithm, in Capabilities delegatedCapabilities, ReadOnlySpan<byte> key, ushort keyId = 0)
+    public ObjectId ImportPublicWrapKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
+        Algorithm algorithm, in Capabilities delegatedCapabilities, ReadOnlySpan<byte> key, ObjectId keyId = default)
     {
         yh_rc err = yh_util_import_public_wrap_key(this.handle, ref keyId, utf8Label, domains, in capabilities,
             algorithm, in delegatedCapabilities, key, (nuint)key.Length);
@@ -674,8 +674,8 @@ public sealed class YubiSession : IDisposable
     /// <param name="delegatedCapabilities">The delegated capabilities of the wrap key.</param>
     /// <param name="keyId">The ID of the wrap key. 0 if the ID should be assigned by the device.</param>
     /// <returns>The ID of the generated wrap key.</returns>
-    public ushort GenerateWrapKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
-        Algorithm algorithm, in Capabilities delegatedCapabilities, ushort keyId = 0)
+    public ObjectId GenerateWrapKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
+        Algorithm algorithm, in Capabilities delegatedCapabilities, ObjectId keyId = default)
     {
         yh_rc err = yh_util_generate_wrap_key(this.handle, ref keyId, utf8Label, domains, in capabilities,
             algorithm, in delegatedCapabilities);
@@ -720,7 +720,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="objectId">The ID of the opaque object to retrieve.</param>
     /// <param name="opaque">The buffer to store the retrieved opaque object.</param>
     /// <returns>The length of the retrieved opaque object.</returns>
-    public int GetOpaque(ushort objectId, Span<byte> opaque)
+    public int GetOpaque(ObjectId objectId, Span<byte> opaque)
     {
         yh_rc err = yh_util_get_opaque(this.handle, objectId, opaque, out nuint dataLen);
         YubiHsmException.ThrowIfError(err);
@@ -734,7 +734,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="opaque">The buffer to store the retrieved opaque object.</param>
     /// <param name="tryDecompress">A value indicating whether to try decompressing the object if it's stored in compressed form.</param>
     /// <returns>A tuple containing the length of the retrieved opaque object and the length of the stored object.</returns>
-    public (int dataLength, int storedLength) GetOpaque(ushort objectId, Span<byte> opaque, bool tryDecompress)
+    public (int dataLength, int storedLength) GetOpaque(ObjectId objectId, Span<byte> opaque, bool tryDecompress)
     {
         yh_rc err = yh_util_get_opaque_ex(this.handle, objectId, opaque, out nuint dataLen, out nuint storedLen, tryDecompress);
         YubiHsmException.ThrowIfError(err);
@@ -751,8 +751,8 @@ public sealed class YubiSession : IDisposable
     /// <param name="opaque">The buffer containing the opaque object to import.</param>
     /// <param name="objectId">The ID of the opaque object. 0 if the ID should be assigned by the device.</param>
     /// <returns>The ID of the imported opaque object.</returns>
-    public ushort ImportOpaque(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
-        Algorithm algorithm, ReadOnlySpan<byte> opaque, ushort objectId = 0)
+    public ObjectId ImportOpaque(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
+        Algorithm algorithm, ReadOnlySpan<byte> opaque, ObjectId objectId = default)
     {
         yh_rc err = yh_util_import_opaque(this.handle, ref objectId, utf8Label, domains, in capabilities,
             algorithm, opaque, (nuint)opaque.Length);
@@ -771,8 +771,8 @@ public sealed class YubiSession : IDisposable
     /// <param name="compression">The compression option for the opaque object.</param>
     /// <param name="objectId">The ID of the opaque object. 0 if the ID should be assigned by the device.</param>
     /// <returns>A tuple containing the ID of the imported opaque object and the length of the imported object.</returns>
-    public (ushort objectId, int importLength) ImportOpaque(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
-        Algorithm algorithm, ReadOnlySpan<byte> opaque, CompressOption compression, ushort objectId = 0)
+    public (ObjectId objectId, int importLength) ImportOpaque(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
+        Algorithm algorithm, ReadOnlySpan<byte> opaque, CompressOption compression, ObjectId objectId = default)
     {
         yh_rc err = yh_util_import_opaque_ex(this.handle, ref objectId, utf8Label, domains, in capabilities,
             algorithm, opaque, (nuint)opaque.Length, compression, out nuint importLen);
@@ -789,7 +789,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="certificateRequest">The certificate request to sign.</param>
     /// <param name="signature">The buffer to store the generated signature.</param>
     /// <returns>The length of the generated signature.</returns>
-    public int SignSshCertificate(ushort keyId, ushort templateId, Algorithm signatureAlgorithm,
+    public int SignSshCertificate(ObjectId keyId, ObjectId templateId, Algorithm signatureAlgorithm,
         ReadOnlySpan<byte> certificateRequest, Span<byte> signature)
     {
         yh_rc err = yh_util_sign_ssh_certificate(this.handle, keyId, templateId, signatureAlgorithm,
@@ -809,8 +809,8 @@ public sealed class YubiSession : IDisposable
     /// <param name="macKey">The buffer containing the MAC key to import.</param>
     /// <param name="keyId">The ID of the authentication key. 0 if the ID should be assigned by the device.</param>
     /// <returns>The ID of the imported authentication key.</returns>
-    public ushort ImportAuthenticationKey(ReadOnlySpan<byte> utf8label, Domains domains, in Capabilities capabilities,
-        in Capabilities delegataedCapabilities, ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> macKey, ushort keyId = 0)
+    public ObjectId ImportAuthenticationKey(ReadOnlySpan<byte> utf8label, Domains domains, in Capabilities capabilities,
+        in Capabilities delegataedCapabilities, ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> macKey, ObjectId keyId = default)
     {
         yh_rc err = yh_util_import_authentication_key(this.handle, ref keyId, utf8label, domains, in capabilities,
             in delegataedCapabilities, encryptionKey, (nuint)encryptionKey.Length, macKey, (nuint)macKey.Length);
@@ -828,8 +828,8 @@ public sealed class YubiSession : IDisposable
     /// <param name="password">The password from which to derive the encryption and MAC keys.</param>
     /// <param name="keyId">The ID of the authentication key. 0 if the ID should be assigned by the device.</param>
     /// <returns>The ID of the imported authentication key.</returns>
-    public ushort ImportAuthenticationKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
-        in Capabilities delegataedCapabilities, ReadOnlySpan<byte> password, ushort keyId = 0)
+    public ObjectId ImportAuthenticationKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
+        in Capabilities delegataedCapabilities, ReadOnlySpan<byte> password, ObjectId keyId = default)
     {
         yh_rc err = yh_util_import_authentication_key_derived(this.handle, ref keyId, utf8Label, domains, in capabilities,
             in delegataedCapabilities, password, (nuint)password.Length);
@@ -844,7 +844,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="encryptionKey">The buffer containing the new encryption key.</param>
     /// <param name="macKey">The buffer containing the new MAC key.</param>
     /// <returns>The ID of the changed authentication key.</returns>
-    public ushort ChangeAuthenticationKey(ushort keyId, ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> macKey)
+    public ObjectId ChangeAuthenticationKey(ObjectId keyId, ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> macKey)
     {
         yh_rc err = yh_util_change_authentication_key(this.handle, ref keyId,
             encryptionKey, (nuint)encryptionKey.Length, macKey, (nuint)macKey.Length);
@@ -858,7 +858,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="keyId">The ID of the authentication key to change.</param>
     /// <param name="password">The password from which to derive the new encryption and MAC keys.</param>
     /// <returns>The ID of the changed authentication key.</returns>
-    public ushort ChangeAuthenticationKey(ushort keyId, ReadOnlySpan<byte> password)
+    public ObjectId ChangeAuthenticationKey(ObjectId keyId, ReadOnlySpan<byte> password)
     {
         yh_rc err = yh_util_change_authentication_key_derived(this.handle, ref keyId, password, (nuint)password.Length);
         YubiHsmException.ThrowIfError(err);
@@ -871,7 +871,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="templateId">The ID of the template to retrieve.</param>
     /// <param name="template">The buffer to store the retrieved template.</param>
     /// <returns>The length of the retrieved template.</returns>
-    public int GetTemplate(ushort templateId, Span<byte> template)
+    public int GetTemplate(ObjectId templateId, Span<byte> template)
     {
         yh_rc err = yh_util_get_template(this.handle, templateId, template, out nuint templateLen);
         YubiHsmException.ThrowIfError(err);
@@ -888,8 +888,8 @@ public sealed class YubiSession : IDisposable
     /// <param name="template">The buffer containing the template data.</param>
     /// <param name="templateId">The ID of the template to import.</param>
     /// <returns>The ID of the imported template.</returns>
-    public ushort ImportTemplate(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
-        Algorithm algorithm, ReadOnlySpan<byte> template, ushort templateId = 0)
+    public ObjectId ImportTemplate(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
+        Algorithm algorithm, ReadOnlySpan<byte> template, ObjectId templateId = default)
     {
         yh_rc err = yh_util_import_template(this.handle, ref templateId, utf8Label, domains,
             in capabilities, algorithm, template, (nuint)template.Length);
@@ -905,7 +905,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="privateId">The OTP private ID.</param>
     /// <param name="aead">The buffer to store the created AEAD.</param>
     /// <returns>The length of the created AEAD.</returns>
-    public int CreateOtpAead(ushort keyId, ReadOnlySpan<byte> key, ReadOnlySpan<byte> privateId, Span<byte> aead)
+    public int CreateOtpAead(ObjectId keyId, ReadOnlySpan<byte> key, ReadOnlySpan<byte> privateId, Span<byte> aead)
     {
         yh_rc err = yh_util_create_otp_aead(this.handle, keyId, key, privateId, aead, out nuint aeadLen);
         YubiHsmException.ThrowIfError(err);
@@ -918,7 +918,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="keyId">The ID of the key to use.</param>
     /// <param name="aead">The buffer to store the created AEAD.</param>
     /// <returns>The length of the created AEAD.</returns>
-    public int RandomizeOtpAead(ushort keyId, Span<byte> aead)
+    public int RandomizeOtpAead(ObjectId keyId, Span<byte> aead)
     {
         yh_rc err = yh_util_randomize_otp_aead(this.handle, keyId, aead, out nuint aeadLen);
         YubiHsmException.ThrowIfError(err);
@@ -932,7 +932,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="aead">The AEAD as created by <see cref="CreateOtpAead"/> or <see cref="RandomizeOtpAead"/>.</param>
     /// <param name="otp">The OTP to decrypt.</param>
     /// <returns>The decrypted counters and time information.</returns>
-    public OtpCounters DecryptOtp(ushort keyId, ReadOnlySpan<byte> aead, ReadOnlySpan<byte> otp)
+    public OtpCounters DecryptOtp(ObjectId keyId, ReadOnlySpan<byte> aead, ReadOnlySpan<byte> otp)
     {
         yh_rc err = yh_util_decrypt_otp(this.handle, keyId, aead, (nuint)aead.Length, otp,
             out ushort useCtr, out byte sessionCtr, out byte tstph, out ushort tstpl);
@@ -948,7 +948,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="fromAead">The AEAD to rewrap.</param>
     /// <param name="toAead">The buffer to store the rewrapped AEAD.</param>
     /// <returns>The length of the rewrapped AEAD.</returns>
-    public int RewrapOtpAead(ushort fromId, ushort toId, ReadOnlySpan<byte> fromAead, Span<byte> toAead)
+    public int RewrapOtpAead(ObjectId fromId, ObjectId toId, ReadOnlySpan<byte> fromAead, Span<byte> toAead)
     {
         yh_rc err = yh_util_rewrap_otp_aead(this.handle, fromId, toId, fromAead, (nuint)fromAead.Length, toAead, out nuint toAeadLen);
         YubiHsmException.ThrowIfError(err);
@@ -965,8 +965,8 @@ public sealed class YubiSession : IDisposable
     /// <param name="key">The key data.</param>
     /// <param name="keyId">The ID of the key. 0 if the ID should be generated by the device.</param>
     /// <returns>The ID of the imported key.</returns>
-    public ushort ImportOtpAeadKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
-        ushort nonceId, ReadOnlySpan<byte> key, ushort keyId = 0)
+    public ObjectId ImportOtpAeadKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
+        ushort nonceId, ReadOnlySpan<byte> key, ObjectId keyId = default)
     {
         yh_rc err = yh_util_import_otp_aead_key(this.handle, ref keyId, utf8Label, domains, in capabilities,
             nonceId, key, (nuint)key.Length);
@@ -984,8 +984,8 @@ public sealed class YubiSession : IDisposable
     /// <param name="nonceId">The nonce ID for the key.</param>
     /// <param name="keyId">The ID of the key. 0 if the ID should be generated by the device.</param>
     /// <returns>The ID of the generated key.</returns>
-    public ushort GenerateOtpAeadKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
-        Algorithm algorithm, ushort nonceId, ushort keyId = 0)
+    public ObjectId GenerateOtpAeadKey(ReadOnlySpan<byte> utf8Label, Domains domains, in Capabilities capabilities,
+        Algorithm algorithm, ushort nonceId, ObjectId keyId = default)
     {
         yh_rc err = yh_util_generate_otp_aead_key(this.handle, ref keyId, utf8Label, domains, in capabilities, algorithm, nonceId);
         YubiHsmException.ThrowIfError(err);
@@ -999,7 +999,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="attestationId">The ID of the key used to sign the attestation.</param>
     /// <param name="certificate">The buffer to store the generated certificate.</param>
     /// <returns>The length of the generated certificate.</returns>
-    public int SignAttestationCertificate(ushort keyId, ushort attestationId, Span<byte> certificate)
+    public int SignAttestationCertificate(ObjectId keyId, ObjectId attestationId, Span<byte> certificate)
     {
         yh_rc err = yh_util_sign_attestation_certificate(this.handle, keyId, attestationId, certificate, out nuint certLen);
         YubiHsmException.ThrowIfError(err);
@@ -1025,7 +1025,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="data">The data to wrap.</param>
     /// <param name="wrappedData">The buffer to store the wrapped data.</param>
     /// <returns>The length of the wrapped data.</returns>
-    public int WrapData(ushort keyId, ReadOnlySpan<byte> data, Span<byte> wrappedData)
+    public int WrapData(ObjectId keyId, ReadOnlySpan<byte> data, Span<byte> wrappedData)
     {
         yh_rc err = yh_util_wrap_data(this.handle, keyId, data, (nuint)data.Length, wrappedData, out nuint wrappedDataLen);
         YubiHsmException.ThrowIfError(err);
@@ -1039,7 +1039,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="wrappedData">The data to unwrap.</param>
     /// <param name="data">The buffer to store the unwrapped data.</param>
     /// <returns>The length of the unwrapped data.</returns>
-    public int UnwrapData(ushort keyId, ReadOnlySpan<byte> wrappedData, Span<byte> data)
+    public int UnwrapData(ObjectId keyId, ReadOnlySpan<byte> wrappedData, Span<byte> data)
     {
         yh_rc err = yh_util_unwrap_data(this.handle, keyId, wrappedData, (nuint)wrappedData.Length, data, out nuint dataLen);
         YubiHsmException.ThrowIfError(err);
@@ -1053,7 +1053,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="plaintext">The data to encrypt.</param>
     /// <param name="ciphertext">The buffer to store the encrypted data.</param>
     /// <returns>The length of the encrypted data.</returns>
-    public int EncryptAesEcb(ushort keyId, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext)
+    public int EncryptAesEcb(ObjectId keyId, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext)
     {
         yh_rc err = yh_util_encrypt_aes_ecb(this.handle, keyId, plaintext, (nuint)plaintext.Length, ciphertext, out nuint ciphertextLen);
         YubiHsmException.ThrowIfError(err);
@@ -1067,7 +1067,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="ciphertext">The data to decrypt.</param>
     /// <param name="plaintext">The buffer to store the decrypted data.</param>
     /// <returns>The length of the decrypted data.</returns>
-    public int DecryptAesEcb(ushort keyId, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext)
+    public int DecryptAesEcb(ObjectId keyId, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext)
     {
         yh_rc err = yh_util_decrypt_aes_ecb(this.handle, keyId, ciphertext, (nuint)ciphertext.Length, plaintext, out nuint plaintextLen);
         YubiHsmException.ThrowIfError(err);
@@ -1082,7 +1082,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="plaintext">The data to encrypt.</param>
     /// <param name="ciphertext">The buffer to store the encrypted data.</param>
     /// <returns>The length of the encrypted data.</returns>
-    public int EncryptAesCbc(ushort keyId, ReadOnlySpan<byte> iv, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext)
+    public int EncryptAesCbc(ObjectId keyId, ReadOnlySpan<byte> iv, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext)
     {
         yh_rc err = yh_util_encrypt_aes_cbc(this.handle, keyId, iv, plaintext, (nuint)plaintext.Length,
             ciphertext, out nuint ciphertextLen);
@@ -1098,7 +1098,7 @@ public sealed class YubiSession : IDisposable
     /// <param name="ciphertext">The data to decrypt.</param>
     /// <param name="plaintext">The buffer to store the decrypted data.</param>
     /// <returns>The length of the decrypted data.</returns>
-    public int DecryptAesCbc(ushort keyId, ReadOnlySpan<byte> iv, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext)
+    public int DecryptAesCbc(ObjectId keyId, ReadOnlySpan<byte> iv, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext)
     {
         yh_rc err = yh_util_decrypt_aes_cbc(this.handle, keyId, iv, ciphertext, (nuint)ciphertext.Length,
             plaintext, out nuint plaintextLen);

@@ -40,7 +40,7 @@ public class Echo(ITestOutputHelper output)
         responseData = responseData[..written];
         output.WriteLine($"Response ({responseData.Length} bytes): {Encoding.UTF8.GetString(responseData)}");
 
-        ushort authKeyId = 1;
+        ObjectId authKeyId = new(1);
         using YubiSession session = connector.CreateSession(authKeyId, password);
 
         byte sessionId = session.SessionId;

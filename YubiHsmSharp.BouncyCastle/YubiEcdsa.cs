@@ -73,9 +73,9 @@ public class YubiECPrivateKeyParameters : ECPrivateKeyParameters
     /// <summary>
     /// The object ID of the asymmetric key within the YubiHSM 2.
     /// </summary>
-    public ushort KeyId { get; }
+    public ObjectId KeyId { get; }
 
-    internal YubiECPrivateKeyParameters(ushort keyId, ECDomainParameters parameters)
+    internal YubiECPrivateKeyParameters(ObjectId keyId, ECDomainParameters parameters)
         : base(BigInteger.Zero, parameters)
     {
         this.KeyId = keyId;
@@ -90,9 +90,9 @@ public class YubiECPublicKeyParameters : ECPublicKeyParameters
     /// <summary>
     /// The object ID of the asymmetric key within the YubiHSM 2.
     /// </summary>
-    public ushort KeyId { get; }
+    public ObjectId KeyId { get; }
 
-    internal YubiECPublicKeyParameters(ushort keyId, ECPoint q, ECDomainParameters parameters)
+    internal YubiECPublicKeyParameters(ObjectId keyId, ECPoint q, ECDomainParameters parameters)
         : base(q, parameters)
     {
         this.KeyId = keyId;
@@ -127,7 +127,7 @@ public class YubiEcdsaKeyGenerator(YubiSession session) : IAsymmetricCipherKeyPa
         utf8Label = utf8Label[..(bytesWritten + 1)];
         utf8Label[^1] = 0;
 
-        ushort keyId = session.GenerateECKey(
+        ObjectId keyId = session.GenerateECKey(
             utf8Label,
             this.parameters.Domains,
             this.parameters.Capabilities,

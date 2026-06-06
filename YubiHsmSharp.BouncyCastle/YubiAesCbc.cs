@@ -16,7 +16,7 @@ public class YubiAesCbc(YubiSession session) : IBufferedCipher
     private readonly byte[] iv = new byte[16];
     private readonly MemoryStream data = new();
     private bool forEncryption;
-    private ushort keyId;
+    private ObjectId keyId;
 
     /// <inheritdoc />
     public string AlgorithmName => "AES/CBC";

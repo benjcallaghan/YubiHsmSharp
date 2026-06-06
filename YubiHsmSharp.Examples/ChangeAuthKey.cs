@@ -28,14 +28,14 @@ namespace YubiHsmSharp.Examples;
         ReadOnlySpan<byte> password1 = "password"u8;
         ReadOnlySpan<byte> password2 = "letmein!"u8;
         ReadOnlySpan<byte> password3 = "PASSWORD"u8;
-        ushort authKey = 1;
+        ObjectId authKey = new(1);
 
         using YubiModule module = new();
         using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
         connector.Connect();
 
         byte sessionId;
-        ushort keyId;
+        ObjectId keyId;
         using (YubiSession session = connector.CreateSession(authKey, password1))
         {
             sessionId = session.SessionId;
