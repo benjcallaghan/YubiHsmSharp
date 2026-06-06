@@ -31,7 +31,7 @@ public sealed class YubiModule : IDisposable
 
         yh_rc err = yh_init_connector(utf8Url, out SafeConnectorHandle handle);
         YubiHsmException.ThrowIfError(err);
-        return new YubiConnector(handle);
+        return new YubiConnector(this, handle);
     }
 
     /// <summary>
@@ -124,6 +124,17 @@ public sealed class YubiModule : IDisposable
     public void Dispose()
     {
         this.handle.Dispose();
+    }
+
+    internal void DangerousAddRef()
+    {
+        bool success = false;
+        this.handle.DangerousAddRef(ref success); // Throws on failure
+    }
+
+    internal void DangerousRelease()
+    {
+        this.handle.DangerousRelease();
     }
 
     // There is never an actual handle here. We're just relying on the cleanup of SafeHandle.

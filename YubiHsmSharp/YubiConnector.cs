@@ -6,15 +6,22 @@ namespace YubiHsmSharp;
 /// <summary>
 /// Represents a (pending) connection to a YubiHSM device.
 /// </summary>
+/// <remarks>
+/// The <see cref="YubiModule"/> that creates a connector is expected to outlive the created connector.
+/// Disposing the module while the connector is in scope is undefined behavior.
+/// </remarks>
 public sealed class YubiConnector : IDisposable
 {
     private static readonly SafeConnectorHandle NullConnectorHandle = new();
 
+    private readonly YubiModule parent; // Prevents module from being GC'd while connector is in scope.
     private readonly SafeConnectorHandle handle;
 
-    internal YubiConnector(SafeConnectorHandle handle)
+    internal YubiConnector(YubiModule parent, SafeConnectorHandle handle)
     {
+        this.parent = parent;
         this.handle = handle;
+        this.parent.DangerousAddRef(); // Ensure that the unmanaged connector remains alive while session is in scope.
     }
 
     /// <summary>
@@ -334,6 +341,7 @@ public sealed class YubiConnector : IDisposable
     public void Dispose()
     {
         this.handle.Dispose();
+        this.parent.DangerousRelease();
     }
 
     internal void DangerousAddRef()
