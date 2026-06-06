@@ -21,6 +21,10 @@ public sealed class YubiConnector : IDisposable
     /// Gets or sets the global verbosity level when executing device commands.
     /// This value may be set before initializing the module.
     /// </summary>
+    /// <remarks>
+    /// Changing this value has no impact on existing connectors.
+    /// The new value will be applied to connectors initialized after this call.
+    /// </remarks>
     public static Verbosity Verbosity
     {
         get
@@ -69,9 +73,11 @@ public sealed class YubiConnector : IDisposable
 
     /// <summary>
     /// Sets the verbosity level for this connector instance.
-    /// This value overrides the global verbosity for this connector,
-    /// but it does not affect other connectors.
     /// </summary>
+    /// <remarks>
+    /// WARNING: This method also sets the global verbosity level (affecting new connectors, but not existing connectors).
+    /// It also sets the connector's debug output to the current global debug output.
+    /// </remarks>
     /// <param name="verbosity">The verbosity level to set on this connector</param>
     public void SetVerbosity(Verbosity verbosity)
     {
@@ -80,8 +86,12 @@ public sealed class YubiConnector : IDisposable
     }
 
     /// <summary>
-    /// Set file for debug output
+    /// Redirects the debug output of all future connectors into the specified delegate.
+    /// This value may be set before initializing the module.
     /// </summary>
+    /// <remarks>
+    /// This method has no impact on connectors that are already initialized.
+    /// </remarks>
     /// <param name="output">A callback to execute for each line of debug messages.</param>
     public static void SetGlobalDebugOutput(Action<string> output)
     {
@@ -100,8 +110,12 @@ public sealed class YubiConnector : IDisposable
     }
 
     /// <summary>
-    /// Set file for debug output
+    /// Redirects the connector's debug output into the specified delegate.
     /// </summary>
+    /// <remarks>
+    /// WARNING: This method also sets the global debug output (affecting new connectors, but not existing connectors).
+    /// It also sets the connector's verbosity level to the current global verbosity level.
+    /// </remarks>
     /// <param name="output">A callback to execute for each line of debug messages.</param>
     public void SetDebugOutput(Action<string> output)
     {
