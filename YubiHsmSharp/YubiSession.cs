@@ -5,13 +5,20 @@ namespace YubiHsmSharp;
 /// <summary>
 /// Represents an authenticated and encrypted session with a YubiHSM device.
 /// </summary>
+/// <remarks>
+/// The <see cref="YubiConnector"/> that creates a session is expected to outlive the created session.
+/// Disposing the connector while the session is in scope is undefined behavior.
+/// </remarks>
 public sealed class YubiSession : IDisposable
 {
+    private readonly YubiConnector parent; // Prevents connector from being GC'd while session is in scope.
     private readonly SafeSessionHandle handle;
 
-    internal YubiSession(SafeSessionHandle handle)
+    internal YubiSession(YubiConnector parent, SafeSessionHandle handle)
     {
+        this.parent = parent;
         this.handle = handle;
+        this.parent.DangerousAddRef(); // Ensure that the unmanaged connector remains alive while session is in scope.
     }
 
     /// <summary>
@@ -1132,6 +1139,7 @@ public sealed class YubiSession : IDisposable
     public void Dispose()
     {
         this.handle.Dispose();
+        this.parent.DangerousRelease();
     }
 }
 

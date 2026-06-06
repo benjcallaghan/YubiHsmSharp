@@ -240,7 +240,7 @@ public sealed class YubiConnector : IDisposable
     {
         yh_rc err = yh_create_session_derived(this.handle, authKeyId, password, (nuint)password.Length, recreateSession, out SafeSessionHandle sessionHandle);
         YubiHsmException.ThrowIfError(err);
-        return new YubiSession(sessionHandle);
+        return new YubiSession(this, sessionHandle);
     }
 
     /// <summary>
@@ -255,7 +255,7 @@ public sealed class YubiConnector : IDisposable
     {
         yh_rc err = yh_create_session(this.handle, authKeyId, encryptionKey, (nuint)encryptionKey.Length, macKey, (nuint)macKey.Length, recreateSession, out SafeSessionHandle sessionHandle);
         YubiHsmException.ThrowIfError(err);
-        return new YubiSession(sessionHandle);
+        return new YubiSession(this, sessionHandle);
     }
 
     /// <summary>
@@ -269,7 +269,7 @@ public sealed class YubiConnector : IDisposable
     {
         yh_rc err = yh_create_session_ex(this.handle, authKeyId, utf8EncryptionKeyName, utf8MacKeyName, out SafeSessionHandle sessionHandle);
         YubiHsmException.ThrowIfError(err);
-        return new YubiSession(sessionHandle);
+        return new YubiSession(this, sessionHandle);
     }
 
     /// <summary>
@@ -287,7 +287,7 @@ public sealed class YubiConnector : IDisposable
         // Additionally, the yubihsm shell does NOT ask for the public key.
         yh_rc err = yh_create_session_asym(this.handle, authKeyId, clientPrivateKey, (nuint)clientPrivateKey.Length, devicePublicKey, (nuint)devicePublicKey.Length, out SafeSessionHandle sessionHandle);
         YubiHsmException.ThrowIfError(err);
-        return new YubiSession(sessionHandle);
+        return new YubiSession(this, sessionHandle);
     }
 
     // TODO: yh_begin_create_session and yh_finish_create_session for external authentication
@@ -334,6 +334,17 @@ public sealed class YubiConnector : IDisposable
     public void Dispose()
     {
         this.handle.Dispose();
+    }
+
+    internal void DangerousAddRef()
+    {
+        bool success = false;
+        this.handle.DangerousAddRef(ref success); // Throws on failure.
+    }
+
+    internal void DangerousRelease()
+    {
+        this.handle.DangerousRelease();
     }
 }
 
