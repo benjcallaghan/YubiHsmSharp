@@ -13,12 +13,13 @@ public sealed class YubiSession : IDisposable
 {
     private readonly YubiConnector parent; // Prevents connector from being GC'd while session is in scope.
     private readonly SafeSessionHandle handle;
+    private readonly bool parentAdded = false;
 
     internal YubiSession(YubiConnector parent, SafeSessionHandle handle)
     {
         this.parent = parent;
         this.handle = handle;
-        this.parent.DangerousAddRef(); // Ensure that the unmanaged connector remains alive while session is in scope.
+        this.parent.DangerousAddRef(ref this.parentAdded); // Ensure that the unmanaged connector remains alive while session is in scope.
     }
 
     /// <summary>
@@ -1139,7 +1140,10 @@ public sealed class YubiSession : IDisposable
     public void Dispose()
     {
         this.handle.Dispose();
-        this.parent.DangerousRelease();
+        if (this.parentAdded)
+        {
+            this.parent.DangerousRelease();
+        }
     }
 }
 

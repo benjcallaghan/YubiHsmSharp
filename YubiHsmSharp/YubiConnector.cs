@@ -16,12 +16,13 @@ public sealed class YubiConnector : IDisposable
 
     private readonly YubiModule parent; // Prevents module from being GC'd while connector is in scope.
     private readonly SafeConnectorHandle handle;
+    private readonly bool parentAdded = false;
 
     internal YubiConnector(YubiModule parent, SafeConnectorHandle handle)
     {
         this.parent = parent;
         this.handle = handle;
-        this.parent.DangerousAddRef(); // Ensure that the unmanaged connector remains alive while session is in scope.
+        this.parent.DangerousAddRef(ref this.parentAdded); // Ensure that the unmanaged connector remains alive while session is in scope.
     }
 
     /// <summary>
@@ -341,13 +342,15 @@ public sealed class YubiConnector : IDisposable
     public void Dispose()
     {
         this.handle.Dispose();
-        this.parent.DangerousRelease();
+        if (this.parentAdded)
+        {
+            this.parent.DangerousRelease();
+        }
     }
 
-    internal void DangerousAddRef()
+    internal void DangerousAddRef(ref bool success)
     {
-        bool success = false;
-        this.handle.DangerousAddRef(ref success); // Throws on failure.
+        this.handle.DangerousAddRef(ref success);
     }
 
     internal void DangerousRelease()

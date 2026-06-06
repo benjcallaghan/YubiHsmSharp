@@ -166,10 +166,9 @@ public sealed class YubiModule : IDisposable
         this.handle.Dispose();
     }
 
-    internal void DangerousAddRef()
+    internal void DangerousAddRef(ref bool success)
     {
-        bool success = false;
-        this.handle.DangerousAddRef(ref success); // Throws on failure
+        this.handle.DangerousAddRef(ref success);
     }
 
     internal void DangerousRelease()
