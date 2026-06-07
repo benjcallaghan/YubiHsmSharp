@@ -8,8 +8,6 @@ namespace YubiHsmSharp;
 /// </summary>
 public sealed class YubiModule : IDisposable
 {
-    private readonly SafeModuleHandle handle;
-
     /// <summary>
     /// Initializes the YubiHSM module.
     /// </summary>
@@ -17,8 +15,10 @@ public sealed class YubiModule : IDisposable
     {
         yh_rc err = yh_init();
         YubiHsmException.ThrowIfError(err);
-        this.handle = new SafeModuleHandle();
+        this.Handle = new SafeModuleHandle();
     }
+
+    internal SafeModuleHandle Handle { get; }
 
     /// <summary>
     /// Initializes a connection to a YubiHSM device using the specified URL.
@@ -27,7 +27,7 @@ public sealed class YubiModule : IDisposable
     /// <returns>A <see cref="YubiConnector"/> configured with the provided URL.</returns>
     public YubiConnector InitConnector(ReadOnlySpan<byte> utf8Url)
     {
-        Debug.Assert(this.handle != null, "YubiModule must be initialized before initializing a connector.");
+        Debug.Assert(this.Handle != null, "YubiModule must be initialized before initializing a connector.");
 
         yh_rc err = yh_init_connector(utf8Url, out SafeConnectorHandle handle);
         YubiHsmException.ThrowIfError(err);
@@ -57,7 +57,7 @@ public sealed class YubiModule : IDisposable
         bool added = false;
         try
         {
-            this.handle.DangerousAddRef(ref added);
+            this.Handle.DangerousAddRef(ref added);
             yh_rc err = yh_util_derive_ec_p256_key(password, (nuint)password.Length,
                 privateKey, (nuint)privateKey.Length,
                 publicKey, (nuint)publicKey.Length);
@@ -67,7 +67,7 @@ public sealed class YubiModule : IDisposable
         {
             if (added)
             {
-                this.handle.DangerousRelease();
+                this.Handle.DangerousRelease();
             }
         }
     }
@@ -88,7 +88,7 @@ public sealed class YubiModule : IDisposable
         bool added = false;
         try
         {
-            this.handle.DangerousAddRef(ref added);
+            this.Handle.DangerousAddRef(ref added);
             yh_rc err = yh_util_generate_ec_p256_key(
                 privateKey, (nuint)privateKey.Length,
                 publicKey, (nuint)publicKey.Length);
@@ -98,7 +98,7 @@ public sealed class YubiModule : IDisposable
         {
             if (added)
             {
-                this.handle.DangerousRelease();
+                this.Handle.DangerousRelease();
             }
         }
     }
@@ -115,7 +115,7 @@ public sealed class YubiModule : IDisposable
         bool added = false;
         try
         {
-            this.handle.DangerousAddRef(ref added);
+            this.Handle.DangerousAddRef(ref added);
             nuint length = (nuint)currentLength;
             yh_rc err = yh_util_pad_pkcs7(data, ref length, (nuint)data.Length, blockSize);
             return (int)length;
@@ -124,7 +124,7 @@ public sealed class YubiModule : IDisposable
         {
             if (added)
             {
-                this.handle.DangerousRelease();
+                this.Handle.DangerousRelease();
             }
         }
     }
@@ -143,7 +143,7 @@ public sealed class YubiModule : IDisposable
         bool added = false;
         try
         {
-            this.handle.DangerousAddRef(ref added);
+            this.Handle.DangerousAddRef(ref added);
             nuint length = (nuint)data.Length;
             yh_rc err = yh_util_unpad_pkcs7(data, ref length, blockSize);
             YubiHsmException.ThrowIfError(err);
@@ -153,7 +153,7 @@ public sealed class YubiModule : IDisposable
         {
             if (added)
             {
-                this.handle.DangerousRelease();
+                this.Handle.DangerousRelease();
             }
         }
     }
@@ -163,31 +163,21 @@ public sealed class YubiModule : IDisposable
     /// </summary>
     public void Dispose()
     {
-        this.handle.Dispose();
+        this.Handle.Dispose();
     }
+}
 
-    internal void DangerousAddRef(ref bool success)
+// There is never an actual handle here. We're just relying on the cleanup of SafeHandle.
+// Because this handle is never passed to P/Invoke methods, reference counting is handled manually.
+internal class SafeModuleHandle : SafeHandle
+{
+    public SafeModuleHandle() : base(IntPtr.Zero, true) { }
+
+    public override bool IsInvalid => false;
+
+    protected override bool ReleaseHandle()
     {
-        this.handle.DangerousAddRef(ref success);
-    }
-
-    internal void DangerousRelease()
-    {
-        this.handle.DangerousRelease();
-    }
-
-    // There is never an actual handle here. We're just relying on the cleanup of SafeHandle.
-    // Because this handle is never passed to P/Invoke methods, reference counting is handled manually.
-    private class SafeModuleHandle : SafeHandle
-    {
-        public SafeModuleHandle() : base(IntPtr.Zero, true) { }
-
-        public override bool IsInvalid => false;
-
-        protected override bool ReleaseHandle()
-        {
-            yh_rc err = yh_exit();
-            return err == yh_rc.YHR_SUCCESS;
-        }
+        yh_rc err = yh_exit();
+        return err == yh_rc.YHR_SUCCESS;
     }
 }

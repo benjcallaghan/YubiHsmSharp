@@ -21,8 +21,10 @@ public sealed class YubiConnector : IDisposable
     {
         this.parent = parent;
         this.Handle = handle;
-        this.parent.DangerousAddRef(ref this.parentAdded); // Ensure that the unmanaged connector remains alive while session is in scope.
+        this.Handle.SetParent(this.parent.Handle);
     }
+
+    internal SafeConnectorHandle Handle { get; }
 
     /// <summary>
     /// Gets or sets the global verbosity level when executing device commands.
@@ -77,8 +79,6 @@ public sealed class YubiConnector : IDisposable
             return MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)utf8Address);
         }
     }
-
-    internal SafeConnectorHandle Handle { get; }
 
     /// <summary>
     /// Sets the verbosity level for this connector instance.
@@ -343,32 +343,38 @@ public sealed class YubiConnector : IDisposable
     public void Dispose()
     {
         this.Handle.Dispose();
-        if (this.parentAdded)
-        {
-            this.parent.DangerousRelease();
-        }
-    }
-
-    internal void DangerousAddRef(ref bool success)
-    {
-        this.Handle.DangerousAddRef(ref success);
-    }
-
-    internal void DangerousRelease()
-    {
-        this.Handle.DangerousRelease();
     }
 }
 
 internal class SafeConnectorHandle : SafeHandle
 {
+    private SafeModuleHandle? parent;
+    private bool parentAdded;
+
     public SafeConnectorHandle() : base(IntPtr.Zero, true) { }
 
     public override bool IsInvalid => this.handle == IntPtr.Zero;
 
     protected override bool ReleaseHandle()
     {
-        yh_rc err = yh_disconnect(this.handle);
-        return err == yh_rc.YHR_SUCCESS;
+        try
+        {
+            yh_rc err = yh_disconnect(this.handle);
+            return err == yh_rc.YHR_SUCCESS;
+
+        }
+        finally
+        {
+            if (this.parentAdded && this.parent is not null)
+            {
+                this.parent.DangerousRelease();
+            }
+        }
+    }
+
+    public void SetParent(SafeModuleHandle parent)
+    {
+        this.parent = parent;
+        this.parent.DangerousAddRef(ref this.parentAdded);
     }
 }
