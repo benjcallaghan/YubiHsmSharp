@@ -15,7 +15,6 @@ public sealed class YubiConnector : IDisposable
     private static readonly SafeConnectorHandle NullConnectorHandle = new();
 
     private readonly YubiModule parent; // Prevents module from being GC'd while connector is in scope.
-    private readonly bool parentAdded = false;
 
     internal YubiConnector(YubiModule parent, SafeConnectorHandle handle)
     {

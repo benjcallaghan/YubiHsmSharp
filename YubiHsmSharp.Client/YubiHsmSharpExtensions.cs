@@ -109,7 +109,7 @@ public static partial class YubiHsmSharpExtensions
     {
         var logger = serviceProvider.GetRequiredService<ILogger<YubiConnector>>();
 
-        var module = new YubiModule();
+        var module = YubiModule.Instance;
         YubiConnector.SetGlobalDebugOutput(line => LogConnectorOutput(logger, line));
         return module;
     }

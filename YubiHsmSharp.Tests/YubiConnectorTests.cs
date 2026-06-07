@@ -30,7 +30,7 @@ public class YubiConnectorTests
     public void SendCommand_WithEchoRequest_ShouldReturnEqualResponse(int length)
     {
         // Arrange
-        using YubiModule module = new();
+        using YubiModule module = YubiModule.Instance;
         YubiConnector.Verbosity = Verbosity.Quiet;
         using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
         connector.Connect();

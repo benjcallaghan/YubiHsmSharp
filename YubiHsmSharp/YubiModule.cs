@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace YubiHsmSharp;
 
 /// <summary>
@@ -9,11 +11,21 @@ public sealed class YubiModule : IDisposable
     /// <summary>
     /// Initializes the YubiHSM module.
     /// </summary>
-    public YubiModule()
+    private YubiModule()
     {
         yh_rc err = yh_init();
         YubiHsmException.ThrowIfError(err);
         this.Handle = new SafeModuleHandle();
+    }
+
+    /// <summary>
+    /// Retrieves the singleton <see cref="YubiModule"/>.
+    /// </summary>
+    [AllowNull]
+    public static YubiModule Instance
+    {
+        get => field ??= new YubiModule();
+        private set;
     }
 
     internal SafeModuleHandle Handle { get; }
@@ -172,6 +184,7 @@ public sealed class YubiModule : IDisposable
     public void Dispose()
     {
         this.Handle.Dispose();
+        Instance = null; // Reset the singleton if someone disposes the instance.
     }
 }
 

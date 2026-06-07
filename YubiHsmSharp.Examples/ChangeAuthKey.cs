@@ -30,7 +30,7 @@ namespace YubiHsmSharp.Examples;
         ReadOnlySpan<byte> password3 = "PASSWORD"u8;
         ObjectId authKey = new(1);
 
-        using YubiModule module = new();
+        using YubiModule module = YubiModule.Instance;
         using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
         connector.Connect();
 

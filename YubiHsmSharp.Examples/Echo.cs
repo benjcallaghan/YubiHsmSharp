@@ -27,7 +27,7 @@ public class Echo(ITestOutputHelper output)
         ReadOnlySpan<byte> password = "password"u8;
         ReadOnlySpan<byte> data = "sudo make me a sandwich"u8;
 
-        using YubiModule module = new();
+        using YubiModule module = YubiModule.Instance;
         using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
         connector.Connect();
 

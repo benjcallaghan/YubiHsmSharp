@@ -27,7 +27,7 @@ public class Attestation(ITestOutputHelper output)
     [Fact]
     public void Main()
     {
-        using YubiModule module = new();
+        using YubiModule module = YubiModule.Instance;
         using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
         connector.Connect();
 

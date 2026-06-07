@@ -36,7 +36,7 @@ public class GenerateEC(ITestOutputHelper output)
         ReadOnlySpan<byte> data = "sudo make me a sandwich"u8;
         ObjectId authKeyId = new(1);
 
-        using YubiModule module = new();
+        using YubiModule module = YubiModule.Instance;
         using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
         connector.Connect();
         using YubiSession session = connector.CreateSession(authKeyId, password);

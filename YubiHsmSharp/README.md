@@ -17,7 +17,7 @@ Here is a small example of establishing a session with a YubiHSM 2 and fetching 
 ```csharp
 public static void Main()
 {
-    using YubiModule module = new();
+    using YubiModule module = YubiModule.Instance;
     using YubiConnector connector = module.InitializeConnector("http://localhost:12345"u8);
     connector.Connect();
     using YubiSession session = connector.CreateSession(1, "password"u8);

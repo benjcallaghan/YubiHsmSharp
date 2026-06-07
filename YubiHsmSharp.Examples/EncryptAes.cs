@@ -28,7 +28,7 @@ public class EncryptAes(ITestOutputHelper output)
         ReadOnlySpan<byte> plaintext = "singleblock msg\0"u8;
         ObjectId authKeyId = new(1);
 
-        using YubiModule module = new();
+        using YubiModule module = YubiModule.Instance;
         using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
         connector.Connect();
         using YubiSession session = connector.CreateSession(authKeyId, password);

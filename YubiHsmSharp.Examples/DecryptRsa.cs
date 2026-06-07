@@ -65,7 +65,7 @@ public class DecryptRsa(ITestOutputHelper output)
                                               0x18, 0x90, 0xaf, 0xd8, 0x07, 0x09];
         ObjectId authKeyId = new(1);
 
-        using YubiModule module = new();
+        using YubiModule module = YubiModule.Instance;
         using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
         connector.Connect();
         using YubiSession session = connector.CreateSession(authKeyId, password);
