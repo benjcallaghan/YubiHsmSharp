@@ -27,11 +27,21 @@ public sealed class YubiModule : IDisposable
     /// <returns>A <see cref="YubiConnector"/> configured with the provided URL.</returns>
     public YubiConnector InitConnector(ReadOnlySpan<byte> utf8Url)
     {
-        Debug.Assert(this.Handle != null, "YubiModule must be initialized before initializing a connector.");
-
-        yh_rc err = yh_init_connector(utf8Url, out SafeConnectorHandle handle);
-        YubiHsmException.ThrowIfError(err);
-        return new YubiConnector(this, handle);
+        bool added = false;
+        try
+        {
+            this.Handle.DangerousAddRef(ref added);
+            yh_rc err = yh_init_connector(utf8Url, out SafeConnectorHandle handle);
+            YubiHsmException.ThrowIfError(err);
+            return new YubiConnector(this, handle);
+        }
+        finally
+        {
+            if (added)
+            {
+                this.Handle.DangerousRelease();
+            }
+        }
     }
 
     /// <summary>
