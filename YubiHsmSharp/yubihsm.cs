@@ -61,7 +61,7 @@ namespace YubiHsmSharp;
 /// </code>
 /// </example>
 /// <seealso>yubihsm.h</seealso> 
-internal static partial class yubihsm
+internal static partial class @yubihsm
 {
     /// <summary>
     /// Length of context array for authentication
