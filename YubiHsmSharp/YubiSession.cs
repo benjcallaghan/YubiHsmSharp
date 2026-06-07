@@ -13,13 +13,12 @@ public sealed class YubiSession : IDisposable
 {
     private readonly YubiConnector parent; // Prevents connector from being GC'd while session is in scope.
     private readonly SafeSessionHandle handle;
-    private readonly bool parentAdded = false;
 
     internal YubiSession(YubiConnector parent, SafeSessionHandle handle)
     {
         this.parent = parent;
         this.handle = handle;
-        this.parent.DangerousAddRef(ref this.parentAdded); // Ensure that the unmanaged connector remains alive while session is in scope.
+        this.handle.SetParent(this.parent.Handle);
     }
 
     /// <summary>
@@ -1140,28 +1139,43 @@ public sealed class YubiSession : IDisposable
     public void Dispose()
     {
         this.handle.Dispose();
-        if (this.parentAdded)
-        {
-            this.parent.DangerousRelease();
-        }
     }
 }
 
 internal class SafeSessionHandle : SafeHandle
 {
+    private SafeConnectorHandle? parent;
+    private bool parentAdded = false;
+
     public SafeSessionHandle() : base(IntPtr.Zero, true) { }
 
     public override bool IsInvalid => this.handle == IntPtr.Zero;
 
     protected override bool ReleaseHandle()
     {
-        yh_rc err = yh_util_close_session(this.handle);
-        if (err != yh_rc.YHR_SUCCESS)
+        try
         {
-            return false;
-        }
+            yh_rc err = yh_util_close_session(this.handle);
+            if (err != yh_rc.YHR_SUCCESS)
+            {
+                return false;
+            }
 
-        err = yh_destroy_session(ref this.handle);
-        return err == yh_rc.YHR_SUCCESS;
+            err = yh_destroy_session(ref this.handle);
+            return err == yh_rc.YHR_SUCCESS;
+        }
+        finally
+        {
+            if (this.parentAdded && this.parent is not null)
+            {
+                this.parent.DangerousRelease();
+            }
+        }
+    }
+
+    public void SetParent(SafeConnectorHandle parent)
+    {
+        this.parent = parent;
+        this.parent.DangerousAddRef(ref this.parentAdded);
     }
 }

@@ -15,13 +15,12 @@ public sealed class YubiConnector : IDisposable
     private static readonly SafeConnectorHandle NullConnectorHandle = new();
 
     private readonly YubiModule parent; // Prevents module from being GC'd while connector is in scope.
-    private readonly SafeConnectorHandle handle;
     private readonly bool parentAdded = false;
 
     internal YubiConnector(YubiModule parent, SafeConnectorHandle handle)
     {
         this.parent = parent;
-        this.handle = handle;
+        this.Handle = handle;
         this.parent.DangerousAddRef(ref this.parentAdded); // Ensure that the unmanaged connector remains alive while session is in scope.
     }
 
@@ -51,7 +50,7 @@ public sealed class YubiConnector : IDisposable
     /// <summary>
     /// Gets whether the connector has a device connected.
     /// </summary>
-    public bool HasDevice => yh_connector_has_device(this.handle);
+    public bool HasDevice => yh_connector_has_device(this.Handle);
 
     /// <summary>
     /// Gets the connector version.
@@ -60,7 +59,7 @@ public sealed class YubiConnector : IDisposable
     {
         get
         {
-            yh_rc err = yh_get_connector_version(this.handle, out byte major, out byte minor, out byte patch);
+            yh_rc err = yh_get_connector_version(this.Handle, out byte major, out byte minor, out byte patch);
             YubiHsmException.ThrowIfError(err);
             return (major, minor, patch);
         }
@@ -73,11 +72,13 @@ public sealed class YubiConnector : IDisposable
     {
         get
         {
-            yh_rc err = yh_get_connector_address(this.handle, out nint utf8Address);
+            yh_rc err = yh_get_connector_address(this.Handle, out nint utf8Address);
             YubiHsmException.ThrowIfError(err);
             return MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)utf8Address);
         }
     }
+
+    internal SafeConnectorHandle Handle { get; }
 
     /// <summary>
     /// Sets the verbosity level for this connector instance.
@@ -89,7 +90,7 @@ public sealed class YubiConnector : IDisposable
     /// <param name="verbosity">The verbosity level to set on this connector</param>
     public void SetVerbosity(Verbosity verbosity)
     {
-        yh_rc err = yh_set_verbosity(this.handle, verbosity);
+        yh_rc err = yh_set_verbosity(this.Handle, verbosity);
         YubiHsmException.ThrowIfError(err);
     }
 
@@ -131,7 +132,7 @@ public sealed class YubiConnector : IDisposable
         _ = Task.Run(async () =>
         {
             using DebugFile debug = new();
-            yh_set_debug_output(this.handle, debug.WriteFile);
+            yh_set_debug_output(this.Handle, debug.WriteFile);
 
             using StreamReader reader = new(debug.ReadStream, Encoding.UTF8);
             while (await reader.ReadLineAsync() is string line)
@@ -150,7 +151,7 @@ public sealed class YubiConnector : IDisposable
     {
         fixed (byte* pUtf8FilePath = utf8FilePath)
         {
-            yh_rc err = yh_set_connector_option(this.handle, yh_connector_option.YH_CONNECTOR_HTTPS_CA, pUtf8FilePath);
+            yh_rc err = yh_set_connector_option(this.Handle, yh_connector_option.YH_CONNECTOR_HTTPS_CA, pUtf8FilePath);
             YubiHsmException.ThrowIfError(err);
         }
     }
@@ -164,7 +165,7 @@ public sealed class YubiConnector : IDisposable
     {
         fixed (byte* pUtf8ProxyUrl = utf8ProxyUrl)
         {
-            yh_rc err = yh_set_connector_option(this.handle, yh_connector_option.YH_CONNECTOR_PROXY_SERVER, pUtf8ProxyUrl);
+            yh_rc err = yh_set_connector_option(this.Handle, yh_connector_option.YH_CONNECTOR_PROXY_SERVER, pUtf8ProxyUrl);
             YubiHsmException.ThrowIfError(err);
         }
     }
@@ -178,7 +179,7 @@ public sealed class YubiConnector : IDisposable
     {
         fixed (byte* pUtf8FilePath = utf8FilePath)
         {
-            yh_rc err = yh_set_connector_option(this.handle, yh_connector_option.YH_CONNECTOR_HTTPS_CERT, pUtf8FilePath);
+            yh_rc err = yh_set_connector_option(this.Handle, yh_connector_option.YH_CONNECTOR_HTTPS_CERT, pUtf8FilePath);
             YubiHsmException.ThrowIfError(err);
         }
     }
@@ -192,7 +193,7 @@ public sealed class YubiConnector : IDisposable
     {
         fixed (byte* pUtf8FilePath = utf8FilePath)
         {
-            yh_rc err = yh_set_connector_option(this.handle, yh_connector_option.YH_CONNECTOR_HTTPS_KEY, pUtf8FilePath);
+            yh_rc err = yh_set_connector_option(this.Handle, yh_connector_option.YH_CONNECTOR_HTTPS_KEY, pUtf8FilePath);
             YubiHsmException.ThrowIfError(err);
         }
     }
@@ -206,7 +207,7 @@ public sealed class YubiConnector : IDisposable
     {
         fixed (byte* pUtf8NoProxy = utf8NoProxy)
         {
-            yh_rc err = yh_set_connector_option(this.handle, yh_connector_option.YH_CONNECTOR_NOPROXY, pUtf8NoProxy);
+            yh_rc err = yh_set_connector_option(this.Handle, yh_connector_option.YH_CONNECTOR_NOPROXY, pUtf8NoProxy);
             YubiHsmException.ThrowIfError(err);
         }
     }
@@ -217,7 +218,7 @@ public sealed class YubiConnector : IDisposable
     /// <param name="timeout">Connection timeout in seconds, 0 for no timeout.</param>
     public void Connect(int timeout = 0)
     {
-        yh_rc err = yh_connect(this.handle, timeout);
+        yh_rc err = yh_connect(this.Handle, timeout);
         YubiHsmException.ThrowIfError(err);
     }
 
@@ -231,7 +232,7 @@ public sealed class YubiConnector : IDisposable
     /// <seealso cref="YubiSession.SendMessage"/> 
     public (Command response, int responseLength) SendMessage(Command request, ReadOnlySpan<byte> requestData, Span<byte> responseBuffer)
     {
-        yh_rc err = yh_send_plain_msg(this.handle, request, requestData, (nuint)requestData.Length,
+        yh_rc err = yh_send_plain_msg(this.Handle, request, requestData, (nuint)requestData.Length,
             out Command responseCmd, responseBuffer, out nuint responseLen);
         YubiHsmException.ThrowIfError(err);
         return (responseCmd, (int)responseLen);
@@ -246,7 +247,7 @@ public sealed class YubiConnector : IDisposable
     /// <returns>The created session</returns>
     public YubiSession CreateSession(ObjectId authKeyId, ReadOnlySpan<byte> password, bool recreateSession = false)
     {
-        yh_rc err = yh_create_session_derived(this.handle, authKeyId, password, (nuint)password.Length, recreateSession, out SafeSessionHandle sessionHandle);
+        yh_rc err = yh_create_session_derived(this.Handle, authKeyId, password, (nuint)password.Length, recreateSession, out SafeSessionHandle sessionHandle);
         YubiHsmException.ThrowIfError(err);
         return new YubiSession(this, sessionHandle);
     }
@@ -261,7 +262,7 @@ public sealed class YubiConnector : IDisposable
     /// <returns>The created session</returns>
     public YubiSession CreateSession(ObjectId authKeyId, ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> macKey, bool recreateSession = false)
     {
-        yh_rc err = yh_create_session(this.handle, authKeyId, encryptionKey, (nuint)encryptionKey.Length, macKey, (nuint)macKey.Length, recreateSession, out SafeSessionHandle sessionHandle);
+        yh_rc err = yh_create_session(this.Handle, authKeyId, encryptionKey, (nuint)encryptionKey.Length, macKey, (nuint)macKey.Length, recreateSession, out SafeSessionHandle sessionHandle);
         YubiHsmException.ThrowIfError(err);
         return new YubiSession(this, sessionHandle);
     }
@@ -275,7 +276,7 @@ public sealed class YubiConnector : IDisposable
     /// <returns>The created session</returns>
     public YubiSession CreateSession(ObjectId authKeyId, ReadOnlySpan<byte> utf8EncryptionKeyName, ReadOnlySpan<byte> utf8MacKeyName)
     {
-        yh_rc err = yh_create_session_ex(this.handle, authKeyId, utf8EncryptionKeyName, utf8MacKeyName, out SafeSessionHandle sessionHandle);
+        yh_rc err = yh_create_session_ex(this.Handle, authKeyId, utf8EncryptionKeyName, utf8MacKeyName, out SafeSessionHandle sessionHandle);
         YubiHsmException.ThrowIfError(err);
         return new YubiSession(this, sessionHandle);
     }
@@ -293,7 +294,7 @@ public sealed class YubiConnector : IDisposable
         // yh_create_session_asym currently requires both the client private key and device public key,
         // but the device public key could be retrieved from the device using yh_util_get_device_pubkey.
         // Additionally, the yubihsm shell does NOT ask for the public key.
-        yh_rc err = yh_create_session_asym(this.handle, authKeyId, clientPrivateKey, (nuint)clientPrivateKey.Length, devicePublicKey, (nuint)devicePublicKey.Length, out SafeSessionHandle sessionHandle);
+        yh_rc err = yh_create_session_asym(this.Handle, authKeyId, clientPrivateKey, (nuint)clientPrivateKey.Length, devicePublicKey, (nuint)devicePublicKey.Length, out SafeSessionHandle sessionHandle);
         YubiHsmException.ThrowIfError(err);
         return new YubiSession(this, sessionHandle);
     }
@@ -307,7 +308,7 @@ public sealed class YubiConnector : IDisposable
     /// <returns>A tuple containing the algorithm of the device public key and its length</returns>
     public (Algorithm algorithm, int publicKeyLength) GetDevicePublicKey(Span<byte> publicKey)
     {
-        yh_rc err = yh_util_get_device_pubkey(this.handle, publicKey, out nuint responseLen, out Algorithm alg);
+        yh_rc err = yh_util_get_device_pubkey(this.Handle, publicKey, out nuint responseLen, out Algorithm alg);
         YubiHsmException.ThrowIfError(err);
         return (alg, (int)responseLen);
     }
@@ -318,7 +319,7 @@ public sealed class YubiConnector : IDisposable
     /// <returns>The device information</returns>
     public DeviceInfo GetDeviceInfo()
     {
-        yh_rc err = yh_util_get_device_info_ex(this.handle, out DeviceInfo deviceInfo);
+        yh_rc err = yh_util_get_device_info_ex(this.Handle, out DeviceInfo deviceInfo);
         YubiHsmException.ThrowIfError(err);
         return deviceInfo;
     }
@@ -331,7 +332,7 @@ public sealed class YubiConnector : IDisposable
     /// <returns>The length of the part number</returns>
     public int GetPartNumber(Span<byte> utf8PartNumber)
     {
-        yh_rc err = yh_util_get_partnumber(this.handle, utf8PartNumber, out nuint partNumberLen);
+        yh_rc err = yh_util_get_partnumber(this.Handle, utf8PartNumber, out nuint partNumberLen);
         YubiHsmException.ThrowIfError(err);
         return (int)partNumberLen;
     }
@@ -341,7 +342,7 @@ public sealed class YubiConnector : IDisposable
     /// </summary>
     public void Dispose()
     {
-        this.handle.Dispose();
+        this.Handle.Dispose();
         if (this.parentAdded)
         {
             this.parent.DangerousRelease();
@@ -350,12 +351,12 @@ public sealed class YubiConnector : IDisposable
 
     internal void DangerousAddRef(ref bool success)
     {
-        this.handle.DangerousAddRef(ref success);
+        this.Handle.DangerousAddRef(ref success);
     }
 
     internal void DangerousRelease()
     {
-        this.handle.DangerousRelease();
+        this.Handle.DangerousRelease();
     }
 }
 
