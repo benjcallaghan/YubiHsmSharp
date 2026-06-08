@@ -32,7 +32,7 @@ public class AsymmetricAuthentication(ITestOutputHelper output)
 
         connector.SetVerbosity(Verbosity.All);
 
-        DeviceInfo device = connector.GetDeviceInfo();
+        Info device = connector.GetDeviceInfo();
         if (!device.Algorithms.Contains(Algorithm.ECP256YubicoAuthentication))
         {
             output.WriteLine("Skipping this test because the device does not support asymmetric authentication.");
