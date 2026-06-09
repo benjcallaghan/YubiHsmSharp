@@ -36,7 +36,7 @@ public class EncryptAes(ITestOutputHelper output)
         byte sessionId = session.SessionId;
         output.WriteLine($"Successfully established session {sessionId}.");
 
-        Info device = connector.GetDeviceInfo();
+        DeviceInfo device = connector.GetDeviceInfo();
         if (!device.Algorithms.Contains(Algorithm.AesEcb) || !device.Algorithms.Contains(Algorithm.AesCbc))
         {
             output.WriteLine("ECB/CBC unsupported or disabled.");
