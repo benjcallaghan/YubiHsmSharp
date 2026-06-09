@@ -20,6 +20,7 @@ public sealed class YubiSession : IDisposable
         this.handle = handle;
         this.handle.SetParent(this.parent.Handle);
         this.CommandAudit = new AuditDictionary(this);
+        this.AlgorithmToggle = new AlgorithmDictionary(this);
     }
 
     /// <summary>
@@ -49,7 +50,10 @@ public sealed class YubiSession : IDisposable
     /// </summary>
     public AuditDictionary CommandAudit { get; }
 
-    // TODO: Algorithm Toggle
+    /// <summary>
+    /// Gets a collection of algorithms, allowing those algorithms to be enabled or disabled.
+    /// </summary>
+    public AlgorithmDictionary AlgorithmToggle { get; }
 
     /// <summary>
     /// Gets or sets the status of FIPS mode. Changing this value can only be done on an empty YubiHSM 2.
@@ -1199,6 +1203,63 @@ public sealed class YubiSession : IDisposable
         {
             Span<byte> auditOptions = [(byte)key, (byte)value];
             yh_rc err = yh_util_set_option(this.session.handle, yh_option.YH_OPTION_COMMAND_AUDIT, (nuint)auditOptions.Length, auditOptions);
+            YubiHsmException.ThrowIfError(err);
+        }
+    }
+
+    /// <summary>
+    /// A collection of algorithms, allowing audit of that command to be enabled or disabled.
+    /// </summary>
+    public class AlgorithmDictionary
+    {
+        private readonly YubiSession session;
+        private readonly Dictionary<Algorithm, DeviceOption> cache = [];
+
+        internal AlgorithmDictionary(YubiSession session)
+        {
+            this.session = session;
+        }
+
+        /// <summary>
+        /// Gets or sets the status of the provided algorithm.
+        /// </summary>
+        /// <param name="key">The algorithm to lookup or modify.</param>
+        public DeviceOption this[Algorithm key]
+        {
+            get
+            {
+                if (cache.Count is 0)
+                {
+                    LoadCache();
+                }
+                return cache.TryGetValue(key, out DeviceOption value) ? value : DeviceOption.Disabled;
+            }
+            set
+            {
+                SetOption(key, value);
+                cache.Clear(); // Invalidate the cache.
+            }
+        }
+
+        private void LoadCache()
+        {
+            Span<byte> toggleOptions = stackalloc byte[63 * 2]; // 63 commands, 2 bytes each
+            yh_rc err = yh_util_get_option(this.session.handle, yh_option.YH_OPTION_ALGORITHM_TOGGLE, toggleOptions, out nuint nWritten);
+            YubiHsmException.ThrowIfError(err);
+
+            int written = (int)nWritten;
+            for (int i = 0; i < written; i += 2)
+            {
+                Algorithm key = (Algorithm)toggleOptions[i];
+                DeviceOption value = (DeviceOption)toggleOptions[i + 1];
+                this.cache[key] = value;
+            }
+        }
+
+        private void SetOption(Algorithm key, DeviceOption value)
+        {
+            Span<byte> toggleOptions = [(byte)key, (byte)value];
+            yh_rc err = yh_util_set_option(this.session.handle, yh_option.YH_OPTION_ALGORITHM_TOGGLE, (nuint)toggleOptions.Length, toggleOptions);
             YubiHsmException.ThrowIfError(err);
         }
     }
