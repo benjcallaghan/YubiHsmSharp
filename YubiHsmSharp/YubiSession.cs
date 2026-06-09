@@ -19,6 +19,7 @@ public sealed class YubiSession : IDisposable
         this.parent = parent;
         this.handle = handle;
         this.handle.SetParent(this.parent.Handle);
+        this.CommandAudit = new AuditDictionary(this);
     }
 
     /// <summary>
@@ -43,7 +44,11 @@ public sealed class YubiSession : IDisposable
         }
     }
 
-    // TODO: Command Audit
+    /// <summary>
+    /// Gets a collection of commands, allowing audit of that command to be enabled or disabled.
+    /// </summary>
+    public AuditDictionary CommandAudit { get; }
+
     // TODO: Algorithm Toggle
 
     /// <summary>
@@ -1139,6 +1144,63 @@ public sealed class YubiSession : IDisposable
     public void Dispose()
     {
         this.handle.Dispose();
+    }
+
+    /// <summary>
+    /// A collection of commands, allowing audit of that command to be enabled or disabled.
+    /// </summary>
+    public class AuditDictionary
+    {
+        private readonly YubiSession session;
+        private readonly Dictionary<Command, DeviceOption> cache = [];
+
+        internal AuditDictionary(YubiSession session)
+        {
+            this.session = session;
+        }
+
+        /// <summary>
+        /// Gets or sets the audit status of the provided command.
+        /// </summary>
+        /// <param name="key">The command to lookup or modify.</param>
+        public DeviceOption this[Command key]
+        {
+            get
+            {
+                if (cache.Count is 0)
+                {
+                    LoadCache();
+                }
+                return cache.TryGetValue(key, out DeviceOption value) ? value : DeviceOption.Disabled;
+            }
+            set
+            {
+                SetOption(key, value);
+                cache.Clear(); // Invalidate the cache.
+            }
+        }
+
+        private void LoadCache()
+        {
+            Span<byte> auditOptions = stackalloc byte[63 * 2]; // 63 commands, 2 bytes each
+            yh_rc err = yh_util_get_option(this.session.handle, yh_option.YH_OPTION_COMMAND_AUDIT, auditOptions, out nuint nWritten);
+            YubiHsmException.ThrowIfError(err);
+
+            int written = (int)nWritten;
+            for (int i = 0; i < written; i += 2)
+            {
+                Command key = (Command)auditOptions[i];
+                DeviceOption value = (DeviceOption)auditOptions[i + 1];
+                this.cache[key] = value;
+            }
+        }
+
+        private void SetOption(Command key, DeviceOption value)
+        {
+            Span<byte> auditOptions = [(byte)key, (byte)value];
+            yh_rc err = yh_util_set_option(this.session.handle, yh_option.YH_OPTION_COMMAND_AUDIT, (nuint)auditOptions.Length, auditOptions);
+            YubiHsmException.ThrowIfError(err);
+        }
     }
 }
 
