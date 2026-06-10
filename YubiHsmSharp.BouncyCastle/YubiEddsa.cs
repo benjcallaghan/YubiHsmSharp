@@ -111,7 +111,7 @@ public class YubiEd25519PublicKeyParameters : AsymmetricKeyParameter
     internal YubiEd25519PublicKeyParameters(ObjectId keyId, ReadOnlySpan<byte> publicKey) : base(privateKey: false)
     {
         this.KeyId = keyId;
-        this.Parameters = new Ed25519PublicKeyParameters(publicKey.ToArray());
+        this.Parameters = new Ed25519PublicKeyParameters(publicKey);
     }
 }
 

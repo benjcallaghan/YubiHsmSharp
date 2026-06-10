@@ -80,11 +80,11 @@ public class Wrap(ITestOutputHelper output)
 
         ECDomainParameters domain = ECDomainParameters.LookupName("secp256r1");
         ECPoint point = domain.Curve.DecodePoint(publicKeyBefore[..publicKeyBeforeLength]);
-        ECPublicKeyParameters publicKey = new(point, domain);
+        ECPublicKeyParameters ecPublicKey = new(point, domain);
 
-        ECDsaSigner signer = new();
-        signer.Init(forSigning: false, publicKey);
-        bool verified = signer.VerifySignature(hashedData.ToArray(), r, s);
+        ECDsaSigner ecSigner = new();
+        ecSigner.Init(forSigning: false, ecPublicKey);
+        bool verified = ecSigner.VerifySignature(hashedData.ToArray(), r, s);
         Assert.True(verified);
         output.WriteLine("ECDSA Signature before successfully verified.");
 
@@ -104,9 +104,11 @@ public class Wrap(ITestOutputHelper output)
         output.WriteLine($"Unable to get public key for ec key with ID {keyIdBefore}.");
 
         (ObjectType objectTypeAfter, ObjectId keyIdAfter) = session.ImportWrapped(wrappingKeyId, wrappedObject[..wrappedObjectLength]);
-        Assert.Equal(ObjectType.AsymmetricKey, objectTypeAfter);
-        Assert.NotEqual(keyIdBefore, keyIdAfter);
         output.WriteLine($"Successfully imported wrapped object with ID {keyIdAfter}.");
+
+        Assert.Equal(ObjectType.AsymmetricKey, objectTypeAfter);
+        Assert.Equal(keyIdBefore, keyIdAfter);
+        output.WriteLine($"ID {keyIdBefore} and {keyIdAfter} match.");
 
         // The exported public key is the raw X,Y point on the EC curve.
         // Most parsers expect a 0x04 "uncompressed" flag as the first byte.
@@ -114,7 +116,7 @@ public class Wrap(ITestOutputHelper output)
         (_, int publicKeyAfterLength) = session.GetPublicKey(keyIdAfter, publicKeyAfter[1..]);
         publicKeyAfter[0] = 0x04;
         publicKeyAfterLength++;
-        output.WriteLine($"Public key after ({publicKeyAfterLength} bytes) is: {Convert.ToHexString(publicKeyAfter[..publicKeyAfterLength])}");
+        output.WriteLine($"Public ec key after ({publicKeyAfterLength} bytes) is: {Convert.ToHexString(publicKeyAfter[..publicKeyAfterLength])}");
 
         Assert.Equal(publicKeyBefore[..publicKeyBeforeLength], publicKeyAfter[..publicKeyAfterLength]);
         output.WriteLine("Public key before and after match.");
@@ -124,14 +126,69 @@ public class Wrap(ITestOutputHelper output)
         output.WriteLine($"ECDSA signature after ({signatureAfterLength} bytes) is: {Convert.ToHexString(signatureAfter[..signatureAfterLength])}");
 
         point = domain.Curve.DecodePoint(publicKeyAfter[..publicKeyAfterLength]);
-        publicKey = new(point, domain);
+        ecPublicKey = new(point, domain);
 
-        signer.Init(forSigning: false, publicKey);
-        verified = signer.VerifySignature(hashedData.ToArray(), r, s);
+        ecSigner.Init(forSigning: false, ecPublicKey);
+        verified = ecSigner.VerifySignature(hashedData.ToArray(), r, s);
         Assert.True(verified);
         output.WriteLine("ECDSA Signature after successfully verified.");
 
         ObjectDescriptor @object = session.GetObject(keyIdAfter, ObjectType.AsymmetricKey);
         session.DeleteObject(keyIdAfter, ObjectType.AsymmetricKey);
+        output.WriteLine($"Successfully deleted ec key with ID {keyIdAfter}.");
+
+        keyIdBefore = session.GenerateEDKey(keyLabel, domainFive, in capabilities, Algorithm.Ed25519);
+        output.WriteLine($"Generated ed25519 key with ID {keyIdBefore}.");
+
+        (_, publicKeyBeforeLength) = session.GetPublicKey(keyIdBefore, publicKeyBefore);
+        output.WriteLine($"Public ed25519 key before ({publicKeyBeforeLength} bytes) is: {Convert.ToHexString(publicKeyBefore[..publicKeyBeforeLength])}");
+
+        signatureBeforeLength = session.SignEddsa(keyIdBefore, hashedData, signatureBefore);
+        output.WriteLine($"Signature ({signatureBeforeLength} bytes) is: {Convert.ToHexString(signatureBefore[..signatureBeforeLength])}");
+
+        Ed25519PublicKeyParameters edPublicKey = new(publicKeyBefore[..publicKeyBeforeLength]);
+        ISigner edSigner = SignerUtilities.GetSigner("ED25519");
+        edSigner.Init(forSigning: false, edPublicKey);
+        edSigner.BlockUpdate(hashedData);
+        verified = edSigner.VerifySignature(signatureBefore[..signatureBeforeLength].ToArray());
+        Assert.True(verified);
+        output.WriteLine("EDDSA Signature before successfully verified.");
+
+        wrappedObjectLength = session.ExportWrapped(wrappingKeyId, ObjectType.AsymmetricKey, keyIdBefore, wrappedObject);
+        output.WriteLine($"Wrapped object ({wrappedObjectLength} bytes) is: {Convert.ToHexString(wrappedObject[..wrappedObjectLength])}");
+
+        session.DeleteObject(keyIdBefore, ObjectType.AsymmetricKey);
+        output.WriteLine($"Successfully deleted ed25519 key with ID {keyIdBefore}.");
+
+        Assert.Throws<YubiHsmException>(getPublicKey);
+        output.WriteLine($"Unable to get public key for ed25519 key with ID {keyIdBefore}.");
+
+        (objectTypeAfter, keyIdAfter) = session.ImportWrapped(wrappingKeyId, wrappedObject[..wrappedObjectLength]);
+        output.WriteLine($"Successfully imported wrapped object with ID {keyIdAfter}");
+        Assert.Equal(ObjectType.AsymmetricKey, objectTypeAfter);
+        Assert.Equal(keyIdBefore, keyIdAfter);
+        output.WriteLine($"ID {keyIdBefore} and {keyIdAfter} match.");
+
+        (_, publicKeyAfterLength) = session.GetPublicKey(keyIdAfter, publicKeyAfter);
+        output.WriteLine($"Public ed25519 key after ({publicKeyAfterLength} bytes) is: {Convert.ToHexString(publicKeyAfter[..publicKeyAfterLength])}");
+
+        Assert.Equal(publicKeyBefore[..publicKeyBeforeLength], publicKeyAfter[..publicKeyAfterLength]);
+        output.WriteLine("Public key before and after match.");
+
+        signatureAfterLength = session.SignEddsa(keyIdAfter, hashedData, signatureAfter);
+        output.WriteLine($"Signature ({signatureAfterLength} bytes) is: {Convert.ToHexString(signatureAfter[..signatureAfterLength])}");
+
+        edSigner.Init(forSigning: false, edPublicKey);
+        edSigner.BlockUpdate(hashedData);
+        verified = edSigner.VerifySignature(signatureAfter[..signatureAfterLength].ToArray());
+        Assert.True(verified);
+        output.WriteLine("EDDSA Signature after successfully verified.");
+
+        Assert.Equal(signatureBefore[..signatureBeforeLength], signatureAfter[..signatureAfterLength]);
+        output.WriteLine("Signature before and after match.");
+
+        @object = session.GetObject(keyIdAfter, ObjectType.AsymmetricKey);
+        session.DeleteObject(keyIdAfter, ObjectType.AsymmetricKey);
+        output.WriteLine($"Successfully deleted ed25519 key with ID {keyIdAfter}.");
     }
 }
