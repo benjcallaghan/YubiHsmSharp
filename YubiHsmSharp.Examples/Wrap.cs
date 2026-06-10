@@ -165,6 +165,7 @@ public class Wrap(ITestOutputHelper output)
 
         (objectTypeAfter, keyIdAfter) = session.ImportWrapped(wrappingKeyId, wrappedObject[..wrappedObjectLength]);
         output.WriteLine($"Successfully imported wrapped object with ID {keyIdAfter}");
+
         Assert.Equal(ObjectType.AsymmetricKey, objectTypeAfter);
         Assert.Equal(keyIdBefore, keyIdAfter);
         output.WriteLine($"ID {keyIdBefore} and {keyIdAfter} match.");
@@ -190,5 +191,66 @@ public class Wrap(ITestOutputHelper output)
         @object = session.GetObject(keyIdAfter, ObjectType.AsymmetricKey);
         session.DeleteObject(keyIdAfter, ObjectType.AsymmetricKey);
         output.WriteLine($"Successfully deleted ed25519 key with ID {keyIdAfter}.");
+
+        keyIdBefore = session.GenerateRsaKey(keyLabel, domainFive, in capabilities, Algorithm.Rsa2048);
+        output.WriteLine($"Generated 2048 bit RSA key with ID {keyIdBefore}.");
+
+        (_, publicKeyBeforeLength) = session.GetPublicKey(keyIdBefore, publicKeyBefore);
+        output.WriteLine($"Public RSA key before ({publicKeyBeforeLength} bytes) is: {Convert.ToHexString(publicKeyBefore[..publicKeyBeforeLength])}");
+
+        signatureBeforeLength = session.SignPkcs1v15(keyIdBefore, hashed: true, hashedData, signatureBefore);
+        output.WriteLine($"Signature ({signatureBeforeLength} bytes) is: {Convert.ToHexString(signatureBefore[..signatureBeforeLength])}");
+
+        RsaKeyParameters rsaPublicKey = new(
+            isPrivate: false,
+            new BigInteger(sign: 1, publicKeyBefore[..publicKeyBeforeLength]), // The returned public key is only the modulus.
+            new BigInteger("0x010001") // YubiHSM 2 uses a hard-coded public exponent.
+        );
+        ISigner rsaSigner = SignerUtilities.GetSigner("SHA256withRSA");
+        rsaSigner.Init(forSigning: false, rsaPublicKey);
+        rsaSigner.BlockUpdate(data);
+        verified = rsaSigner.VerifySignature(signatureBefore[..signatureBeforeLength].ToArray());
+        Assert.True(verified);
+        output.WriteLine("RSA signature before successfully verified.");
+
+        wrappedObjectLength = session.ExportWrapped(wrappingKeyId, ObjectType.AsymmetricKey, keyIdBefore, wrappedObject);
+        output.WriteLine($"Wrapped object ({wrappedObjectLength} bytes) is: {Convert.ToHexString(wrappedObject[..wrappedObjectLength])}");
+
+        session.DeleteObject(keyIdBefore, ObjectType.AsymmetricKey);
+        output.WriteLine($"Successfully deleted RSA key with ID {keyIdBefore}.");
+
+        Assert.Throws<YubiHsmException>(getPublicKey);
+        output.WriteLine($"Unable to get public key for RSA key with ID {keyIdBefore}.");
+
+        (objectTypeAfter, keyIdAfter) = session.ImportWrapped(wrappingKeyId, wrappedObject);
+        output.WriteLine($"Successfully imported wrapped object with ID {keyIdAfter}.");
+
+        Assert.Equal(ObjectType.AsymmetricKey, objectTypeAfter);
+        Assert.Equal(keyIdBefore, keyIdAfter);
+        output.WriteLine($"ID {keyIdBefore} and {keyIdAfter} match.");
+
+        (_, publicKeyAfterLength) = session.GetPublicKey(keyIdAfter, publicKeyAfter);
+        output.WriteLine($"Public RSA key after ({publicKeyAfterLength} bytes) is: {Convert.ToHexString(publicKeyAfter[..publicKeyAfterLength])}");
+
+        Assert.Equal(publicKeyBefore[..publicKeyBeforeLength], publicKeyAfter[..publicKeyAfterLength]);
+        output.WriteLine("Public key before and after match.");
+
+        signatureAfterLength = session.SignPkcs1v15(keyIdAfter, hashed: true, hashedData, signatureAfter);
+        output.WriteLine($"Signature ({signatureAfterLength} bytes) is: {Convert.ToHexString(signatureAfter[..signatureAfterLength])}");
+
+        rsaPublicKey = new(
+            isPrivate: false,
+            new BigInteger(sign: 1, publicKeyAfter[..publicKeyAfterLength]), // The returned public key is only the modulus.
+            new BigInteger("0x010001") // YubiHSM 2 uses a hard-coded public exponent.
+        );
+        rsaSigner.Init(forSigning: false, rsaPublicKey);
+        rsaSigner.BlockUpdate(data);
+        verified = rsaSigner.VerifySignature(signatureAfter[..signatureAfterLength].ToArray());
+        Assert.True(verified);
+        output.WriteLine("RSA signature after successfully verified.");
+
+        @object = session.GetObject(keyIdAfter, ObjectType.AsymmetricKey);
+        session.DeleteObject(keyIdAfter, ObjectType.AsymmetricKey);
+        output.WriteLine($"Successfully deleted RSA key with ID {keyIdAfter}.");
     }
 }
