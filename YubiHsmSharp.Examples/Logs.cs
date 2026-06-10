@@ -42,7 +42,7 @@ public class Logs(ITestOutputHelper output)
         Span<LogEntry> logs = stackalloc LogEntry[64]; // Max log entries
         (ushort unloggedBoot, ushort unloggedAuth, int written) = session.GetLogEntries(logs);
 
-        LogEntry? lastPreviousLog = written > 0 ? logs[^1] : null;
+        LogEntry? lastPreviousLog = written > 0 ? logs[written - 1] : null;
         if (lastPreviousLog is not null)
         {
             session.SetLogIndex(lastPreviousLog.Value.Number);
