@@ -7,11 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\YubiHsmSharp.Hosting\YubiHsmSharp.Hosting.csproj" />
     <ProjectReference Include="..\YubiHsmSharp.Client\YubiHsmSharp.Client.csproj" />
   </ItemGroup>
 
