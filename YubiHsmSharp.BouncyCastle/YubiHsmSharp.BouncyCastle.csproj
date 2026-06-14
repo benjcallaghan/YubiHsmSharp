@@ -1,5 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <Description>A compatibility shim that exposes YubiHSM 2 operations through BouncyCastle-defined interfaces.</Description>
+    <PackageTags>$(PackageTags);bouncycastle</PackageTags>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\YubiHsmSharp\YubiHsmSharp.csproj" />
   </ItemGroup>

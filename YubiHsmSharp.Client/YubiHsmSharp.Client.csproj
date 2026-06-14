@@ -1,5 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <Description>A .NET Aspire Client Integration that automatically configures a YubiHSm 2 client.</Description>
+    <PackageTags>$(PackageTags);aspire;integration;client;component</PackageTags>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\YubiHsmSharp\YubiHsmSharp.csproj" />
   </ItemGroup>

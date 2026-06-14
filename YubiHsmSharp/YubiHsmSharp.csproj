@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Description>A C# wrapper around libyubihsm with idiomatic .NET types.</Description>
   </PropertyGroup>
 
 </Project>

@@ -1,5 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+    <PropertyGroup>
+        <Description>An implementation of PCI-compatibile PIN cryptography methods that store sensitive keys in a YubiHSM 2.</Description>
+        <PackageTags>$(PackageTags);bouncycastle;pci-pin</PackageTags>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\YubiHsmSharp.BouncyCastle\YubiHsmSharp.BouncyCastle.csproj" />
     </ItemGroup>
