@@ -6,7 +6,7 @@ This library is a C# wrapper around [libyubihsm](https://docs.yubico.com/hardwar
 
 Debug output is controlled with the property `YubiConnector.Verbosity`, which can be set before the library is initialized.
 
-First step of using a YubiHSM 2 is to initialize the library with `new YubiModule()`, initialize a connector with `YubiModule.InitializeConnector()`, and then connect it to the YubiHSM 2 with `YubiConnector.Connect()`. After this, a session must be established with `YubiConnector.CreateSession()`.
+First step of using a YubiHSM 2 is to initialize the library by accessing `YubiModule.Instance`, initialize a connector with `YubiModule.InitializeConnector()`, and then connect it to the YubiHSM 2 with `YubiConnector.Connect()`. After this, a session must be established with `YubiConnector.CreateSession()`.
 
 When a session is established, commands can be exchanged over it. Raw commands can be sent with `YubiSession.SendMessage()`. However, nearly all commands are exposed as methods on `YubiModule`, `YubiConnector`, or `YubiSession`.
 
