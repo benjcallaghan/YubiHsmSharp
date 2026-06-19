@@ -47,6 +47,7 @@ jobs:
                             jq \
                             zlib1g-dev
           apt install -q -y clang llvm lld
+          apt install -q -y git
 
       - name: clone the yubihsm-shell repository
         uses: actions/checkout@v4
