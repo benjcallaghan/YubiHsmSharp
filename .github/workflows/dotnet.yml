@@ -11,7 +11,16 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15-intel
+          - os: macos-15-xlarge
+          - os: ubuntu-latest
+          - os: windows-2025
 
     steps:
       - uses: actions/checkout@v4
