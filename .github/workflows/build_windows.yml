@@ -68,6 +68,12 @@ jobs:
           Set-PSDebug -Trace 1
           tar xf yubihsm-shell-.tar.gz
 
+      - name: Restore VCPKG cache
+        uses: actions/cache@v5
+        with:
+          key: vcpkg
+          path: C:/vcpkg/packages
+
       - name: Build
         env:
           ARCH_CMAKE: x64
