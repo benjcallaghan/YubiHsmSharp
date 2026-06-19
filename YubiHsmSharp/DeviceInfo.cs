@@ -63,7 +63,7 @@ public readonly struct DeviceInfo
     /// <summary>
     /// List of algorithms supported by the device
     /// </summary>
-    public readonly ReadOnlySpan<Algorithm> Algorithms => 
+    public readonly ReadOnlySpan<Algorithm> Algorithms =>
         MemoryMarshal.CreateReadOnlySpan(
             ref Unsafe.As<DeviceAlgorithms, Algorithm>(ref Unsafe.AsRef(in this.algorithms)),
             (int)this.n_algorithms);

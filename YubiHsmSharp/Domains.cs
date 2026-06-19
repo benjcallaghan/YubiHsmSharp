@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 Yubico AB
+ * Copyright 2026 Benjamin Callaghan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public readonly struct Domains
         Span<byte> utf8Bytes = stackalloc byte[maxLength];
         yh_rc err = yh_domains_to_string(this, utf8Bytes, maxLength);
         YubiHsmException.ThrowIfError(err);
-        
+
         int terminator = utf8Bytes.IndexOf((byte)0);
         Debug.Assert(terminator != -1, "The null terminator must be present in result.");
         return Encoding.UTF8.GetString(utf8Bytes[..terminator]);

@@ -27,7 +27,7 @@ public class Info(ITestOutputHelper output)
         using YubiModule module = YubiModule.Instance;
         using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
         connector.Connect();
-        
+
         ReadOnlySpan<byte> receivedUrl = connector.Utf8Address;
         Assert.True(connector.HasDevice);
         output.WriteLine($"Successfully connected to {Encoding.UTF8.GetString(receivedUrl)}, device is present.");
@@ -44,5 +44,5 @@ public class Info(ITestOutputHelper output)
         {
             output.WriteLine($"\t{algorithm.ToYubiString()}");
         }
-    }   
+    }
 }

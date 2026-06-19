@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 namespace YubiHsmSharp;
 
 #pragma warning disable CS1591 // Response commands below have no official documentation in the C library.

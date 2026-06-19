@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 
 namespace YubiHsmSharp.Examples;
 
- public class ChangeAuthKey(ITestOutputHelper output)
+public class ChangeAuthKey(ITestOutputHelper output)
 {
     [Fact]
     public void Main()

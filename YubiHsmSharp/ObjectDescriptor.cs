@@ -100,7 +100,7 @@ public readonly struct ObjectDescriptor
     /// Object label. The label consists of raw bytes and is not restricted to
     /// printable characters or valid UTF-8 glyphs.
     /// </summary>
-    public readonly unsafe ReadOnlySpan<byte> Label => 
+    public readonly unsafe ReadOnlySpan<byte> Label =>
         MemoryMarshal.CreateReadOnlySpanFromNullTerminated(
             (byte*)Unsafe.AsPointer(ref Unsafe.AsRef(in this.label))
         );

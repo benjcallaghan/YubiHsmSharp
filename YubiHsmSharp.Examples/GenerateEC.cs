@@ -76,7 +76,7 @@ public class GenerateEC(ITestOutputHelper output)
         ECPublicKeyParameters publicKey = new(point, domain);
 
         // The signature created by YubiHSM is a sequence containing the r and s values (in that order).
-        Asn1Sequence seq = Asn1Sequence.GetInstance(signature.ToArray());        
+        Asn1Sequence seq = Asn1Sequence.GetInstance(signature.ToArray());
         BigInteger r = ((DerInteger)seq[0]).Value;
         BigInteger s = ((DerInteger)seq[1]).Value;
 
