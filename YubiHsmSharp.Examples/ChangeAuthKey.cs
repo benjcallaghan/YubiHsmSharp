@@ -31,7 +31,7 @@ public class ChangeAuthKey(ITestOutputHelper output)
         ObjectId authKey = new(1);
 
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
         connector.Connect();
 
         byte sessionId;

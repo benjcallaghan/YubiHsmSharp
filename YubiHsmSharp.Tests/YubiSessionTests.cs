@@ -32,7 +32,7 @@ public class YubiSessionTests
         // Arrange
         using YubiModule module = YubiModule.Instance;
         YubiConnector.Verbosity = Verbosity.Quiet;
-        using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
         connector.Connect();
 
         Span<byte> key = [0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f];

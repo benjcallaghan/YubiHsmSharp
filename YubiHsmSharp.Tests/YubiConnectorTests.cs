@@ -32,7 +32,7 @@ public class YubiConnectorTests
         // Arrange
         using YubiModule module = YubiModule.Instance;
         YubiConnector.Verbosity = Verbosity.Quiet;
-        using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
         connector.Connect();
 
         Span<byte> requestData = stackalloc byte[length];

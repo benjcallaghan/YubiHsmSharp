@@ -28,7 +28,7 @@ public class Echo(ITestOutputHelper output)
         ReadOnlySpan<byte> data = "sudo make me a sandwich"u8;
 
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector("http://localhost:12345"u8);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
         connector.Connect();
 
         ReadOnlySpan<byte> receivedUrl = connector.Utf8Address;
