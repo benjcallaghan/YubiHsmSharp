@@ -54,8 +54,14 @@ public class YubicoOtp(ITestOutputHelper output)
         output.WriteLine($"Put OTP key with ID {keyId}.");
 
         Span<byte> aead = stackalloc byte[512];
+#if NET9_0_OR_GREATER
         foreach (var (index, vector) in TestVector.Values.Index())
         {
+#else
+        for (int index = 0; index < TestVector.Values.Count(); index++)
+        {
+            TestVector vector = TestVector.Values.ElementAt(index);
+#endif
             output.WriteLine($"Checking test vector {index}...");
 
             int aeadLength = session.CreateOtpAead(keyId, vector.Key.Span, vector.Id.Span, aead);
@@ -95,7 +101,7 @@ public class YubicoOtp(ITestOutputHelper output)
 
         IBufferedCipher aesEcb = CipherUtilities.GetCipher("AES128/ECB");
         aesEcb.Init(forEncryption: true, new KeyParameter(outputBuffer));
-        
+
         Span<byte> otp = stackalloc byte[16];
         written = aesEcb.DoFinal(token.Raw.Span, otp);
         otp = otp[..written];
@@ -225,7 +231,7 @@ internal class TestToken
         raw.Span[10] = timestampHigh;
         raw.Span[11] = sessionCounter;
         // Random value (12..14) is zero.
-        
+
         ushort crc = 0xffff;
         int bufSize = 14;
         int bufIndex = 0;

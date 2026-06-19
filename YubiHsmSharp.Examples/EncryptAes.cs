@@ -37,7 +37,25 @@ public class EncryptAes(ITestOutputHelper output)
         output.WriteLine($"Successfully established session {sessionId}.");
 
         DeviceInfo device = connector.GetDeviceInfo();
-        if (!device.Algorithms.Contains(Algorithm.AesEcb) || !device.Algorithms.Contains(Algorithm.AesCbc))
+#if NET10_0_OR_GREATER
+        bool ecbSupported = device.Algorithms.Contains(Algorithm.AesEcb);
+        bool cbcSupported = device.Algorithms.Contains(Algorithm.AesCbc);
+#else
+        bool ecbSupported = false;
+        bool cbcSupported = false;
+        foreach (Algorithm alg in device.Algorithms)
+        {
+            if (alg == Algorithm.AesEcb)
+            {
+                ecbSupported = true;
+            }
+            else if (alg == Algorithm.AesCbc)
+            {
+                cbcSupported = true;
+            }
+        }
+#endif
+        if (!ecbSupported || !cbcSupported)
         {
             output.WriteLine("ECB/CBC unsupported or disabled.");
             return;

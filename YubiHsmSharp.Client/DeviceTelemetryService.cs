@@ -79,6 +79,10 @@ internal partial class DeviceTelemetryService(
         description: "The size of a page in the device"
     );
 
+#if NET8_0 // .NET 8 source generators do not support the primary constructor arguments.
+    private readonly ILogger logger = logger;
+#endif
+
     [LoggerMessage(Level = LogLevel.Information, Message = "Received log entry from device: {LogEntry}.")]
     private partial void LogDeviceEntry(LogEntry logEntry);
 

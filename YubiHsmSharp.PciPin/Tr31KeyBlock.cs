@@ -17,6 +17,9 @@
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Diagnostics;
+#if !NET10_0_OR_GREATER
+using System.Text;
+#endif
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
@@ -203,6 +206,8 @@ public readonly struct TR31KeyBlock
         ReadOnlySpan<byte> givenMacHex = this.keyBlock.AsSpan(^(this.MacLength * 2)..);
         ReadOnlySpan<byte> encryptedKeyHex = this.keyBlock.AsSpan(header.Length..^givenMacHex.Length);
 
+
+#if NET10_0_OR_GREATER
         Span<byte> encryptedKey = stackalloc byte[encryptedKeyHex.Length / 2];
         OperationStatus status = Convert.FromHexString(encryptedKeyHex, encryptedKey, out int consumed, out written);
         Debug.Assert(status == OperationStatus.Done);
@@ -214,6 +219,39 @@ public readonly struct TR31KeyBlock
         Debug.Assert(status == OperationStatus.Done);
         Debug.Assert(consumed == givenMacHex.Length);
         givenMac = givenMac[..written];
+#elif NET9_0
+        Span<char> encryptedKeyChars = stackalloc char[encryptedKeyHex.Length];
+        written = Encoding.UTF8.GetChars(encryptedKeyHex, encryptedKeyChars);
+        encryptedKeyChars = encryptedKeyChars[..written];
+
+        Span<byte> encryptedKey = stackalloc byte[encryptedKeyHex.Length / 2];
+        OperationStatus status = Convert.FromHexString(encryptedKeyChars, encryptedKey, out int consumed, out written);
+        Debug.Assert(status == OperationStatus.Done);
+        Debug.Assert(consumed == encryptedKeyChars.Length);
+        encryptedKey = encryptedKey[..written];
+
+        Span<char> givenMacChars = stackalloc char[givenMacHex.Length];
+        written = Encoding.UTF8.GetChars(givenMacHex, givenMacChars);
+        givenMacChars = givenMacChars[..written];
+
+        Span<byte> givenMac = stackalloc byte[givenMacHex.Length / 2];
+        status = Convert.FromHexString(givenMacChars, givenMac, out consumed, out written);
+        Debug.Assert(status == OperationStatus.Done);
+        Debug.Assert(consumed == givenMacChars.Length);
+        givenMac = givenMac[..written];
+#else
+        Span<char> encryptedKeyChars = stackalloc char[encryptedKeyHex.Length];
+        written = Encoding.UTF8.GetChars(encryptedKeyHex, encryptedKeyChars);
+        encryptedKeyChars = encryptedKeyChars[..written];
+
+        Span<byte> encryptedKey = Convert.FromHexString(encryptedKeyChars);
+
+        Span<char> givenMacChars = stackalloc char[givenMacHex.Length];
+        written = Encoding.UTF8.GetChars(givenMacHex, givenMacChars);
+        givenMacChars = givenMacChars[..written];
+
+        Span<byte> givenMac = Convert.FromHexString(givenMacChars);
+#endif
 
         ReadOnlySpan<byte> iv = this.VersionId switch
         {
