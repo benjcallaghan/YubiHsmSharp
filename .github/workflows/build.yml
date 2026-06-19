@@ -22,7 +22,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore --configuration Release
     - name: Pack
       run: dotnet pack --no-build
     # Not running tests because the SDK and HSM are not available on build servers.
