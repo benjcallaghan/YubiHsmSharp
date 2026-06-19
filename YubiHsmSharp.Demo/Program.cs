@@ -1,15 +1,4 @@
-using System.Runtime.InteropServices;
 using YubiHsmSharp;
-
-NativeLibrary.SetDllImportResolver(typeof(YubiModule).Assembly, (libraryName, assembly, searchPath) =>
-{
-    if (libraryName == "yubihsm")
-    {
-        return NativeLibrary.Load(@"C:\Program Files\Yubico\YubiHSM Shell\bin\libyubihsm.dll");
-    }
-
-    return IntPtr.Zero;
-});
 
 var builder = WebApplication.CreateBuilder(args);
 

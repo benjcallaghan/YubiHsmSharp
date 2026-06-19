@@ -86,5 +86,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: libyubihsm.dll
-          path: release/win/yubihsm-shell-x64/bin/libyubihsm.dll
+          name: windows-bin
+          path: release/win/yubihsm-shell-x64/bin/

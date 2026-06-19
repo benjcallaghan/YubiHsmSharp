@@ -1,6 +1,6 @@
 # YubiHsmSharp
 
-This library is a C# wrapper around [libyubihsm](https://docs.yubico.com/hardware/yubihsm-2/hsm-2-user-guide/hsm2-tools-libyubihsm.html), a C library for communicating with a YubiHSM 2. The [YubiHSM SDK](https://docs.yubico.com/hardware/yubihsm-2/hsm-2-user-guide/hsm2-index-tools.html) is not included in this project and must be installed separately.
+This library is a C# wrapper around [libyubihsm](https://docs.yubico.com/hardware/yubihsm-2/hsm-2-user-guide/hsm2-tools-libyubihsm.html), a C library for communicating with a YubiHSM 2.
 
 ## Usage
 

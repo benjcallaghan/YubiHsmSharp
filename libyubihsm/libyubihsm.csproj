@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>The native libyubihsm libraries.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="win-x64/libyubihsm.dll" Pack="true" PackagePath="runtimes/win-x64/native/yubihsm.dll" />
+    <None Include="win-x64/z.dll" Pack="true" PackagePath="runtimes/win-x64/native/z.dll" />
+    <None Include="osx-x64/libyubihsm.dylib" Pack="true" PackagePath="runtimes/osx-x64/native/libyubihsm.dylib" />
+    <None Include="osx-x64/z.dylib" Pack="true" PackagePath="runtimes/win-x64/native/z.dylib" />
+    <None Include="linux-x64/libyubihsm.so" Pack="true" PackagePath="runtimes/linux-x64/native/libyubihsm.so" />
+    <None Include="linux-x64/z.so" Pack="true" PackagePath="runtimes/win-x64/native/z.so" />
+  </ItemGroup>
+
+</Project>

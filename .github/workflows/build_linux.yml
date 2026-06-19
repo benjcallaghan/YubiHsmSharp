@@ -78,5 +78,5 @@ jobs:
       - name: upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: libyubihsm.so
-          path: yubihsm-shell/build/lib/libyubihsm.so
+          name: linux-lib
+          path: yubihsm-shell/build/lib
