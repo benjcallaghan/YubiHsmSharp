@@ -112,5 +112,67 @@ jobs:
       - name: upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: libyubihsm.dylib
+          name: libyubihsm.${{ matrix.os }}.dylib
           path: yubihsm-shell/build/lib/libyubihsm.dylib
+  
+  source:
+    name: Build dist with Linux
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      
+      - name: Install prerequisites
+        run: |
+          set -x
+          sudo apt -q update
+          sudo apt install libpcsclite-dev gengetopt help2man libedit-dev libcurl4-openssl-dev libssl-dev libusb-1.0.0-dev zlib1g-dev
+      
+      - name: Create tar.gz
+        working-directory: yubihsm-shell
+        run: |
+          mkdir $GITHUB_WORKSPACE/artifact
+          set -x
+          ./resources/release/make_src_dist.sh
+          mv yubihsm-shell-.tar.gz $GITHUB_WORKSPACE/artifact/
+          cp -r resources/release $GITHUB_WORKSPACE/artifact/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: yubihsm-shell-src
+          path: artifact
+  
+  build_windows:
+    name: Build on Windows
+    needs: source
+    runs-on: windows-2025
+
+    steps:
+      - name: Download source from source job
+        uses: actions/download-artifact@v4
+        with: 
+          name: yubihsm-shell-src
+
+      - name: Extract source
+        run: |
+          Set-PSDebug -Trace 1
+          tar xf yubihsm-shell-.tar.gz
+
+      - name: Build
+        env:
+          ARCH_CMAKE: x64
+          ARCH: x64
+        run: |
+          Set-PSDebug -Trace 1
+          cd $env:GITHUB_WORKSPACE/release/win
+          ./make_release_binaries.ps1 $env:ARCH_CMAKE C:/vcpkg $env:GITHUB_WORKSPACE\yubihsm-shell-
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libyubihsm.dll
+          path: build_release/lib/libyubihsm.dll
