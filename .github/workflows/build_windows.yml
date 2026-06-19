@@ -1,0 +1,84 @@
+#  Copyright 2015-2018 Yubico AB
+
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+
+#  http://www.apache.org/licenses/LICENSE-2.0
+
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+name: Build on Windows
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  source:
+    name: Build dist with Linux
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+      
+      - name: Install prerequisites
+        run: |
+          set -x
+          sudo apt -q update
+          sudo apt install libpcsclite-dev gengetopt help2man libedit-dev libcurl4-openssl-dev libssl-dev libusb-1.0-0-dev zlib1g-dev
+      
+      - name: Create tar.gz
+        working-directory: yubihsm-shell
+        run: |
+          mkdir $GITHUB_WORKSPACE/artifact
+          set -x
+          ./resources/release/make_src_dist.sh
+          mv yubihsm-shell-.tar.gz $GITHUB_WORKSPACE/artifact/
+          cp -r resources/release $GITHUB_WORKSPACE/artifact/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: yubihsm-shell-src
+          path: artifact
+  
+  build_windows:
+    name: Build on Windows
+    needs: source
+    runs-on: windows-2025
+
+    steps:
+      - name: Download source from source job
+        uses: actions/download-artifact@v4
+        with: 
+          name: yubihsm-shell-src
+
+      - name: Extract source
+        run: |
+          Set-PSDebug -Trace 1
+          tar xf yubihsm-shell-.tar.gz
+
+      - name: Build
+        env:
+          ARCH_CMAKE: x64
+          ARCH: x64
+        run: |
+          Set-PSDebug -Trace 1
+          cd $env:GITHUB_WORKSPACE/release/win
+          ./make_release_binaries.ps1 $env:ARCH_CMAKE C:/vcpkg $env:GITHUB_WORKSPACE\yubihsm-shell-
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: libyubihsm.dll
+          path: build_release/lib/libyubihsm.dll

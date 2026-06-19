@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-name: Native
+name: Build on Linux
 
 on:
   push:
@@ -59,7 +59,7 @@ jobs:
         run: |
           # ubuntu 24.10 and above comes with _FORTIFY_SOURCE already set
           sed -i 's/add_definitions (-D_FORTIFY_SOURCE=2)/add_definitions (-D_FORTIFY_SOURCE=3)/' cmake/SecurityFlags.cmake
-      
+
       - name: do build
         working-directory: yubihsm-shell
         env:
@@ -80,100 +80,3 @@ jobs:
         with:
           name: libyubihsm.so
           path: yubihsm-shell/build/lib/libyubihsm.so
-  
-  build_macos:
-    name: build on macos
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-15-intel
-          - os: macos-15-xlarge
-
-    steps:
-      - name: install dependencies using brew
-        run: brew install gengetopt help2man libedit opensc
-
-      - name: clone the yubihsm-shell repository
-        uses: actions/checkout@v7
-        with:
-          submodules: true
-      
-      - name: do build
-        working-directory: yubihsm-shell
-        env:
-          VERBOSE: 1
-        run: |
-          mkdir build
-          cd build
-          cmake -DCMAKE_BUILD_TYPE=Release ..
-          cmake --build .
-
-      - name: upload artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: libyubihsm.${{ matrix.os }}.dylib
-          path: yubihsm-shell/build/lib/libyubihsm.dylib
-  
-  source:
-    name: Build dist with Linux
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: checkout
-        uses: actions/checkout@v7
-        with:
-          submodules: true
-      
-      - name: Install prerequisites
-        run: |
-          set -x
-          sudo apt -q update
-          sudo apt install libpcsclite-dev gengetopt help2man libedit-dev libcurl4-openssl-dev libssl-dev libusb-1.0-0-dev zlib1g-dev
-      
-      - name: Create tar.gz
-        working-directory: yubihsm-shell
-        run: |
-          mkdir $GITHUB_WORKSPACE/artifact
-          set -x
-          ./resources/release/make_src_dist.sh
-          mv yubihsm-shell-.tar.gz $GITHUB_WORKSPACE/artifact/
-          cp -r resources/release $GITHUB_WORKSPACE/artifact/
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: yubihsm-shell-src
-          path: artifact
-  
-  build_windows:
-    name: Build on Windows
-    needs: source
-    runs-on: windows-2025
-
-    steps:
-      - name: Download source from source job
-        uses: actions/download-artifact@v4
-        with: 
-          name: yubihsm-shell-src
-
-      - name: Extract source
-        run: |
-          Set-PSDebug -Trace 1
-          tar xf yubihsm-shell-.tar.gz
-
-      - name: Build
-        env:
-          ARCH_CMAKE: x64
-          ARCH: x64
-        run: |
-          Set-PSDebug -Trace 1
-          cd $env:GITHUB_WORKSPACE/release/win
-          ./make_release_binaries.ps1 $env:ARCH_CMAKE C:/vcpkg $env:GITHUB_WORKSPACE\yubihsm-shell-
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: libyubihsm.dll
-          path: build_release/lib/libyubihsm.dll
