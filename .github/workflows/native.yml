@@ -1,0 +1,81 @@
+#  Copyright 2015-2018 Yubico AB
+
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+
+#  http://www.apache.org/licenses/LICENSE-2.0
+
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+name: Native
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build_linux:
+    name: build on ubuntu:25.10 (clang)
+    runs-on: ubuntu-latest
+    container: ubuntu:25.10
+
+    steps:
+      - name: install dependencies from package management
+        env:
+          CC: clang
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          apt update
+          apt install -q -y build-essential \
+                            cmake pkg-config \
+                            gengetopt \
+                            help2man \
+                            libcurl4-openssl-dev \
+                            libedit-dev \
+                            libpcsclite-dev \
+                            libusb-1.0.0-dev \
+                            libssl-dev \
+                            file \
+                            curl \
+                            jq \
+                            zlib1g-dev
+          apt install -q -y clang llvm lld
+
+      - name: clone the yubihsm-shell repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: apply environment specific changes to CMakeLists.txt
+        working-directory: yubihsm-shell
+        run: |
+          # ubuntu 24.10 and above comes with _FORTIFY_SOURCE already set
+          sed -i 's/add_definitions (-D_FORTIFY_SOURCE=2)/add_definitions (-D_FORTIFY_SOURCE=3)/' cmake/SecurityFlags.cmake
+      
+      - name: do build
+        working-directory: yubihsm-shell
+        env:
+          CC: clang
+          VERBOSE: 1
+        run: |
+          mkdir build
+          cd build
+          cmake -DRELEASE_BUILD=1 -DWITHOUT_YKYH=1 \
+            -DCMAKE_AR=/usr/bin/llvm-ar \
+            -DCMAKE_RANLIB=/usr/bin/llvm-ranlib |
+            -DCMAKE_EXE_LINKER_FLAGS="-fuseld=lld" \
+            ..
+          cmake --build .
+
+      - name: upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: libyubihsm.so
+          path: yubihsm-shell/build/lib/libyubihsm.so
