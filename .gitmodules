@@ -1,0 +1,3 @@
+[submodule "yubihsm-shell"]
+	path = yubihsm-shell
+	url = https://github.com/Yubico/yubihsm-shell.git
