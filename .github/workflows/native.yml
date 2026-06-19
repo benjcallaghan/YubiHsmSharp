@@ -76,7 +76,7 @@ jobs:
           cmake --build .
 
       - name: upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: libyubihsm.so
           path: yubihsm-shell/build/lib/libyubihsm.so
@@ -111,7 +111,7 @@ jobs:
           cmake --build .
 
       - name: upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: libyubihsm.${{ matrix.os }}.dylib
           path: yubihsm-shell/build/lib/libyubihsm.dylib
@@ -142,7 +142,7 @@ jobs:
           cp -r resources/release $GITHUB_WORKSPACE/artifact/
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: yubihsm-shell-src
           path: artifact
@@ -173,7 +173,7 @@ jobs:
           ./make_release_binaries.ps1 $env:ARCH_CMAKE C:/vcpkg $env:GITHUB_WORKSPACE\yubihsm-shell-
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: libyubihsm.dll
           path: build_release/lib/libyubihsm.dll
