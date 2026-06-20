@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\libyubihsm\libyubihsm.csproj" />
+    <ProjectReference Include="..\libyubihsm\libyubihsm.csproj" SkipGetTargetFrameworkProperties="true" />
   </ItemGroup>
 
   <PropertyGroup>

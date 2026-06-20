@@ -12,6 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\libyubihsm\libyubihsm.csproj"
+      SkipGetTargetFrameworkProperties="true" />
     <ProjectReference Include="..\YubiHsmSharp\YubiHsmSharp.csproj" />
   </ItemGroup>
 
