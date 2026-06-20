@@ -25,6 +25,7 @@ using Xunit.Abstractions;
 
 namespace YubiHsmSharp.Examples;
 
+[Trait("Requires", "YubiHSM")]
 public class DecryptEC(ITestOutputHelper output)
 {
     [Fact]

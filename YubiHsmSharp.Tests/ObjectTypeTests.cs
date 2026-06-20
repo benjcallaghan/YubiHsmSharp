@@ -18,6 +18,7 @@ using System.Text;
 
 namespace YubiHsmSharp.Tests;
 
+[Trait("Requires", "YubiSDK")]
 public class ObjectTypeTests
 {
     [Theory]

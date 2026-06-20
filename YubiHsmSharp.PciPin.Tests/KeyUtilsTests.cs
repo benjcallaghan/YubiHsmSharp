@@ -16,6 +16,7 @@
 
 namespace YubiHsmSharp.PciPin.Tests;
 
+[Trait("Requires", "None")]
 public class UnitTest1
 {
     [Theory]

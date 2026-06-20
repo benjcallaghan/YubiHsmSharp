@@ -21,6 +21,7 @@ using Xunit.Abstractions;
 
 namespace YubiHsmSharp.Examples;
 
+[Trait("Requires", "YubiHSM")]
 public class Ssh(ITestOutputHelper output)
 {
     [Fact]

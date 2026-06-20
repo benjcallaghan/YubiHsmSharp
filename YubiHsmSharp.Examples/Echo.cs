@@ -19,6 +19,7 @@ using Xunit.Abstractions;
 
 namespace YubiHsmSharp.Examples;
 
+[Trait("Requires", "YubiHSM")]
 public class Echo(ITestOutputHelper output)
 {
     [Fact]

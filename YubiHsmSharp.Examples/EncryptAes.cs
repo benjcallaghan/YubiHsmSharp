@@ -18,6 +18,7 @@ using Xunit.Abstractions;
 
 namespace YubiHsmSharp.Examples;
 
+[Trait("Requires", "YubiHSM")]
 public class EncryptAes(ITestOutputHelper output)
 {
     [Fact]

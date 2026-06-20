@@ -22,6 +22,7 @@ using Xunit.Abstractions;
 
 namespace YubiHsmSharp.Examples;
 
+[Trait("Requires", "YubiHSM")]
 public class YubicoOtp(ITestOutputHelper output)
 {
     [Fact]

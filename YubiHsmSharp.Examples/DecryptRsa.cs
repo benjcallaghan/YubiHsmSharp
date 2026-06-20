@@ -23,6 +23,7 @@ using Xunit.Abstractions;
 
 namespace YubiHsmSharp.Examples;
 
+[Trait("Requires", "YubiHSM")]
 public class DecryptRsa(ITestOutputHelper output)
 {
     [Fact]

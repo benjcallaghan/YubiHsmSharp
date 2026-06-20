@@ -18,6 +18,7 @@ using Xunit.Abstractions;
 
 namespace YubiHsmSharp.Examples;
 
+[Trait("Requires", "YubiHSM")]
 public class WrapData(ITestOutputHelper output)
 {
     [Fact]

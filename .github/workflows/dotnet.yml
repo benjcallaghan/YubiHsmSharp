@@ -32,8 +32,6 @@ jobs:
         run: dotnet restore
       - name: Build
         run: dotnet build --no-restore --configuration Release
-      - name: Pack
-        run: dotnet pack --no-build
-    # Not running tests because the SDK and HSM are not available on build servers.
-    # - name: Test
-    #   run: dotnet test --no-build --verbosity normal
+      - name: Test
+        run: dotnet test --no-build --verbosity normal --filter Requires!=YubiHSM
+        # The SDK is available for limited testing, but not a full device.

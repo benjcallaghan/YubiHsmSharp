@@ -16,6 +16,7 @@
 
 namespace YubiHsmSharp.Tests;
 
+[Trait("Requires", "YubiHSM")]
 public class YubiSessionTests
 {
     [Theory]
