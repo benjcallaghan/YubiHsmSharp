@@ -80,9 +80,6 @@ jobs:
           name: windows-bin
           path: artifacts/win-x64
 
-      - name: Build
-        run: dotnet build --no-restore --configuration Release --runtime ${{ matrix.rid }}
-
       - name: Test
-        run: dotnet test --no-build --configuration Release --runtime ${{ matrix.rid }} --verbosity normal --filter Requires!=YubiHSM
+        run: dotnet test --no-restore --configuration Release --runtime ${{ matrix.rid }} --verbosity normal --filter Requires!=YubiHSM
         # The SDK is available for limited testing, but not a full device.
