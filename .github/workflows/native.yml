@@ -151,6 +151,9 @@ jobs:
     name: Build on Windows
     needs: source
     runs-on: windows-2025
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Download source from source job
@@ -164,10 +167,11 @@ jobs:
           tar xf yubihsm-shell-.tar.gz
 
       - name: Restore VCPKG cache
-        uses: actions/cache@v5
+        uses: LegalizeAdulthood/vcpkg-github-cache@v1
         with:
-          key: vcpkg
-          path: C:/vcpkg/packages
+          token: ${{ github.token }}
+          vcpkg-root: C:/vcpkg
+          bootstrap: false
 
       - name: Build
         env:
