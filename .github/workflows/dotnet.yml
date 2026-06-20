@@ -52,13 +52,21 @@ jobs:
           name: linux-lib
           path: artifacts/linux-x64
 
-      - name: Download macOS libraries
+      - name: Download macOS x64 libraries
         uses: actions/download-artifact@v8
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
-          name: macos-lib
+          name: macos-intel-lib
           path: artifacts/osx-x64
+
+      - name: Download macOS arm64 libraries
+        uses: actions/download-artifact@v8
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          name: macos-arm-lib
+          path: artifacts/osx-arm64
 
       - name: Download Windows libraries
         uses: actions/download-artifact@v8

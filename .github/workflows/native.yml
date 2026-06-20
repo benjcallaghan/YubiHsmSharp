@@ -89,7 +89,9 @@ jobs:
       matrix:
         include:
           - os: macos-15-intel
+            artifact: macos-intel-lib
           - os: macos-15
+            artifact: macos-arm-lib
 
     steps:
       - name: install dependencies using brew
@@ -115,7 +117,7 @@ jobs:
       - name: upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: macos-lib
+          name: ${{ matrix.artifact }}
           path: yubihsm-shell/build/lib
 
   source:
