@@ -72,5 +72,5 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Test
-        run: dotnet test --no-build --verbosity normal --filter Requires!=YubiHSM
+        run: dotnet test --no-build --configuration Release --verbosity normal --filter Requires!=YubiHSM
         # The SDK is available for limited testing, but not a full device.
