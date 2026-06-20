@@ -1,17 +1,28 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+#  Copyright 2026 Benjamin Callaghan
 
-name: .NET
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+
+#  http://www.apache.org/licenses/LICENSE-2.0
+
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+name: Build .NET
 
 on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
+  workflow_run:
+    workflows: [Build Native]
+    types: [completed]
 
 jobs:
   build:
     name: build on ${{ matrix.os }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -24,14 +35,42 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
+
       - name: Restore dependencies
         run: dotnet restore
+
+      - name: Download Linux libraries
+        uses: actions/download-artifact@v8
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          name: linux-lib
+          path: artifacts/linux-x64
+
+      - name: Download macOS libraries
+        uses: actions/download-artifact@v8
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          name: macos-lib
+          path: artifacts/osx-x64
+
+      - name: Download Windows libraries
+        uses: actions/download-artifact@v8
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          name: windows-bin
+          path: artifacts/win-x64
+
       - name: Build
         run: dotnet build --no-restore --configuration Release
+
       - name: Test
         run: dotnet test --no-build --verbosity normal --filter Requires!=YubiHSM
         # The SDK is available for limited testing, but not a full device.
