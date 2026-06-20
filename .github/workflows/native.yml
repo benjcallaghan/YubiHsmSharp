@@ -166,12 +166,13 @@ jobs:
           Set-PSDebug -Trace 1
           tar xf yubihsm-shell-.tar.gz
 
-      - name: Restore VCPKG cache
-        uses: LegalizeAdulthood/vcpkg-github-cache@v1
-        with:
-          token: ${{ github.token }}
-          vcpkg-root: C:/vcpkg
-          bootstrap: false
+      # The script make_release_binaries.ps1 depends on the buildtrees folder, which can't be cached.
+      # - name: Restore VCPKG cache
+      #   uses: LegalizeAdulthood/vcpkg-github-cache@v1
+      #   with:
+      #     token: ${{ github.token }}
+      #     vcpkg-root: C:/vcpkg
+      #     bootstrap: false
 
       - name: Build
         env:
