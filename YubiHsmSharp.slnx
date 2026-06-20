@@ -1,5 +1,5 @@
 <Solution>
-  <Project Path="libyubihsm/libyubihsm.csproj" />
+  <Project Path="YubiHsm.Native/YubiHsm.Native.csproj" />
   <Project Path="YubiHsmSharp.AppHost/YubiHsmSharp.AppHost.csproj" />
   <Project Path="YubiHsmSharp.BouncyCastle/YubiHsmSharp.BouncyCastle.csproj" />
   <Project Path="YubiHsmSharp.Client/YubiHsmSharp.Client.csproj" />
