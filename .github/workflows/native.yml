@@ -95,9 +95,9 @@ jobs:
 
     steps:
       - name: install dependencies using brew
-        run: brew install gengetopt help2man libedit opensc
-        env:
-          HOMEBREW_REQUIRE_TAP_TRUST: 1
+        run: |
+          export HOMEBREW_REQUIRE_TAP_TRUST=1
+          brew install gengetopt help2man libedit opensc
 
       - name: clone the yubihsm-shell repository
         uses: actions/checkout@v7
