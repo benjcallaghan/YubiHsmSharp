@@ -5,14 +5,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="../artifacts/win-x64/yubihsm.dll" Link="yubihsm.dll" Pack="true" PackagePath="runtimes/win-x64/native/yubihsm.dll" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="../artifacts/win-x64/z.dll" Link="z.dll" Pack="true" PackagePath="runtimes/win-x64/native/z.dll" CopyToOutputDirectory="PreserveNewest" />
-    <!-- 
-    <None Include="../artifacts/osx-x64/libyubihsm.dylib" Pack="true" PackagePath="runtimes/osx-x64/native/libyubihsm.dylib" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="../artifacts/osx-x64/z.dylib" Pack="true" PackagePath="runtimes/win-x64/native/z.dylib" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="../artifacts/linux-x64/libyubihsm.so" Pack="true" PackagePath="runtimes/linux-x64/native/libyubihsm.so" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="../artifacts/linux-x64/z.so" Pack="true" PackagePath="runtimes/win-x64/native/z.so" CopyToOutputDirectory="PreserveNewest" /> 
-    -->
+    <None Include="../artifacts/win-x64/libyubihsm.dll" Link="yubihsm.dll" Pack="true"
+      PackagePath="runtimes/win-x64/native/yubihsm.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../artifacts/win-x64/z.dll" Link="z.dll" Pack="true"
+      PackagePath="runtimes/win-x64/native/z.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../artifacts/osx-x64/libyubihsm.dylib" Link="libyubihsm.dylib" Pack="true"
+      PackagePath="runtimes/osx-x64/native/libyubihsm.dylib" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../artifacts/linux-x64/libyubihsm.so" Link="libyubihsm.so" Pack="true"
+      PackagePath="runtimes/linux-x64/native/libyubihsm.so" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
