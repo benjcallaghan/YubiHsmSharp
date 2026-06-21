@@ -29,6 +29,6 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(OutputType)' == 'Library'">
-    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="$(MSBuildProjectDirectory)/README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>
