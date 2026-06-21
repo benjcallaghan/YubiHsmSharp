@@ -78,7 +78,7 @@ jobs:
       - name: upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: linux-lib
+          name: linux-x64
           path: yubihsm-shell/build/lib
 
   build_macos:
@@ -89,9 +89,9 @@ jobs:
       matrix:
         include:
           - os: macos-15-intel
-            artifact: macos-intel-lib
+            artifact: osx-x64
           - os: macos-15
-            artifact: macos-arm-lib
+            artifact: osx-arm64
 
     steps:
       - name: install dependencies using brew
@@ -190,5 +190,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: windows-bin
+          name: win-x64
           path: release/win/yubihsm-shell-x64/bin/

@@ -21,7 +21,7 @@ on:
 
 jobs:
   build_and_test:
-    name: test on ${{ matrix.os }}
+    name: Test on ${{ matrix.os }}
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -30,16 +30,12 @@ jobs:
         include:
           - os: macos-15-intel
             rid: osx-x64
-            artifact: macos-arm-lib
           - os: macos-15
             rid: osx-arm64
-            artifact: macos-intel-lib
           - os: ubuntu-latest
             rid: linux-x64
-            artifact: linux-lib
           - os: windows-2025
             rid: win-x64
-            artifact: windows-bin
 
     steps:
       - uses: actions/checkout@v7
@@ -54,15 +50,35 @@ jobs:
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
-          name: ${{ matrix.artifact }}
+          name: ${{ matrix.rid }}
           path: artifacts/${{ matrix.rid }}
 
       - name: Test
         run: dotnet test --configuration Release --runtime ${{ matrix.rid }} --verbosity normal --filter Requires!=YubiHSM
         # The SDK is available for limited testing, but not a full device.
 
+  package:
+    name: Build NuGet Packages
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      
+      - name: Download all native libraries
+        uses: actions/download-artifact@v8
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          pattern: '{win-x64,linux-x64,osx-x64,osx-arm64}'          
+          path: artifacts
+      
       - name: Pack
-        run: dotnet pack --no-build
+        run: dotnet pack
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
