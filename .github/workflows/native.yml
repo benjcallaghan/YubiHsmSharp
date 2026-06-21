@@ -82,7 +82,7 @@ jobs:
           path: yubihsm-shell/build/lib
 
   build_macos:
-    name: build on macos
+    name: build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
