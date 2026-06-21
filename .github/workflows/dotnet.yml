@@ -80,8 +80,13 @@ jobs:
       - name: Pack
         run: dotnet pack
 
+      - name: Flatten packages
+        run: |
+          mkdir nuget-packages
+          find . -type f -name "*.symbols.nupkg" -exec cp {} nuget-packages/ \;
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
           name: nuget-packages
-          path: ./**/*.symbols.nupkg
+          path: nuget-packages/
