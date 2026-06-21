@@ -28,7 +28,4 @@
     <IsPackable>true</IsPackable>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(OutputType)' == 'Library'">
-    <None Include="$(MSBuildProjectDirectory)/README.md" Pack="true" PackagePath="\" />
-  </ItemGroup>
 </Project>
