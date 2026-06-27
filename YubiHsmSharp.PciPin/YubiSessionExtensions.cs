@@ -182,6 +182,33 @@ public static class YubiSessionExtensions
         }
 
         /// <summary>
+        /// Encrypts a clear key into a <see cref="TR31KeyBlock"/> using keys stored inside a YubiHSM 2.
+        /// </summary>
+        /// <remarks>
+        /// The clear key must already reside outside of the YubiHSM 2. Unless the key is stored as an Opaque object,
+        /// the key cannot be extracted from the device.
+        /// The authentication key used to open the session requires the following capabilities:
+        /// encrypt-ecb, get-opaque.
+        /// </remarks>
+        /// <param name="keyBlock">An initialized (but not yet encrypted) key block.</param>
+        /// <param name="zoneMasterKeyId">The ID of the symmetric Zone Master Key (ZMK).</param>
+        /// <param name="clearKey">The clear key to encrypt.</param>
+        public void EncryptKeyBlock(TR31KeyBlock keyBlock, ObjectId zoneMasterKeyId, ReadOnlySpan<byte> clearKey)
+        {
+            KeyParameter keyParameter = keyBlock.VersionId switch
+            {
+                KeyBlockVersion.Derivation2017 => session.GetSymmetricKeyParameter(zoneMasterKeyId),
+                _ => session.GetOpaqueKeyParameter(zoneMasterKeyId),
+            };
+            IBlockCipher cipher = keyBlock.VersionId switch
+            {
+                KeyBlockVersion.Derivation2017 => new YubiAes(session),
+                _ => new DesEdeEngine(),
+            };
+            keyBlock.Encrypt(cipher, keyParameter, new YubiRandomGenerator(session), clearKey);
+        }
+
+        /// <summary>
         /// Encrypts a PIN into a Format 4 PIN Block using a stored symmetric key.
         /// </summary>
         /// <remarks>

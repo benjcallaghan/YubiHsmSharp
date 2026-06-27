@@ -323,11 +323,26 @@ public struct TR31KeyBlock
         };
     }
 
+    /// <summary>
+    /// Encrypts and wraps the protected key stored within this key block, using fully-local cryptography.
+    /// </summary>
+    /// <param name="keyBlockProtectionKey">The Key Block Protection Key (KBPK) or Zone Master Key (ZMK).</param>
+    /// <param name="random">A random bytes generator to pad the key block.</param>
+    /// <param name="clearKey">The key to encrypt.</param>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="cipher"/> does not match the protection used in this key block.</exception>
     public void Encrypt(ReadOnlySpan<byte> keyBlockProtectionKey, IRandomGenerator random, ReadOnlySpan<byte> clearKey)
     {
         this.Encrypt(this.Cipher, new KeyParameter(keyBlockProtectionKey), random, clearKey);
     }
 
+    /// <summary>
+    /// Encrypts and wraps the protected key stored within this key block, using the provided cipher.
+    /// </summary>
+    /// <param name="cipher">The cipher to use in deriving encryption keys and authentication keys from <paramref name="keyBlockProtectionKey"/>.</param>
+    /// <param name="keyBlockProtectionKey">The Key Block Protection Key (KBPK) or Zone Master Key (ZMK).</param>
+    /// <param name="random">A random bytes generator to pad the key block.</param>
+    /// <param name="clearKey">The key to encrypt.</param>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="cipher"/> does not match the protection used in this key block.</exception>
     public void Encrypt(IBlockCipher cipher, KeyParameter keyBlockProtectionKey, IRandomGenerator random, ReadOnlySpan<byte> clearKey)
     {
         Span<byte> encryptionKey = stackalloc byte[keyBlockProtectionKey.KeyLength];
