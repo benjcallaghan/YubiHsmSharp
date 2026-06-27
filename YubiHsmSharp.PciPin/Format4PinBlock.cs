@@ -151,7 +151,7 @@ public readonly struct Format4PinBlock
 
             for (int blockIndex = 0; blockIndex < blockLength; blockIndex++)
             {
-                pin[pinIndex++] = (char)((pinBlock[blockIndex] & 0xF0 >> 4) + '0');
+                pin[pinIndex++] = (char)(((pinBlock[blockIndex] & 0xF0) >> 4) + '0');
                 pin[pinIndex++] = (char)((pinBlock[blockIndex] & 0x0F) + '0');
             }
 
