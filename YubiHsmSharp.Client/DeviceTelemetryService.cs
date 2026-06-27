@@ -79,7 +79,7 @@ internal partial class DeviceTelemetryService(
         description: "The size of a page in the device"
     );
 
-#if NET8_0 // .NET 8 source generators do not support the primary constructor arguments.
+#if !NET9_0_OR_GREATER // .NET 8 source generators do not support the primary constructor arguments.
     private readonly ILogger logger = logger;
 #endif
 

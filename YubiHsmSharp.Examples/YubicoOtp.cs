@@ -56,13 +56,12 @@ public class YubicoOtp(ITestOutputHelper output)
 
         Span<byte> aead = stackalloc byte[512];
 #if NET9_0_OR_GREATER
-        foreach (var (index, vector) in TestVector.Values.Index())
-        {
+        var indexed = TestVector.Values.Index();
 #else
-        for (int index = 0; index < TestVector.Values.Count(); index++)
-        {
-            TestVector vector = TestVector.Values.ElementAt(index);
+        var indexed = TestVector.Values.Select((v, i) => (i, v));
 #endif
+        foreach (var (index, vector) in indexed)
+        {
             output.WriteLine($"Checking test vector {index}...");
 
             int aeadLength = session.CreateOtpAead(keyId, vector.Key.Span, vector.Id.Span, aead);

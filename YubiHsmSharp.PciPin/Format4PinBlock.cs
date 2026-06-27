@@ -133,18 +133,18 @@ public readonly struct Format4PinBlock
             pinBytes += 1;
         }
 
-#if NET8_0
-        Memory<byte> stringState = pinBlock.Slice(1, pinBytes).ToArray();
-#else
+#if NET9_0_OR_GREATER
         Span<byte> stringState = pinBlock.Slice(1, pinBytes);
+#else
+        Memory<byte> stringState = pinBlock.Slice(1, pinBytes).ToArray();
 #endif
 
         return String.Create(pinLength, stringState, static (pin, state) =>
         {
-#if NET8_0
-            Span<byte> pinBlock = state.Span;
-#else
+#if NET9_0_OR_GREATER
             Span<byte> pinBlock = state;
+#else
+            Span<byte> pinBlock = state.Span;
 #endif
             int pinIndex = 0;
             int blockLength = pin.Length % 2 == 0 ? pinBlock.Length : pinBlock.Length - 1; // Treat the last (half) byte special.
