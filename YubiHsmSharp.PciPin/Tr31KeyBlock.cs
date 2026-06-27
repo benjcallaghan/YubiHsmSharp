@@ -25,6 +25,7 @@ using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace YubiHsmSharp.PciPin;
 
@@ -198,14 +199,20 @@ public readonly struct TR31KeyBlock
     {
         Span<byte> encryptionKey = stackalloc byte[keyBlockProtectionKey.KeyLength];
         Span<byte> authenticationKey = stackalloc byte[keyBlockProtectionKey.KeyLength];
-        int written = DeriveKeys(cipher, keyBlockProtectionKey, encryptionKey, authenticationKey);
+        int written = this.VersionId switch
+        {
+            KeyBlockVersion.Variant2005 => VariantKeys(keyBlockProtectionKey, encryptionKey, authenticationKey),
+            KeyBlockVersion.Derivation2010 => DeriveKeys(cipher, keyBlockProtectionKey, encryptionKey, authenticationKey),
+            KeyBlockVersion.Variant2010 => VariantKeys(keyBlockProtectionKey, encryptionKey, authenticationKey),
+            KeyBlockVersion.Deriviation2017 => DeriveKeys(cipher, keyBlockProtectionKey, encryptionKey, authenticationKey),
+            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
+        };
         encryptionKey = encryptionKey[..written];
         authenticationKey = authenticationKey[..written];
 
         ReadOnlySpan<byte> header = this.keyBlock.AsSpan(..this.HeaderLength);
         ReadOnlySpan<byte> givenMacHex = this.keyBlock.AsSpan(^(this.MacLength * 2)..);
         ReadOnlySpan<byte> encryptedKeyHex = this.keyBlock.AsSpan(header.Length..^givenMacHex.Length);
-
 
 #if NET10_0_OR_GREATER
         Span<byte> encryptedKey = stackalloc byte[encryptedKeyHex.Length / 2];
@@ -277,13 +284,29 @@ public readonly struct TR31KeyBlock
         return keyLengthBytes;
     }
 
+    private readonly int VariantKeys(KeyParameter keyBlockProtectionKey, Span<byte> encryptionKey, Span<byte> authenticationKey)
+    {
+        Debug.Assert(this.VersionId is KeyBlockVersion.Variant2005 or KeyBlockVersion.Variant2010);
+
+        // GetKey creates a clone of the key.
+        ReadOnlySpan<byte> kbpk = keyBlockProtectionKey.GetKey();
+        Span<byte> variant = stackalloc byte[kbpk.Length];
+
+        variant.Fill(0x44);
+        Bytes.Xor(kbpk.Length, kbpk, variant, encryptionKey);
+
+        variant.Fill(0x4D);
+        Bytes.Xor(kbpk.Length, kbpk, variant, authenticationKey);
+
+        return kbpk.Length;
+    }
+
     private readonly int DeriveKeys(IBlockCipher cipher, KeyParameter keyBlockProtectionKey, Span<byte> encryptionKey, Span<byte> authenticationKey)
     {
-        if (this.VersionId != KeyBlockVersion.Deriviation2017)
-        {
-            throw new NotImplementedException("Only AES keys are currently supported.");
-        }
-        if (!cipher.AlgorithmName.Contains("aes", StringComparison.InvariantCultureIgnoreCase))
+        Debug.Assert(this.VersionId is KeyBlockVersion.Derivation2010 or KeyBlockVersion.Deriviation2017);
+        
+        string expectedCipher = this.VersionId == KeyBlockVersion.Derivation2010 ? "des" : "aes";
+        if (!cipher.AlgorithmName.Contains(expectedCipher, StringComparison.InvariantCultureIgnoreCase))
         {
             throw new ArgumentException("The provided block cipher does not match the key block.", nameof(cipher));
         }
@@ -292,16 +315,18 @@ public readonly struct TR31KeyBlock
             1, // Counter for number of CMAC calls
             0, 0, // Key usage identifier, 0=encryption, 1=authentication
             0, // Separator
-            0, 2, // Algorithm identifier, 2=AES128, 3=AES192, 4=AES256
+            0, 2, // Algorithm identifier, 0=DDES, 1=TDES, 2=AES128, 3=AES192, 4=AES256
             0, 128, // Key length in bits
         ];
 
-        derivationData[5] = keyBlockProtectionKey.KeyLength switch
+        derivationData[5] = (this.VersionId, keyBlockProtectionKey.KeyLength) switch
         {
-            16 => 2,
-            24 => 3,
-            32 => 4,
-            _ => throw new NotSupportedException($"The key length {keyBlockProtectionKey.KeyLength} is not supported.")
+            (KeyBlockVersion.Derivation2010, 16) => 0,
+            (KeyBlockVersion.Derivation2010, 24) => 1,
+            (KeyBlockVersion.Deriviation2017, 16) => 2,
+            (KeyBlockVersion.Deriviation2017, 24) => 3,
+            (KeyBlockVersion.Deriviation2017, 32) => 4,
+            (var v, var l) => throw new NotSupportedException($"The version and length '{v} {l}' is not a recognized algorithm."),
         };
         BinaryPrimitives.WriteUInt16BigEndian(derivationData[6..8], (ushort)(keyBlockProtectionKey.KeyLength * 8));
 
@@ -333,7 +358,9 @@ public readonly struct TR31KeyBlock
         // The Encryption Key is always an ephemeral key, so cryptography should be performed locally.
         string algorithm = this.VersionId switch
         {
+            KeyBlockVersion.Variant2005 => "DESede/CBC/NoPadding",
             KeyBlockVersion.Derivation2010 => "DESede/CBC/NoPadding",
+            KeyBlockVersion.Variant2010 => "DESede/CBC/NoPadding",
             KeyBlockVersion.Deriviation2017 => "AES/CBC/NoPadding",
             _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
         };
@@ -355,7 +382,9 @@ public readonly struct TR31KeyBlock
         // The Authentication Key is always an ephemeral key, so cryptography should be performed locally.
         IBlockCipher cipher = this.VersionId switch
         {
+            KeyBlockVersion.Variant2005 => new DesEdeEngine(),
             KeyBlockVersion.Derivation2010 => new DesEdeEngine(),
+            KeyBlockVersion.Variant2010 => new DesEdeEngine(),
             KeyBlockVersion.Deriviation2017 => AesUtilities.CreateEngine(),
             _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
         };
