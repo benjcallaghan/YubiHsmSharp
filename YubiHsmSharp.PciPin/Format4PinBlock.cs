@@ -15,6 +15,7 @@
  */
 
 using System.Diagnostics;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Prng;
@@ -119,7 +120,7 @@ public readonly struct Format4PinBlock
 
     private static string ExtractPinFromBlock(Span<byte> pinBlock)
     {
-        int header = pinBlock[0] % 0xF0 >> 4;
+        int header = pinBlock[0] >> 4;
         if (header != 4)
         {
             throw new ArgumentException("The PIN block is not Format 4.", nameof(pinBlock));
@@ -151,14 +152,14 @@ public readonly struct Format4PinBlock
 
             for (int blockIndex = 0; blockIndex < blockLength; blockIndex++)
             {
-                pin[pinIndex++] = (char)(((pinBlock[blockIndex] & 0xF0) >> 4) + '0');
+                pin[pinIndex++] = (char)((pinBlock[blockIndex] >> 4) + '0');
                 pin[pinIndex++] = (char)((pinBlock[blockIndex] & 0x0F) + '0');
             }
 
             if (blockLength != pinBlock.Length)
             {
                 // Odd number of digits, so only keep the high nibble here.
-                pin[pinIndex++] = (char)((pinBlock[^1] & 0xF0 >> 4) + '0');
+                pin[pinIndex++] = (char)((pinBlock[^1] >> 4) + '0');
             }
         });
     }
@@ -175,7 +176,7 @@ public readonly struct Format4PinBlock
         {
             // pinIndex is an even number with bounds [0, pin.Length - 1)
             // pinIndex+1 is an odd number with bounds [1, pin.Length)
-            byte leftNibble = (byte)(pin[pinIndex] - '0' << 4);
+            byte leftNibble = (byte)((pin[pinIndex] - '0') << 4);
             byte rightNibble = (byte)(pin[pinIndex + 1] - '0');
             pinBlock[blockIndex++] = (byte)(leftNibble | rightNibble);
         }
@@ -183,7 +184,7 @@ public readonly struct Format4PinBlock
         if (pin.Length % 2 == 1)
         {
             // There is one digit left over, which should be combined with the hex digit A.
-            byte leftNibble = (byte)(pin[^1] - '0' << 4);
+            byte leftNibble = (byte)((pin[^1] - '0') << 4);
             byte rightNibble = 0x0A;
             pinBlock[blockIndex++] = (byte)(leftNibble | rightNibble);
         }
@@ -208,7 +209,7 @@ public readonly struct Format4PinBlock
         {
             // panIndex is an odd number with bounds [1, pan.Length - 1)
             // panIndex+1 is an even number with bounds [2, pan.Length)
-            byte leftNibble = (byte)(primaryAccountNumber[panIndex] - '0' << 4);
+            byte leftNibble = (byte)((primaryAccountNumber[panIndex] - '0') << 4);
             byte rightNibble = (byte)(primaryAccountNumber[panIndex + 1] - '0');
             panBlock[blockIndex++] = (byte)(leftNibble | rightNibble);
         }
@@ -216,7 +217,7 @@ public readonly struct Format4PinBlock
         if (primaryAccountNumber.Length % 2 == 0)
         {
             // There is one digit left over, which should be combined with the hex digit 0.
-            byte leftNibble = (byte)(primaryAccountNumber[^1] - '0' << 4);
+            byte leftNibble = (byte)((primaryAccountNumber[^1] - '0') << 4);
             byte rightNibble = 0x00;
             panBlock[blockIndex++] = (byte)(leftNibble | rightNibble);
         }

@@ -24,8 +24,10 @@ namespace YubiHsmSharp.PciPin.Tests;
 [Trait("Requires", "None")]
 public class Format4PinBlockTests
 {
-    [Fact]
-    public void Format4PinBlock_WhenEncrypted_DecryptsToOriginalPin()
+    [Theory]
+    [InlineData("5678", "4111111111111111")]
+    [InlineData("1234567", "4111111111111111")]
+    public void Format4PinBlock_WhenEncrypted_DecryptsToOriginalPin(string testPin, string testPan)
     {
         // Arrange
         IBlockCipher cipher = AesUtilities.CreateEngine();
@@ -33,9 +35,6 @@ public class Format4PinBlockTests
         generator.Init(new KeyGenerationParameters(new SecureRandom(), 128));
         KeyParameter encryptionKey = generator.GenerateKeyParameter();
         CryptoApiRandomGenerator random = new();
-        
-        const string testPin = "5678";
-        const string testPan = "4111111111111111";
 
         // Act
         Format4PinBlock pinBlock = Format4PinBlock.Encrypt(cipher, encryptionKey, random, testPin, testPan);
