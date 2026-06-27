@@ -21,24 +21,27 @@ Any cryptographic method supported by YubiHSM 2 should be performed by the HSM. 
 The following code takes user-provided key components and merges them into a Zone Master Key (ZMK). The ZMK is then imported into the YubiHSM 2. Then, a user-provided TR-31 Key Block is imported into the YubiHSM 2 using the stored ZMK. Finally, a PIN is encrypted and decrypted using the stored PIN Encryption Key (PEK) that was previously extracted from the Key Block.
 
 ```csharp
+using Org.BouncyCastle.Crypto;
 using YubiHsmSharp;
 using YubiHsmSharp.PciPin;
 
+IBlockCipher aes = AesUtilities.CreateEngine();
+
 ReadOnlySpan<byte> keyComponent1 = ReadFromUser();
 Span<byte> keyCheckValue1 = stackalloc byte[3];
-int written = KeyUtils.AesKeyCheckValue(keyComponent1, keyCheckValue1);
+int written = KeyUtils.KeyCheckValue(aes, keyComponent1, keyCheckValue1);
 keyCheckValue1 = keyCheckValue1[..written];
 AskUserIfCorrect(keyCheckValue1);
 
 ReadOnlySpan<byte> keyComponent2 = ReadFromUser();
 Span<byte> keyCheckValue2 = stackalloc byte[3];
-written = KeyUtils.AesKeyCheckValue(keyComponent2, keyCheckValue2);
+written = KeyUtils.KeyCheckValue(aes, keyComponent2, keyCheckValue2);
 keyCheckValue2 = keyCheckValue2[..written];
 AskUserIfCorrect(keyCheckValue2);
 
 ReadOnlySpan<byte> keyComponent3 = ReadFromUser();
 Span<byte> keyCheckValue3 = stackalloc byte[3];
-written = KeyUtils.AesKeyCheckValue(keyComponent3, keyCheckValue2);
+written = KeyUtils.KeyCheckValue(aes, keyComponent3, keyCheckValue2);
 keyCheckValue3 = keyCheckValue3[..written];
 AskUserIfCorrect(keyCheckValue3);
 
@@ -47,7 +50,7 @@ written = KeyUtils.CombineComponents(keyComponent1, keyComponent2, keyComponent3
 zoneMasterKey = zoneMasterKey[..written];
 
 Span<byte> zoneMasterKeyCheckValue = stackalloc byte[3];
-written = KeyUtils.AesKeyCheckValue(zoneMasterKey, zoneMasterKeyCheckValue);
+written = KeyUtils.KeyCheckValue(aes, zoneMasterKey, zoneMasterKeyCheckValue);
 zoneMasterKeyCheckValue = zoneMasterKeyCheckValue[..written];
 AskUserIfCorrect(zoneMasterKeyCheckValue);
 

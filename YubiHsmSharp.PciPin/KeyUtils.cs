@@ -27,7 +27,7 @@ namespace YubiHsmSharp.PciPin;
 public static class KeyUtils
 {
     /// <summary>
-    /// Generates a key check value (KCV) for the given AES key.
+    /// Generates a key check value (KCV) for the given key.
     /// </summary>
     /// <remarks>
     /// This method is useful for verifying that a hand-typed encryption key was entered correctly.
@@ -35,11 +35,12 @@ public static class KeyUtils
     /// generate its own KCV using the hand-typed key and display the KCV to the user, who should then
     /// verify that the KCV is accurate. If the KCVs are different, then a typo is present in the key.
     /// </remarks>
-    /// <param name="aesKey">The key to check.</param>
+    /// <param name="cipher">The <see cref="IBlockCipher"/> associated with the key.</param>
+    /// <param name="key">The key to check.</param>
     /// <param name="keyCheckValue">A buffer to hold the generated KCV.</param>
     /// <returns>The number of bytes written to <paramref name="keyCheckValue"/>.</returns>
     /// <exception cref="ArgumentException">Thrown if <paramref name="keyCheckValue"/> is too small.</exception>
-    public static int AesKeyCheckValue(ReadOnlySpan<byte> aesKey, Span<byte> keyCheckValue)
+    public static int KeyCheckValue(IBlockCipher cipher, ReadOnlySpan<byte> key, Span<byte> keyCheckValue)
     {
         const int kcvSize = 3;
         if (keyCheckValue.Length < kcvSize)
@@ -47,8 +48,8 @@ public static class KeyUtils
             throw new ArgumentException($"The output buffer for the key check value must be at least {kcvSize} bytes.", nameof(keyCheckValue));
         }
 
-        CMac cmac = new(AesUtilities.CreateEngine());
-        cmac.Init(new KeyParameter(aesKey));
+        CMac cmac = new(cipher);
+        cmac.Init(new KeyParameter(key));
 
         int blockSize = cmac.GetMacSize();
         Span<byte> mac = stackalloc byte[blockSize];

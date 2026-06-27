@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+using Org.BouncyCastle.Crypto;
+
 namespace YubiHsmSharp.PciPin.Tests;
 
 [Trait("Requires", "None")]
@@ -28,10 +30,11 @@ public class KeyUtilsTests
     {
         // Arrange
         byte[] key = Convert.FromHexString(hexKey);
+        IBlockCipher cipher = AesUtilities.CreateEngine();
 
         // Act
         Span<byte> keyCheckValue = stackalloc byte[3];
-        int written = KeyUtils.AesKeyCheckValue(key, keyCheckValue);
+        int written = KeyUtils.KeyCheckValue(cipher, key, keyCheckValue);
         keyCheckValue = keyCheckValue[..written];
 
         // Assert
