@@ -379,7 +379,7 @@ public readonly struct TR31KeyBlock
 
     private static void VerifyMac(ReadOnlySpan<byte> givenMac, ReadOnlySpan<byte> computedMac)
     {
-        if (!givenMac.SequenceEqual(computedMac))
+        if (!Arrays.FixedTimeEquals(givenMac, computedMac))
         {
             throw new InvalidOperationException("The computed MAC does not match the encoded MAC.");
         }
