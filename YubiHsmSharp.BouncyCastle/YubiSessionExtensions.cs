@@ -40,6 +40,19 @@ public static class YubiSessionExtensions
         }
 
         /// <summary>
+        /// Gets the raw value of an Opaque Object as a BouncyCastle <see cref="ICipherParameters"/>.
+        /// </summary>
+        /// <param name="keyId">The ID of the stored opaque object.</param>
+        /// <returns>A <see cref="KeyParameter"/> containing the stored opaque object.</returns>
+        public KeyParameter GetOpaqueKeyParameter(ObjectId keyId)
+        {
+            ObjectDescriptor descriptor = session.GetObject(keyId, ObjectType.SymmetricKey);
+            Span<byte> opaque = stackalloc byte[descriptor.Length];
+            int written = session.GetOpaque(keyId, opaque);
+            return new KeyParameter(opaque[..written]);
+        }
+
+        /// <summary>
         /// Gets a BouncyCastle-compatible <see cref="ICipherParameters"/> representing a stored private asymmetric key.
         /// </summary>
         /// <param name="keyId">The ID of the stored private asymmetric key.</param>

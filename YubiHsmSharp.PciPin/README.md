@@ -10,12 +10,11 @@ Any cryptographic method supported by YubiHSM 2 should be performed by the HSM. 
 
 * Creating a Zone Master Key (ZMK) from three key components: `KeyUtils.CombineComponents`
 * Creating Key Check Values (KCV) from keys and key components: `KeyUtils.AesKeyCheckValue`
-* Importing a Zone Master Key (ZMK) into the YubiHSM 2: `YubiSession.ImportZoneMasterKey`
-* Importing a TR-31 Key Block protected by a stored ZMK: `YubiSession.ImportAesKey`
+* Importing a Zone Master Key (ZMK) (AES) into the YubiHSM 2: `YubiSession.ImportZoneMasterAesKey`
+* Importing a Zone Master Key (ZMK) (DES) into the YubiHSM 2: `YubiSession.ImportZoneMasterDesKey`
+* Importing a TR-31 Key Block protected by a stored ZMK: `YubiSession.ImportKeyBlock`
 * Encrypting a PIN using a stored PIN Encryption Key (PEK): `YubiSession.EncryptPin`
 * Decrypting a PIN using a stored PIN Encryption Key (PEK): `YubiSession.DecryptPin`
-
-Once a ZMK or PEK is imported into the YubiHSM 2, the key is never extracted for local cryptography. All required operations that act on a stored key occur within the YubiHSM 2 device.
 
 ## Example
 
@@ -53,14 +52,15 @@ zoneMasterKeyCheckValue = zoneMasterKeyCheckValue[..written];
 AskUserIfCorrect(zoneMasterKeyCheckValue);
 
 using YubiSession session = CreateYubiSession(); // See YubiHsmSharp documentation for the detailed creation process.
-ushort zoneMasterKeyId = session.ImportZoneMasterKey("My Zone Master Key"u8, Domains.From("1,2,3"u8), zoneMasterKey);
+ushort zoneMasterKeyId = session.ImportZoneMasterAesKey("My Zone Master Key"u8, Domains.From("1,2,3"u8), zoneMasterKey);
 
 TR31KeyBlock pinEncryptionKeyBlock = ReadFromDynamicKeyExchange();
-ushort pinEncryptionKeyId = session.ImportAesKey(pinEncryptionKeyBlock, zoneMasterKeyId, "My PIN Encryption Key"u8, Domains.From("1,2,3"u8));
+(ObjectType pinEncryptionKeyType, ushort pinEncryptionKeyId) =
+    session.ImportKeyBlock(pinEncryptionKeyBlock, zoneMasterKeyId, "My PIN Encryption Key"u8, Domains.From("1,2,3"u8));
 
 string primaryAccountNumber = ReadFromUser();
 string pin = ReadFromUser();
-Format4PinBlock pinBlock = session.EncryptPin(pinEncryptionKeyId, pin, primaryAccountNumber);
-string pinCopy = session.DecryptPin(pinEncryptionKeyId, pinBlock, primaryAccountNumber);
+Format4PinBlock pinBlock = session.EncryptPin(pinEncryptionKeyType, pinEncryptionKeyId, pin, primaryAccountNumber);
+string pinCopy = session.DecryptPin(pinEncryptionKeyType, pinEncryptionKeyId, pinBlock, primaryAccountNumber);
 Debug.Assert(pin == pinCopy);
 ```
