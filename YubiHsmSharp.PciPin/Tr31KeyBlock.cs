@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
+#if NET9_0_OR_GREATER
 using System.Buffers;
+#endif
 using System.Buffers.Binary;
 using System.Diagnostics;
 #if !NET10_0_OR_GREATER
@@ -24,6 +26,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Prng;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -32,9 +35,16 @@ namespace YubiHsmSharp.PciPin;
 /// <summary>
 /// Represents a TR-31 Key Block, with header fields parsed and verified.
 /// </summary>
-public readonly struct TR31KeyBlock
+public struct TR31KeyBlock
 {
-    private readonly byte[] keyBlock;
+    private byte[] keyBlock;
+
+    public TR31KeyBlock()
+    {
+        this.keyBlock = new byte[16]; // 16 is the smallest possible header.
+                                      // It will be resized during encryption.
+        this.NumberOfOptionalBlocks = 0;
+    }
 
     /// <summary>
     /// Parses key block header data and captures encrypted key data and authentication codes.
@@ -53,115 +63,239 @@ public readonly struct TR31KeyBlock
         }
     }
 
+    public readonly ReadOnlySpan<byte> Raw => this.keyBlock;
+
     /// <summary>
     /// Gets the Key Block Version ID, which defines the method by which it is cryptographically protected.
     /// </summary>
-    public readonly KeyBlockVersion VersionId => this.keyBlock[0] switch
+    public readonly KeyBlockVersion VersionId
     {
-        (byte)'A' => KeyBlockVersion.Variant2005,
-        (byte)'B' => KeyBlockVersion.Derivation2010,
-        (byte)'C' => KeyBlockVersion.Variant2010,
-        (byte)'D' => KeyBlockVersion.Derivation2017,
-        _ => KeyBlockVersion.Unknown,
-    };
+        get => this.keyBlock[0] switch
+        {
+            (byte)'A' => KeyBlockVersion.Variant2005,
+            (byte)'B' => KeyBlockVersion.Derivation2010,
+            (byte)'C' => KeyBlockVersion.Variant2010,
+            (byte)'D' => KeyBlockVersion.Derivation2017,
+            _ => KeyBlockVersion.Unknown,
+        };
+        init => this.keyBlock[0] = value switch
+        {
+            KeyBlockVersion.Variant2005 => (byte)'A',
+            KeyBlockVersion.Derivation2010 => (byte)'B',
+            KeyBlockVersion.Variant2010 => (byte)'C',
+            KeyBlockVersion.Derivation2017 => (byte)'D',
+            _ => throw new NotSupportedException($"The version ID '{value}' is not supported."),
+        };
+    }
 
     /// <summary>
     /// Gets the key-block length, including the header, encrypted data, and MAC.
     /// </summary>
-    public readonly int Length => Int32.Parse(this.keyBlock.AsSpan(1..5));
+    public readonly int Length
+    {
+        get => Int32.Parse(this.keyBlock.AsSpan(1..5));
+        private set
+        {
+            bool result = value.TryFormat(this.keyBlock.AsSpan(1..5), out var bytesWritten, "D4");
+            if (!result || bytesWritten != 4)
+            {
+                throw new NotSupportedException($"The length '{value}' is not supported.");
+            }
+        }
+    }
 
     /// <summary>
     /// Gets information about the intended function of the protected key.
     /// </summary>
-    public readonly KeyUsage Usage => this.keyBlock.AsSpan(5..7) switch
+    public readonly KeyUsage Usage
     {
-        [(byte)'B', (byte)'0'] => KeyUsage.BaseDerivationKey,
-        [(byte)'B', (byte)'1'] => KeyUsage.InitialPinEncryptionKey,
-        [(byte)'B', (byte)'3'] => KeyUsage.KeyDerivationKey,
-        [(byte)'C', (byte)'0'] => KeyUsage.CardVerificationKey,
-        [(byte)'D', (byte)'0'] => KeyUsage.SymmetricDataEncryptionKey,
-        [(byte)'D', (byte)'3'] => KeyUsage.SensitiveDataEncryptionKey,
-        [(byte)'E', (byte)'0'] => KeyUsage.EmvCryptogramKey,
-        [(byte)'E', (byte)'1'] => KeyUsage.EmvConfidentialityKey,
-        [(byte)'E', (byte)'2'] => KeyUsage.EmvIntegrityKey,
-        [(byte)'E', (byte)'3'] => KeyUsage.EmvAuthenticationKey,
-        [(byte)'E', (byte)'4'] => KeyUsage.EmvDynamicKey,
-        [(byte)'E', (byte)'5'] => KeyUsage.EmvPersonalizationKey,
-        [(byte)'K', (byte)'0'] => KeyUsage.KeyEncryptionKey,
-        [(byte)'K', (byte)'1'] => KeyUsage.KeyBlockProtectionKeyTr31,
-        [(byte)'K', (byte)'4'] => KeyUsage.KeyBlockProtectionKeyIso20038,
-        [(byte)'M', (byte)'0'] => KeyUsage.Iso16609Mac1Key,
-        [(byte)'M', (byte)'1'] => KeyUsage.Iso9797Mac1Key,
-        [(byte)'M', (byte)'3'] => KeyUsage.Iso9797Mac3Key,
-        [(byte)'M', (byte)'6'] => KeyUsage.Iso9797Mac5Key,
-        [(byte)'M', (byte)'7'] => KeyUsage.HmacKey,
-        [(byte)'P', (byte)'0'] => KeyUsage.PinEncryptionKey,
-        [(byte)'V', (byte)'0'] => KeyUsage.PinVerificationKpvKey,
-        [(byte)'V', (byte)'1'] => KeyUsage.PinVerificationIbmKey,
-        [(byte)'V', (byte)'2'] => KeyUsage.PinVerificationVisaKey,
-        _ => KeyUsage.Unknown,
-    };
+        get => this.keyBlock.AsSpan(5..7) switch
+        {
+            [(byte)'B', (byte)'0'] => KeyUsage.BaseDerivationKey,
+            [(byte)'B', (byte)'1'] => KeyUsage.InitialPinEncryptionKey,
+            [(byte)'B', (byte)'3'] => KeyUsage.KeyDerivationKey,
+            [(byte)'C', (byte)'0'] => KeyUsage.CardVerificationKey,
+            [(byte)'D', (byte)'0'] => KeyUsage.SymmetricDataEncryptionKey,
+            [(byte)'D', (byte)'3'] => KeyUsage.SensitiveDataEncryptionKey,
+            [(byte)'E', (byte)'0'] => KeyUsage.EmvCryptogramKey,
+            [(byte)'E', (byte)'1'] => KeyUsage.EmvConfidentialityKey,
+            [(byte)'E', (byte)'2'] => KeyUsage.EmvIntegrityKey,
+            [(byte)'E', (byte)'3'] => KeyUsage.EmvAuthenticationKey,
+            [(byte)'E', (byte)'4'] => KeyUsage.EmvDynamicKey,
+            [(byte)'E', (byte)'5'] => KeyUsage.EmvPersonalizationKey,
+            [(byte)'K', (byte)'0'] => KeyUsage.KeyEncryptionKey,
+            [(byte)'K', (byte)'1'] => KeyUsage.KeyBlockProtectionKeyTr31,
+            [(byte)'K', (byte)'4'] => KeyUsage.KeyBlockProtectionKeyIso20038,
+            [(byte)'M', (byte)'0'] => KeyUsage.Iso16609Mac1Key,
+            [(byte)'M', (byte)'1'] => KeyUsage.Iso9797Mac1Key,
+            [(byte)'M', (byte)'3'] => KeyUsage.Iso9797Mac3Key,
+            [(byte)'M', (byte)'6'] => KeyUsage.Iso9797Mac5Key,
+            [(byte)'M', (byte)'7'] => KeyUsage.HmacKey,
+            [(byte)'P', (byte)'0'] => KeyUsage.PinEncryptionKey,
+            [(byte)'V', (byte)'0'] => KeyUsage.PinVerificationKpvKey,
+            [(byte)'V', (byte)'1'] => KeyUsage.PinVerificationIbmKey,
+            [(byte)'V', (byte)'2'] => KeyUsage.PinVerificationVisaKey,
+            _ => KeyUsage.Unknown,
+        };
+        init => (value switch
+        {
+            KeyUsage.BaseDerivationKey => (ReadOnlySpan<byte>)[(byte)'B', (byte)'0'],
+            KeyUsage.InitialPinEncryptionKey => [(byte)'B', (byte)'1'],
+            KeyUsage.KeyDerivationKey => [(byte)'B', (byte)'3'],
+            KeyUsage.CardVerificationKey => [(byte)'C', (byte)'0'],
+            KeyUsage.SymmetricDataEncryptionKey => [(byte)'D', (byte)'0'],
+            KeyUsage.SensitiveDataEncryptionKey => [(byte)'D', (byte)'3'],
+            KeyUsage.EmvCryptogramKey => [(byte)'E', (byte)'0'],
+            KeyUsage.EmvConfidentialityKey => [(byte)'E', (byte)'1'],
+            KeyUsage.EmvIntegrityKey => [(byte)'E', (byte)'2'],
+            KeyUsage.EmvAuthenticationKey => [(byte)'E', (byte)'3'],
+            KeyUsage.EmvDynamicKey => [(byte)'E', (byte)'4'],
+            KeyUsage.EmvPersonalizationKey => [(byte)'E', (byte)'5'],
+            KeyUsage.KeyEncryptionKey => [(byte)'K', (byte)'0'],
+            KeyUsage.KeyBlockProtectionKeyTr31 => [(byte)'K', (byte)'1'],
+            KeyUsage.KeyBlockProtectionKeyIso20038 => [(byte)'K', (byte)'4'],
+            KeyUsage.Iso16609Mac1Key => [(byte)'M', (byte)'0'],
+            KeyUsage.Iso9797Mac1Key => [(byte)'M', (byte)'1'],
+            KeyUsage.Iso9797Mac3Key => [(byte)'M', (byte)'3'],
+            KeyUsage.Iso9797Mac5Key => [(byte)'M', (byte)'6'],
+            KeyUsage.HmacKey => [(byte)'M', (byte)'7'],
+            KeyUsage.PinEncryptionKey => [(byte)'P', (byte)'0'],
+            KeyUsage.PinVerificationKpvKey => [(byte)'V', (byte)'0'],
+            KeyUsage.PinVerificationIbmKey => [(byte)'V', (byte)'1'],
+            KeyUsage.PinVerificationVisaKey => [(byte)'V', (byte)'2'],
+            _ => throw new NotSupportedException($"The key usage '{value}' is not supported."),
+        }).CopyTo(this.keyBlock.AsSpan(5..7));
+    }
 
     /// <summary>
     /// Gets the approved algorithm for which the protected key may be used.
     /// </summary>
-    public readonly KeyAlgorithm Algorithm => this.keyBlock[7] switch
+    public readonly KeyAlgorithm Algorithm
     {
-        (byte)'A' => KeyAlgorithm.AdvancedEncryptionStandard,
-        (byte)'D' => KeyAlgorithm.DataEncryptionAlgorithm,
-        (byte)'H' => KeyAlgorithm.HmacSha1,
-        (byte)'I' => KeyAlgorithm.HmacSha2,
-        (byte)'T' => KeyAlgorithm.TripleDataEncryptionAlgorithm,
-        _ => KeyAlgorithm.Unknown,
-    };
+        get => this.keyBlock[7] switch
+        {
+            (byte)'A' => KeyAlgorithm.AdvancedEncryptionStandard,
+            (byte)'D' => KeyAlgorithm.DataEncryptionAlgorithm,
+            (byte)'H' => KeyAlgorithm.HmacSha1,
+            (byte)'I' => KeyAlgorithm.HmacSha2,
+            (byte)'T' => KeyAlgorithm.TripleDataEncryptionAlgorithm,
+            _ => KeyAlgorithm.Unknown,
+        };
+        init => this.keyBlock[7] = value switch
+        {
+            KeyAlgorithm.AdvancedEncryptionStandard => (byte)'A',
+            KeyAlgorithm.DataEncryptionAlgorithm => (byte)'D',
+            KeyAlgorithm.HmacSha1 => (byte)'H',
+            KeyAlgorithm.HmacSha2 => (byte)'I',
+            KeyAlgorithm.TripleDataEncryptionAlgorithm => (byte)'T',
+            _ => throw new NotSupportedException($"The algorithm '{value}' is not supported."),
+        };
+    }
 
     /// <summary>
     /// Gets the operation the protected key can perform.
     /// </summary>
-    public readonly KeyUse ModeOfUse => this.keyBlock[8] switch
+    public readonly KeyUse ModeOfUse
     {
-        (byte)'B' => KeyUse.EncryptDecrypt,
-        (byte)'C' => KeyUse.GenerateVerify,
-        (byte)'D' => KeyUse.Decrypt,
-        (byte)'E' => KeyUse.Encrypt,
-        (byte)'G' => KeyUse.Generate,
-        (byte)'N' => KeyUse.NoRestriction,
-        (byte)'V' => KeyUse.Verify,
-        (byte)'X' => KeyUse.Derive,
-        _ => KeyUse.Unknown,
-    };
+        get => this.keyBlock[8] switch
+        {
+            (byte)'B' => KeyUse.EncryptDecrypt,
+            (byte)'C' => KeyUse.GenerateVerify,
+            (byte)'D' => KeyUse.Decrypt,
+            (byte)'E' => KeyUse.Encrypt,
+            (byte)'G' => KeyUse.Generate,
+            (byte)'N' => KeyUse.NoRestriction,
+            (byte)'V' => KeyUse.Verify,
+            (byte)'X' => KeyUse.Derive,
+            _ => KeyUse.Unknown,
+        };
+        init => this.keyBlock[8] = value switch
+        {
+            KeyUse.EncryptDecrypt => (byte)'B',
+            KeyUse.GenerateVerify => (byte)'C',
+            KeyUse.Decrypt => (byte)'D',
+            KeyUse.Encrypt => (byte)'E',
+            KeyUse.Generate => (byte)'G',
+            KeyUse.NoRestriction => (byte)'N',
+            KeyUse.Verify => (byte)'V',
+            KeyUse.Derive => (byte)'X',
+            _ => throw new NotSupportedException($"The mode of use '{value}' is not supported."),
+        };
+    }
 
     /// <summary>
     /// Gets the version number of the protected key.
     /// </summary>
-    public readonly int VersionNumber => Int32.Parse(this.keyBlock.AsSpan(9..11));
+    public readonly int VersionNumber
+    {
+        get => Int32.Parse(this.keyBlock.AsSpan(9..11));
+        init
+        {
+            bool result = value.TryFormat(this.keyBlock.AsSpan(9..11), out var bytesWritten, "D2");
+            if (!result || bytesWritten != 2)
+            {
+                throw new NotSupportedException($"The version number '{value}' is not supported.");
+            }
+        }
+    }
 
     /// <summary>
     /// Gets whether the key may be transferred outside the cryptographic domain.
     /// </summary>
-    public readonly KeyExportability Exportability => this.keyBlock[11] switch
+    public readonly KeyExportability Exportability
     {
-        (byte)'E' => KeyExportability.ExtraSensitive,
-        (byte)'N' => KeyExportability.NonExportable,
-        (byte)'S' => KeyExportability.Sensitive,
-        _ => KeyExportability.Unknown,
-    };
+        get => this.keyBlock[11] switch
+        {
+            (byte)'E' => KeyExportability.ExtraSensitive,
+            (byte)'N' => KeyExportability.NonExportable,
+            (byte)'S' => KeyExportability.Sensitive,
+            _ => KeyExportability.Unknown,
+        };
+        init => this.keyBlock[11] = value switch
+        {
+            KeyExportability.ExtraSensitive => (byte)'E',
+            KeyExportability.NonExportable => (byte)'N',
+            KeyExportability.Sensitive => (byte)'S',
+            _ => throw new NotSupportedException($"The exportability '{value}' is not supported."),
+        };
+    }
 
     /// <summary>
     /// Gets the number of optional blocks included in the key block.
     /// </summary>
-    public readonly int NumberOfOptionalBlocks => Int32.Parse(this.keyBlock.AsSpan(12..14));
+    public readonly int NumberOfOptionalBlocks
+    {
+        get => Int32.Parse(this.keyBlock.AsSpan(12..14));
+        private init
+        {
+            bool result = value.TryFormat(this.keyBlock.AsSpan(12..14), out var bytesWritten, "D2");
+            if (!result || bytesWritten != 2)
+            {
+                throw new NotSupportedException($"The version number '{value}' is not supported.");
+            }
+        }
+    }
 
     /// <summary>
     /// Gets whether the key is in a key exchange context or in a storage context.
     /// </summary>
-    public readonly KeyContext Context => this.keyBlock[15] switch
+    public readonly KeyContext Context
     {
-        (byte)'0' => KeyContext.StorageOrExchange,
-        (byte)'1' => KeyContext.Storage,
-        (byte)'2' => KeyContext.Exchange,
-        _ => KeyContext.Unknown,
-    };
+        get => this.keyBlock[15] switch
+        {
+            (byte)'0' => KeyContext.StorageOrExchange,
+            (byte)'1' => KeyContext.Storage,
+            (byte)'2' => KeyContext.Exchange,
+            _ => KeyContext.Unknown,
+        };
+        init => this.keyBlock[15] = value switch
+        {
+            KeyContext.StorageOrExchange => (byte)'0',
+            KeyContext.Storage => (byte)'1',
+            KeyContext.Exchange => (byte)'2',
+            _ => throw new NotSupportedException($"The context '{value}' is not supported."),
+        };
+    }
 
     private readonly int HeaderLength => this.NumberOfOptionalBlocks == 0 ? 16 : throw new NotImplementedException("Optional header blocks are not yet implemented.");
 
@@ -173,6 +307,106 @@ public readonly struct TR31KeyBlock
         KeyBlockVersion.Derivation2017 => 16,
         _ => throw new NotSupportedException($"The key block version {this.VersionId} is not supported."),
     };
+
+    public void Encrypt(ReadOnlySpan<byte> keyBlockProtectionKey, IRandomGenerator random, ReadOnlySpan<byte> clearKey)
+    {
+        IBlockCipher cipher = this.VersionId switch
+        {
+            KeyBlockVersion.Variant2005 => new DesEdeEngine(),
+            KeyBlockVersion.Derivation2010 => new DesEdeEngine(),
+            KeyBlockVersion.Variant2010 => new DesEdeEngine(),
+            KeyBlockVersion.Derivation2017 => AesUtilities.CreateEngine(),
+            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
+        };
+        this.Encrypt(cipher, new KeyParameter(keyBlockProtectionKey), random, clearKey);
+    }
+
+    public void Encrypt(IBlockCipher cipher, KeyParameter keyBlockProtectionKey, IRandomGenerator random, ReadOnlySpan<byte> clearKey)
+    {
+        Span<byte> encryptionKey = stackalloc byte[keyBlockProtectionKey.KeyLength];
+        Span<byte> authenticationKey = stackalloc byte[keyBlockProtectionKey.KeyLength];
+        int written = this.VersionId switch
+        {
+            KeyBlockVersion.Variant2005 => VariantKeys(keyBlockProtectionKey, encryptionKey, authenticationKey),
+            KeyBlockVersion.Derivation2010 => DeriveKeys(cipher, keyBlockProtectionKey, encryptionKey, authenticationKey),
+            KeyBlockVersion.Variant2010 => VariantKeys(keyBlockProtectionKey, encryptionKey, authenticationKey),
+            KeyBlockVersion.Derivation2017 => DeriveKeys(cipher, keyBlockProtectionKey, encryptionKey, authenticationKey),
+            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
+        };
+        encryptionKey = encryptionKey[..written];
+        authenticationKey = authenticationKey[..written];
+
+        Span<byte> paddedKey = stackalloc byte[clearKey.Length * 2];
+        written = this.PadKey(random, clearKey, paddedKey);
+        paddedKey = paddedKey[..written];
+
+        this.Length = this.HeaderLength + paddedKey.Length * 2 + this.MacLength * 2;
+        ReadOnlySpan<byte> header = this.keyBlock.AsSpan(..this.HeaderLength);
+
+        Span<byte> computedMac = stackalloc byte[this.MacLength * 2];
+        written = this.GenerateMac(authenticationKey, header, paddedKey, computedMac);
+        computedMac = computedMac[..written];
+
+        ReadOnlySpan<byte> iv = this.VersionId switch
+        {
+            KeyBlockVersion.Variant2005 => header[..8],
+            KeyBlockVersion.Derivation2010 => computedMac[..8],
+            KeyBlockVersion.Variant2010 => header[..8],
+            KeyBlockVersion.Derivation2017 => computedMac[..16],
+            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
+        };
+
+        Span<byte> encryptedKey = stackalloc byte[paddedKey.Length];
+        written = this.EncryptKeyBlock(encryptionKey, iv, paddedKey, encryptedKey);
+        encryptedKey = encryptedKey[..written];
+
+#if NET10_0_OR_GREATER
+        Span<byte> computedMacHex = stackalloc byte[computedMac.Length * 2];
+        bool result = Convert.TryToHexString(computedMac, computedMacHex, out written);
+        Debug.Assert(result);
+        computedMacHex = computedMacHex[..written];
+
+        Span<byte> encryptedKeyHex = stackalloc byte[encryptedKey.Length * 2];
+        result = Convert.TryToHexString(encryptedKey, encryptedKeyHex, out written);
+        Debug.Assert(result);
+        encryptedKeyHex = encryptedKeyHex[..written];
+#elif NET9_0
+        Span<char> computedMacChars = stackalloc char[computedMac.Length * 2];
+        bool result = Convert.TryToHexString(computedMac, computedMacChars, out written);
+        Debug.Assert(result);
+        computedMacChars = computedMacChars[..written];
+
+        Span<byte> computedMacHex = stackalloc byte[computedMacChars.Length];
+        written = Encoding.UTF8.GetBytes(computedMacChars, computedMacHex);
+        computedMacHex = computedMacHex[..written];
+
+        Span<char> encryptedKeyChars = stackalloc char[encryptedKey.Length * 2];
+        result = Convert.TryToHexString(encryptedKey, encryptedKeyChars, out written);
+        Debug.Assert(result);
+        encryptedKeyChars = encryptedKeyChars[..written];
+
+        Span<byte> encryptedKeyHex = stackalloc byte[encryptedKeyChars.Length];
+        written = Encoding.UTF8.GetBytes(encryptedKeyChars, encryptedKeyHex);
+        encryptedKeyHex = encryptedKeyHex[..written];
+#else
+        ReadOnlySpan<char> computedMacChars = Convert.ToHexString(computedMac);
+
+        Span<byte> computedMacHex = stackalloc byte[computedMacChars.Length];
+        written = Encoding.UTF8.GetBytes(computedMacChars, computedMacHex);
+        computedMacHex = computedMacHex[..written];
+
+        ReadOnlySpan<char> encryptedKeyChars = Convert.ToHexString(encryptedKey);
+
+        Span<byte> encryptedKeyHex = stackalloc byte[encryptedKeyChars.Length];
+        written = Encoding.UTF8.GetBytes(encryptedKeyChars, encryptedKeyHex);
+        encryptedKeyHex = encryptedKeyHex[..written];
+#endif
+
+        this.keyBlock = new byte[header.Length + encryptedKeyHex.Length + computedMacHex.Length];
+        header.CopyTo(this.keyBlock);
+        encryptedKeyHex.CopyTo(this.keyBlock.AsSpan(header.Length));
+        computedMacHex.CopyTo(this.keyBlock.AsSpan(header.Length + encryptedKeyHex.Length));
+    }
 
     /// <summary>
     /// Decrypts and unwraps the protected key stored within this key block, using fully-local cryptography.
@@ -286,6 +520,32 @@ public readonly struct TR31KeyBlock
         computedMac = computedMac[..written];
         VerifyMac(givenMac, computedMac);
 
+        return UnpadKey(paddedKey, clearKey);
+    }
+
+    private readonly int PadKey(IRandomGenerator random, ReadOnlySpan<byte> clearKey, Span<byte> paddedKey)
+    {
+        IBlockCipher cipher = this.VersionId switch
+        {
+            KeyBlockVersion.Variant2005 => new DesEdeEngine(),
+            KeyBlockVersion.Derivation2010 => new DesEdeEngine(),
+            KeyBlockVersion.Variant2010 => new DesEdeEngine(),
+            KeyBlockVersion.Derivation2017 => AesUtilities.CreateEngine(),
+            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
+        };
+        int paddedLength = (int)Math.Ceiling((double)(clearKey.Length + 2) / cipher.GetBlockSize()) * cipher.GetBlockSize();
+        Debug.Assert(paddedKey.Length >= paddedLength);
+
+        int keyLengthBits = clearKey.Length * 8;
+        BinaryPrimitives.WriteUInt16BigEndian(paddedKey, (ushort)keyLengthBits);
+        clearKey.CopyTo(paddedKey[2..]);
+        random.NextBytes(paddedKey[(2 + clearKey.Length)..]);
+
+        return paddedLength;
+    }
+
+    private static int UnpadKey(ReadOnlySpan<byte> paddedKey, Span<byte> clearKey)
+    {
         int keyLengthBits = BinaryPrimitives.ReadUInt16BigEndian(paddedKey[..2]);
         int keyLengthBytes = keyLengthBits / 8;
         paddedKey.Slice(2, keyLengthBytes).CopyTo(clearKey);
@@ -361,6 +621,22 @@ public readonly struct TR31KeyBlock
         return keyBlockProtectionKey.KeyLength; // Final keys are always the same length as the original.
     }
 
+    private readonly int EncryptKeyBlock(ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> iv, ReadOnlySpan<byte> paddedKey, Span<byte> encryptedKey)
+    {
+        // The Encryption Key is always an ephemeral key, so cryptography should be performed locally.
+        string algorithm = this.VersionId switch
+        {
+            KeyBlockVersion.Variant2005 => "DESede/CBC/NoPadding",
+            KeyBlockVersion.Derivation2010 => "DESede/CBC/NoPadding",
+            KeyBlockVersion.Variant2010 => "DESede/CBC/NoPadding",
+            KeyBlockVersion.Derivation2017 => "AES/CBC/NoPadding",
+            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
+        };
+        IBufferedCipher cipher = CipherUtilities.GetCipher(algorithm);
+        cipher.Init(forEncryption: true, new ParametersWithIV(new KeyParameter(encryptionKey), iv));
+        return cipher.DoFinal(paddedKey, encryptedKey);
+    }
+
     private readonly int DecryptKeyBlock(ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> iv, ReadOnlySpan<byte> encryptedKey, Span<byte> paddedKey)
     {
         // The Encryption Key is always an ephemeral key, so cryptography should be performed locally.
@@ -388,19 +664,18 @@ public readonly struct TR31KeyBlock
     private readonly int GenerateMac(ReadOnlySpan<byte> authenticationKey, ReadOnlySpan<byte> header, ReadOnlySpan<byte> paddedKey, Span<byte> computedMac)
     {
         // The Authentication Key is always an ephemeral key, so cryptography should be performed locally.
-        IBlockCipher cipher = this.VersionId switch
+        IMac mac = this.VersionId switch
         {
-            KeyBlockVersion.Variant2005 => new DesEdeEngine(),
-            KeyBlockVersion.Derivation2010 => new DesEdeEngine(),
-            KeyBlockVersion.Variant2010 => new DesEdeEngine(),
-            KeyBlockVersion.Derivation2017 => AesUtilities.CreateEngine(),
+            KeyBlockVersion.Variant2005 => new CbcBlockCipherMac(new DesEdeEngine()),
+            KeyBlockVersion.Derivation2010 => new CMac(new DesEdeEngine()),
+            KeyBlockVersion.Variant2010 => new CbcBlockCipherMac(new DesEdeEngine()),
+            KeyBlockVersion.Derivation2017 => new CMac(AesUtilities.CreateEngine()),
             _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
         };
-        CMac cmac = new(cipher);
-        cmac.Init(new KeyParameter(authenticationKey));
-        cmac.BlockUpdate(header);
-        cmac.BlockUpdate(paddedKey);
-        return cmac.DoFinal(computedMac);
+        mac.Init(new KeyParameter(authenticationKey));
+        mac.BlockUpdate(header);
+        mac.BlockUpdate(paddedKey);
+        return mac.DoFinal(computedMac);
     }
 }
 

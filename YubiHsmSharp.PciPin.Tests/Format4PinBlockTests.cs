@@ -21,6 +21,7 @@ using Org.BouncyCastle.Security;
 
 namespace YubiHsmSharp.PciPin.Tests;
 
+[Trait("Requires", "None")]
 public class Format4PinBlockTests
 {
     [Fact]
