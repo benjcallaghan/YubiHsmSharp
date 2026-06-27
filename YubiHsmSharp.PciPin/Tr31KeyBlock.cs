@@ -61,7 +61,7 @@ public readonly struct TR31KeyBlock
         (byte)'A' => KeyBlockVersion.Variant2005,
         (byte)'B' => KeyBlockVersion.Derivation2010,
         (byte)'C' => KeyBlockVersion.Variant2010,
-        (byte)'D' => KeyBlockVersion.Deriviation2017,
+        (byte)'D' => KeyBlockVersion.Derivation2017,
         _ => KeyBlockVersion.Unknown,
     };
 
@@ -170,7 +170,7 @@ public readonly struct TR31KeyBlock
         KeyBlockVersion.Variant2005 => 4,
         KeyBlockVersion.Derivation2010 => 8,
         KeyBlockVersion.Variant2010 => 4,
-        KeyBlockVersion.Deriviation2017 => 16,
+        KeyBlockVersion.Derivation2017 => 16,
         _ => throw new NotSupportedException($"The key block version {this.VersionId} is not supported."),
     };
 
@@ -204,7 +204,7 @@ public readonly struct TR31KeyBlock
             KeyBlockVersion.Variant2005 => VariantKeys(keyBlockProtectionKey, encryptionKey, authenticationKey),
             KeyBlockVersion.Derivation2010 => DeriveKeys(cipher, keyBlockProtectionKey, encryptionKey, authenticationKey),
             KeyBlockVersion.Variant2010 => VariantKeys(keyBlockProtectionKey, encryptionKey, authenticationKey),
-            KeyBlockVersion.Deriviation2017 => DeriveKeys(cipher, keyBlockProtectionKey, encryptionKey, authenticationKey),
+            KeyBlockVersion.Derivation2017 => DeriveKeys(cipher, keyBlockProtectionKey, encryptionKey, authenticationKey),
             _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
         };
         encryptionKey = encryptionKey[..written];
@@ -265,7 +265,7 @@ public readonly struct TR31KeyBlock
             KeyBlockVersion.Variant2005 => header[..8],
             KeyBlockVersion.Derivation2010 => givenMac[..8],
             KeyBlockVersion.Variant2010 => header[..8],
-            KeyBlockVersion.Deriviation2017 => givenMac[..16],
+            KeyBlockVersion.Derivation2017 => givenMac[..16],
             _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
         };
 
@@ -303,7 +303,7 @@ public readonly struct TR31KeyBlock
 
     private readonly int DeriveKeys(IBlockCipher cipher, KeyParameter keyBlockProtectionKey, Span<byte> encryptionKey, Span<byte> authenticationKey)
     {
-        Debug.Assert(this.VersionId is KeyBlockVersion.Derivation2010 or KeyBlockVersion.Deriviation2017);
+        Debug.Assert(this.VersionId is KeyBlockVersion.Derivation2010 or KeyBlockVersion.Derivation2017);
         
         string expectedCipher = this.VersionId == KeyBlockVersion.Derivation2010 ? "des" : "aes";
         if (!cipher.AlgorithmName.Contains(expectedCipher, StringComparison.InvariantCultureIgnoreCase))
@@ -323,9 +323,9 @@ public readonly struct TR31KeyBlock
         {
             (KeyBlockVersion.Derivation2010, 16) => 0,
             (KeyBlockVersion.Derivation2010, 24) => 1,
-            (KeyBlockVersion.Deriviation2017, 16) => 2,
-            (KeyBlockVersion.Deriviation2017, 24) => 3,
-            (KeyBlockVersion.Deriviation2017, 32) => 4,
+            (KeyBlockVersion.Derivation2017, 16) => 2,
+            (KeyBlockVersion.Derivation2017, 24) => 3,
+            (KeyBlockVersion.Derivation2017, 32) => 4,
             (var v, var l) => throw new NotSupportedException($"The version and length '{v} {l}' is not a recognized algorithm."),
         };
         BinaryPrimitives.WriteUInt16BigEndian(derivationData[6..8], (ushort)(keyBlockProtectionKey.KeyLength * 8));
@@ -361,7 +361,7 @@ public readonly struct TR31KeyBlock
             KeyBlockVersion.Variant2005 => "DESede/CBC/NoPadding",
             KeyBlockVersion.Derivation2010 => "DESede/CBC/NoPadding",
             KeyBlockVersion.Variant2010 => "DESede/CBC/NoPadding",
-            KeyBlockVersion.Deriviation2017 => "AES/CBC/NoPadding",
+            KeyBlockVersion.Derivation2017 => "AES/CBC/NoPadding",
             _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
         };
         IBufferedCipher cipher = CipherUtilities.GetCipher(algorithm);
@@ -385,7 +385,7 @@ public readonly struct TR31KeyBlock
             KeyBlockVersion.Variant2005 => new DesEdeEngine(),
             KeyBlockVersion.Derivation2010 => new DesEdeEngine(),
             KeyBlockVersion.Variant2010 => new DesEdeEngine(),
-            KeyBlockVersion.Deriviation2017 => AesUtilities.CreateEngine(),
+            KeyBlockVersion.Derivation2017 => AesUtilities.CreateEngine(),
             _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
         };
         CMac cmac = new(cipher);
@@ -424,7 +424,7 @@ public enum KeyBlockVersion
     /// <summary>
     /// D: Protected by Key Derivation Binding Method 2017
     /// </summary>
-    Deriviation2017
+    Derivation2017
 }
 
 /// <summary>
