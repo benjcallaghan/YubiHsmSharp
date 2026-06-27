@@ -25,9 +25,9 @@ using System.Text;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
+using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Prng;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace YubiHsmSharp.PciPin;
@@ -37,6 +37,9 @@ namespace YubiHsmSharp.PciPin;
 /// </summary>
 public struct TR31KeyBlock
 {
+    private static readonly IBlockCipher DesBlockCipher = new DesEdeEngine();
+    private static readonly IBlockCipher AesBlockCipher = AesUtilities.CreateEngine();
+
     private byte[] keyBlock;
 
     public TR31KeyBlock()
@@ -308,17 +311,21 @@ public struct TR31KeyBlock
         _ => throw new NotSupportedException($"The key block version {this.VersionId} is not supported."),
     };
 
-    public void Encrypt(ReadOnlySpan<byte> keyBlockProtectionKey, IRandomGenerator random, ReadOnlySpan<byte> clearKey)
+    private readonly IBlockCipher Cipher
     {
-        IBlockCipher cipher = this.VersionId switch
+        get => this.VersionId switch
         {
-            KeyBlockVersion.Variant2005 => new DesEdeEngine(),
-            KeyBlockVersion.Derivation2010 => new DesEdeEngine(),
-            KeyBlockVersion.Variant2010 => new DesEdeEngine(),
-            KeyBlockVersion.Derivation2017 => AesUtilities.CreateEngine(),
+            KeyBlockVersion.Variant2005 => DesBlockCipher,
+            KeyBlockVersion.Derivation2010 => DesBlockCipher,
+            KeyBlockVersion.Variant2010 => DesBlockCipher,
+            KeyBlockVersion.Derivation2017 => AesBlockCipher,
             _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
         };
-        this.Encrypt(cipher, new KeyParameter(keyBlockProtectionKey), random, clearKey);
+    }
+
+    public void Encrypt(ReadOnlySpan<byte> keyBlockProtectionKey, IRandomGenerator random, ReadOnlySpan<byte> clearKey)
+    {
+        this.Encrypt(this.Cipher, new KeyParameter(keyBlockProtectionKey), random, clearKey);
     }
 
     public void Encrypt(IBlockCipher cipher, KeyParameter keyBlockProtectionKey, IRandomGenerator random, ReadOnlySpan<byte> clearKey)
@@ -417,15 +424,7 @@ public struct TR31KeyBlock
     /// <exception cref="InvalidOperationException">Thrown if the computed MAC does not match the encoded MAC.</exception>
     public readonly int Decrypt(ReadOnlySpan<byte> keyBlockProtectionKey, Span<byte> clearKey)
     {
-        IBlockCipher cipher = this.VersionId switch
-        {
-            KeyBlockVersion.Variant2005 => new DesEdeEngine(),
-            KeyBlockVersion.Derivation2010 => new DesEdeEngine(),
-            KeyBlockVersion.Variant2010 => new DesEdeEngine(),
-            KeyBlockVersion.Derivation2017 => AesUtilities.CreateEngine(),
-            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
-        };
-        return this.Decrypt(cipher, new KeyParameter(keyBlockProtectionKey), clearKey);
+        return this.Decrypt(this.Cipher, new KeyParameter(keyBlockProtectionKey), clearKey);
     }
 
     /// <summary>
@@ -525,15 +524,7 @@ public struct TR31KeyBlock
 
     private readonly int PadKey(IRandomGenerator random, ReadOnlySpan<byte> clearKey, Span<byte> paddedKey)
     {
-        IBlockCipher cipher = this.VersionId switch
-        {
-            KeyBlockVersion.Variant2005 => new DesEdeEngine(),
-            KeyBlockVersion.Derivation2010 => new DesEdeEngine(),
-            KeyBlockVersion.Variant2010 => new DesEdeEngine(),
-            KeyBlockVersion.Derivation2017 => AesUtilities.CreateEngine(),
-            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
-        };
-        int paddedLength = (int)Math.Ceiling((double)(clearKey.Length + 2) / cipher.GetBlockSize()) * cipher.GetBlockSize();
+        int paddedLength = (int)Math.Ceiling((double)(clearKey.Length + 2) / this.Cipher.GetBlockSize()) * this.Cipher.GetBlockSize();
         Debug.Assert(paddedKey.Length >= paddedLength);
 
         int keyLengthBits = clearKey.Length * 8;
@@ -624,15 +615,7 @@ public struct TR31KeyBlock
     private readonly int EncryptKeyBlock(ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> iv, ReadOnlySpan<byte> paddedKey, Span<byte> encryptedKey)
     {
         // The Encryption Key is always an ephemeral key, so cryptography should be performed locally.
-        string algorithm = this.VersionId switch
-        {
-            KeyBlockVersion.Variant2005 => "DESede/CBC/NoPadding",
-            KeyBlockVersion.Derivation2010 => "DESede/CBC/NoPadding",
-            KeyBlockVersion.Variant2010 => "DESede/CBC/NoPadding",
-            KeyBlockVersion.Derivation2017 => "AES/CBC/NoPadding",
-            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
-        };
-        IBufferedCipher cipher = CipherUtilities.GetCipher(algorithm);
+        BufferedBlockCipher cipher = new(new CbcBlockCipher(this.Cipher));
         cipher.Init(forEncryption: true, new ParametersWithIV(new KeyParameter(encryptionKey), iv));
         return cipher.DoFinal(paddedKey, encryptedKey);
     }
@@ -640,15 +623,7 @@ public struct TR31KeyBlock
     private readonly int DecryptKeyBlock(ReadOnlySpan<byte> encryptionKey, ReadOnlySpan<byte> iv, ReadOnlySpan<byte> encryptedKey, Span<byte> paddedKey)
     {
         // The Encryption Key is always an ephemeral key, so cryptography should be performed locally.
-        string algorithm = this.VersionId switch
-        {
-            KeyBlockVersion.Variant2005 => "DESede/CBC/NoPadding",
-            KeyBlockVersion.Derivation2010 => "DESede/CBC/NoPadding",
-            KeyBlockVersion.Variant2010 => "DESede/CBC/NoPadding",
-            KeyBlockVersion.Derivation2017 => "AES/CBC/NoPadding",
-            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
-        };
-        IBufferedCipher cipher = CipherUtilities.GetCipher(algorithm);
+        BufferedBlockCipher cipher = new(new CbcBlockCipher(this.Cipher));
         cipher.Init(forEncryption: false, new ParametersWithIV(new KeyParameter(encryptionKey), iv));
         return cipher.DoFinal(encryptedKey, paddedKey);
     }
@@ -666,10 +641,10 @@ public struct TR31KeyBlock
         // The Authentication Key is always an ephemeral key, so cryptography should be performed locally.
         IMac mac = this.VersionId switch
         {
-            KeyBlockVersion.Variant2005 => new CbcBlockCipherMac(new DesEdeEngine()),
-            KeyBlockVersion.Derivation2010 => new CMac(new DesEdeEngine()),
-            KeyBlockVersion.Variant2010 => new CbcBlockCipherMac(new DesEdeEngine()),
-            KeyBlockVersion.Derivation2017 => new CMac(AesUtilities.CreateEngine()),
+            KeyBlockVersion.Variant2005 => new CbcBlockCipherMac(this.Cipher),
+            KeyBlockVersion.Derivation2010 => new CMac(this.Cipher),
+            KeyBlockVersion.Variant2010 => new CbcBlockCipherMac(this.Cipher),
+            KeyBlockVersion.Derivation2017 => new CMac(this.Cipher),
             _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
         };
         mac.Init(new KeyParameter(authenticationKey));
