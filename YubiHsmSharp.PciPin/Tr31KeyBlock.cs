@@ -183,7 +183,15 @@ public readonly struct TR31KeyBlock
     /// <exception cref="InvalidOperationException">Thrown if the computed MAC does not match the encoded MAC.</exception>
     public readonly int Decrypt(ReadOnlySpan<byte> keyBlockProtectionKey, Span<byte> clearKey)
     {
-        return this.Decrypt(AesUtilities.CreateEngine(), new KeyParameter(keyBlockProtectionKey), clearKey);
+        IBlockCipher cipher = this.VersionId switch
+        {
+            KeyBlockVersion.Variant2005 => new DesEdeEngine(),
+            KeyBlockVersion.Derivation2010 => new DesEdeEngine(),
+            KeyBlockVersion.Variant2010 => new DesEdeEngine(),
+            KeyBlockVersion.Derivation2017 => AesUtilities.CreateEngine(),
+            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
+        };
+        return this.Decrypt(cipher, new KeyParameter(keyBlockProtectionKey), clearKey);
     }
 
     /// <summary>
@@ -304,7 +312,7 @@ public readonly struct TR31KeyBlock
     private readonly int DeriveKeys(IBlockCipher cipher, KeyParameter keyBlockProtectionKey, Span<byte> encryptionKey, Span<byte> authenticationKey)
     {
         Debug.Assert(this.VersionId is KeyBlockVersion.Derivation2010 or KeyBlockVersion.Derivation2017);
-        
+
         string expectedCipher = this.VersionId == KeyBlockVersion.Derivation2010 ? "des" : "aes";
         if (!cipher.AlgorithmName.Contains(expectedCipher, StringComparison.InvariantCultureIgnoreCase))
         {
