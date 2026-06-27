@@ -19,6 +19,8 @@ using System.Buffers;
 #endif
 using System.Buffers.Binary;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+
 #if !NET10_0_OR_GREATER
 using System.Text;
 #endif
@@ -42,6 +44,10 @@ public struct TR31KeyBlock
 
     private byte[] keyBlock;
 
+    /// <summary>
+    /// Initializes a new key block that is ready to encrypt and wrap a secret key.
+    /// </summary>
+    /// <seealso cref="Encrypt"/>
     public TR31KeyBlock()
     {
         this.keyBlock = new byte[16]; // 16 is the smallest possible header.
@@ -57,6 +63,7 @@ public struct TR31KeyBlock
     /// </remarks>
     /// <param name="keyBlock">The key block to parse</param>
     /// <exception cref="ArgumentException">Thrown when the encoded length does not match the actual length of the key block.</exception>
+    [SetsRequiredMembers]
     public TR31KeyBlock(byte[] keyBlock)
     {
         this.keyBlock = keyBlock;
@@ -71,7 +78,7 @@ public struct TR31KeyBlock
     /// <summary>
     /// Gets the Key Block Version ID, which defines the method by which it is cryptographically protected.
     /// </summary>
-    public readonly KeyBlockVersion VersionId
+    public readonly required KeyBlockVersion VersionId
     {
         get => this.keyBlock[0] switch
         {
@@ -110,7 +117,7 @@ public struct TR31KeyBlock
     /// <summary>
     /// Gets information about the intended function of the protected key.
     /// </summary>
-    public readonly KeyUsage Usage
+    public readonly required KeyUsage Usage
     {
         get => this.keyBlock.AsSpan(5..7) switch
         {
@@ -173,7 +180,7 @@ public struct TR31KeyBlock
     /// <summary>
     /// Gets the approved algorithm for which the protected key may be used.
     /// </summary>
-    public readonly KeyAlgorithm Algorithm
+    public readonly required KeyAlgorithm Algorithm
     {
         get => this.keyBlock[7] switch
         {
@@ -198,7 +205,7 @@ public struct TR31KeyBlock
     /// <summary>
     /// Gets the operation the protected key can perform.
     /// </summary>
-    public readonly KeyUse ModeOfUse
+    public readonly required KeyUse ModeOfUse
     {
         get => this.keyBlock[8] switch
         {
@@ -229,7 +236,7 @@ public struct TR31KeyBlock
     /// <summary>
     /// Gets the version number of the protected key.
     /// </summary>
-    public readonly int VersionNumber
+    public readonly required int VersionNumber
     {
         get => Int32.Parse(this.keyBlock.AsSpan(9..11));
         init
@@ -245,7 +252,7 @@ public struct TR31KeyBlock
     /// <summary>
     /// Gets whether the key may be transferred outside the cryptographic domain.
     /// </summary>
-    public readonly KeyExportability Exportability
+    public readonly required KeyExportability Exportability
     {
         get => this.keyBlock[11] switch
         {
@@ -282,7 +289,7 @@ public struct TR31KeyBlock
     /// <summary>
     /// Gets whether the key is in a key exchange context or in a storage context.
     /// </summary>
-    public readonly KeyContext Context
+    public readonly required KeyContext Context
     {
         get => this.keyBlock[15] switch
         {
@@ -311,17 +318,14 @@ public struct TR31KeyBlock
         _ => throw new NotSupportedException($"The key block version {this.VersionId} is not supported."),
     };
 
-    private readonly IBlockCipher Cipher
+    private readonly IBlockCipher Cipher => this.VersionId switch
     {
-        get => this.VersionId switch
-        {
-            KeyBlockVersion.Variant2005 => DesBlockCipher,
-            KeyBlockVersion.Derivation2010 => DesBlockCipher,
-            KeyBlockVersion.Variant2010 => DesBlockCipher,
-            KeyBlockVersion.Derivation2017 => AesBlockCipher,
-            _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
-        };
-    }
+        KeyBlockVersion.Variant2005 => DesBlockCipher,
+        KeyBlockVersion.Derivation2010 => DesBlockCipher,
+        KeyBlockVersion.Variant2010 => DesBlockCipher,
+        KeyBlockVersion.Derivation2017 => AesBlockCipher,
+        _ => throw new NotSupportedException($"The version ID {this.VersionId} is not supported.")
+    };
 
     /// <summary>
     /// Encrypts and wraps the protected key stored within this key block, using fully-local cryptography.
