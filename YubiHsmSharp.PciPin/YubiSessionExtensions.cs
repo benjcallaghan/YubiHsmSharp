@@ -213,33 +213,40 @@ public static class YubiSessionExtensions
         /// </summary>
         /// <remarks>
         /// The authentication key used to create the session must have the following capabilities:
-        /// encrypt-ecb, get-opaque, get-pseudo-random
+        /// encrypt-ecb, get-pseudo-random
         /// </remarks>
-        /// <param name="pinEncryptionKeyType">The type of the stored symmetric key.</param>
         /// <param name="pinEncryptionKeyId">The ID of the stored symmetric key.</param>
         /// <param name="pin">The PIN to encipher.</param>
         /// <param name="primaryAccountNumber">The Primary Account Number (PAN) associated with the PIN.</param>
         /// <returns>A Format 4 PIN Block containing the enciphered PIN.</returns>
-        public Format4PinBlock EncryptPin(ObjectType pinEncryptionKeyType, ObjectId pinEncryptionKeyId,
+        public Format4PinBlock EncryptPinFormat4(ObjectId pinEncryptionKeyId,
             string pin, string primaryAccountNumber)
         {
-            KeyParameter keyParameter = pinEncryptionKeyType switch
-            {
-                ObjectType.SymmetricKey => session.GetSymmetricKeyParameter(pinEncryptionKeyId),
-                ObjectType.Opaque => session.GetOpaqueKeyParameter(pinEncryptionKeyId),
-                _ => throw new NotSupportedException($"The object type '{pinEncryptionKeyType}' is not supported."),
-            };
-            IBlockCipher cipher = pinEncryptionKeyType switch
-            {
-                ObjectType.SymmetricKey => new YubiAes(session),
-                ObjectType.Opaque => new DesEdeEngine(),
-                _ => throw new NotSupportedException($"The object type '{pinEncryptionKeyType}' is not supported."),
-            };
-
             return Format4PinBlock.Encrypt(
-                cipher,
-                keyParameter,
+                new YubiAes(session),
+                session.GetSymmetricKeyParameter(pinEncryptionKeyId),
                 new YubiRandomGenerator(session),
+                pin,
+                primaryAccountNumber);
+        }
+
+        /// <summary>
+        /// Encrypts a PIN into a Format 0 PIN Block using a stored symmetric key.
+        /// </summary>
+        /// <remarks>
+        /// The authentication key used to create the session must have the following capabilities:
+        /// get-opaque
+        /// </remarks>
+        /// <param name="pinEncryptionKeyId">The ID of the stored symmetric key.</param>
+        /// <param name="pin">The PIN to encipher.</param>
+        /// <param name="primaryAccountNumber">The Primary Account Number (PAN) associated with the PIN.</param>
+        /// <returns>A Format 0 PIN Block containing the enciphered PIN.</returns>
+        public Format0PinBlock EncryptPinFormat0(ObjectId pinEncryptionKeyId,
+            string pin, string primaryAccountNumber)
+        {
+            return Format0PinBlock.Encrypt(
+                new DesEdeEngine(),
+                session.GetOpaqueKeyParameter(pinEncryptionKeyId),
                 pin,
                 primaryAccountNumber);
         }
@@ -249,30 +256,39 @@ public static class YubiSessionExtensions
         /// </summary>
         /// <remarks>
         /// The authentication key used to create the session must have the following capabilities:
-        /// decrypt-ecb, get-opaque
+        /// decrypt-ecb
         /// </remarks>
-        /// <param name="pinEncryptionKeyType">The type of the stored symmetric key.</param>
         /// <param name="pinEncryptionKeyId">The ID of the stored symmetric key.</param>
         /// <param name="pinBlock">The PIN Block to decipher.</param>
         /// <param name="primaryAccountNumber">The Primary Account Number (PAN) associated with the PIN.</param>
         /// <returns>The deciphered PIN.</returns>
-        public string DecryptPin(ObjectType pinEncryptionKeyType, ObjectId pinEncryptionKeyId,
+        public string DecryptPin(ObjectId pinEncryptionKeyId,
             Format4PinBlock pinBlock, string primaryAccountNumber)
         {
-            KeyParameter keyParameter = pinEncryptionKeyType switch
-            {
-                ObjectType.SymmetricKey => session.GetSymmetricKeyParameter(pinEncryptionKeyId),
-                ObjectType.Opaque => session.GetOpaqueKeyParameter(pinEncryptionKeyId),
-                _ => throw new NotSupportedException($"The object type '{pinEncryptionKeyType}' is not supported."),
-            };
-            IBlockCipher cipher = pinEncryptionKeyType switch
-            {
-                ObjectType.SymmetricKey => new YubiAes(session),
-                ObjectType.Opaque => new DesEdeEngine(),
-                _ => throw new NotSupportedException($"The object type '{pinEncryptionKeyType}' is not supported."),
-            };
+            return pinBlock.Decrypt(
+                new YubiAes(session),
+                session.GetSymmetricKeyParameter(pinEncryptionKeyId),
+                primaryAccountNumber);
+        }
 
-            return pinBlock.Decrypt(cipher, keyParameter, primaryAccountNumber);
+        /// <summary>
+        /// Decrypts a PIN from a Format 0 PIN Block using a stored symmetric key.
+        /// </summary>
+        /// <remarks>
+        /// The authentication key used to create the session must have the following capabilities:
+        /// get-opaque
+        /// </remarks>
+        /// <param name="pinEncryptionKeyId">The ID of the stored symmetric key.</param>
+        /// <param name="pinBlock">The PIN Block to decipher.</param>
+        /// <param name="primaryAccountNumber">The Primary Account Number (PAN) associated with the PIN.</param>
+        /// <returns>The deciphered PIN.</returns>
+        public string DecryptPin(ObjectId pinEncryptionKeyId,
+            Format0PinBlock pinBlock, string primaryAccountNumber)
+        {
+            return pinBlock.Decrypt(
+                new DesEdeEngine(),
+                session.GetOpaqueKeyParameter(pinEncryptionKeyId),
+                primaryAccountNumber);
         }
     }
 }

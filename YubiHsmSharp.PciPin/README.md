@@ -13,7 +13,8 @@ Any cryptographic method supported by YubiHSM 2 should be performed by the HSM. 
 * Importing a Zone Master Key (ZMK) (AES) into the YubiHSM 2: `YubiSession.ImportZoneMasterAesKey`
 * Importing a Zone Master Key (ZMK) (DES) into the YubiHSM 2: `YubiSession.ImportZoneMasterDesKey`
 * Importing a TR-31 Key Block protected by a stored ZMK: `YubiSession.ImportKeyBlock`
-* Encrypting a PIN using a stored PIN Encryption Key (PEK): `YubiSession.EncryptPin`
+* Encrypting a PIN using a stored PIN Encryption Key (PEK): `YubiSession.EncryptPinFormat0`
+* Encrypting a PIN using a stored PIN Encryption Key (PEK): `YubiSession.EncryptPinFormat4`
 * Decrypting a PIN using a stored PIN Encryption Key (PEK): `YubiSession.DecryptPin`
 
 ## Example
