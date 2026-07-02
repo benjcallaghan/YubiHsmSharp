@@ -27,10 +27,17 @@ internal partial class DebugFile : IDisposable
     [LibraryImport("ucrtbase.dll", EntryPoint = "_fdopen", SetLastError = true)]
     private static partial nint win_fdopen(int fd, ReadOnlySpan<byte> mode);
 
+    [LibraryImport("ucrtbase.dll", EntryPoint = "_fclose_nolock", SetLastError = true)]
+    private static partial int win_fclose(nint stream);
+
     [LibraryImport("libc", EntryPoint = "fdopen", SetLastError = true)]
     private static partial nint posix_fdopen(int filedes, ReadOnlySpan<byte> mode);
 
+    [LibraryImport("libc", EntryPoint = "fclose", SetLastError = true)]
+    private static partial int posix_fclose(nint stream);
+
     private readonly AnonymousPipeServerStream server;
+    private bool disposed;
 
     public nint WriteFile { get; }
     public Stream ReadStream => this.server;
@@ -38,31 +45,70 @@ internal partial class DebugFile : IDisposable
     public DebugFile()
     {
         this.server = new(PipeDirection.In, HandleInheritability.None, 4096);
+        nint clientHandle = this.server.ClientSafePipeHandle.DangerousGetHandle();
 
+        this.WriteFile = OpenFileStream(clientHandle);
+
+        if (this.WriteFile is 0)
+        {
+            this.server.Dispose();
+            throw new Win32Exception(); // Automatically captures LastError from fdopen.
+        }
+
+        this.server.DisposeLocalCopyOfClientHandle();
+    }
+
+    private static nint OpenFileStream(nint clientHandle)
+    {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            var fd = win_open_osfhandle((int)this.server.ClientSafePipeHandle.DangerousGetHandle(), 0);
-            this.WriteFile = win_fdopen(fd, "w"u8);
+            // Convert handle to a file descriptor, then convert that to a FILE* stream.
+            int fd = win_open_osfhandle((int)clientHandle, 0);
+            return fd is -1 ? 0 : win_fdopen(fd, "w"u8);
         }
         else
         {
-            this.WriteFile = posix_fdopen((int)this.server.ClientSafePipeHandle.DangerousGetHandle(), "w"u8);
+            // The handle is already a file descriptor, so just convert that to a FILE* stream.
+            return posix_fdopen((int)clientHandle, "w"u8);
         }
+    }
 
-        ThrowIfNull(this.WriteFile);
+    private static void CloseFileStream(nint stream)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            win_fclose(stream);
+        }
+        else
+        {
+            posix_fclose(stream);
+        }
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!this.disposed)
+        {
+            CloseFileStream(this.WriteFile);
+
+            if (disposing)
+            {
+                this.server.Dispose();
+            }
+            this.disposed = true;
+        }
+    }
+
+    ~DebugFile()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: false);
     }
 
     public void Dispose()
     {
-        this.server.Dispose();
-    }
-
-    private static void ThrowIfNull(nint ptr)
-    {
-        if (ptr == 0)
-        {
-            // Win32Exception properly handles errno/GetLastPInvokeError, even on non-Windows systems.
-            throw new Win32Exception();
-        }
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }
