@@ -16,6 +16,7 @@
 
 using System.ComponentModel;
 using System.IO.Pipes;
+using System.Threading;
 
 namespace YubiHsmSharp;
 
@@ -110,5 +111,80 @@ internal partial class DebugFile : IDisposable
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
+    }
+}
+
+internal class Arc<T> : IDisposable where T : IDisposable
+{
+    private class SharedState(T resource)
+    {
+#if NET9_0_OR_GREATER
+        public readonly Lock Lock = new();
+#else
+        public readonly object Lock = new();
+#endif
+        public readonly T Resource = resource;
+        public int RefCount = 1;
+        public bool IsCurrent = true;
+    }
+
+    private readonly SharedState state;
+    private bool disposed = false;
+
+    public T Value => this.state.Resource;
+
+    public bool IsCurrent
+    {
+        get { lock (this.state.Lock) return this.state.IsCurrent; }
+        set { lock (this.state.Lock) this.state.IsCurrent = value; }
+    }
+
+    public Arc(T resource)
+    {
+        this.state = new SharedState(resource);
+    }
+
+    private Arc(SharedState state)
+    {
+        this.state = state;
+        lock (this.state.Lock)
+        {
+            this.state.RefCount++;
+        }
+    }
+
+    public Arc<T> Clone()
+    {
+        lock (this.state.Lock)
+        {
+            if (this.state.RefCount <= 0)
+            {
+                throw new ObjectDisposedException(nameof(Arc<T>));
+            }
+            return new Arc<T>(this.state);
+        }
+    }
+
+    public void Dispose()
+    {
+        if (this.disposed) return;
+
+        bool shouldDisposeResource = false;
+
+        lock (this.state.Lock)
+        {
+            this.state.RefCount--;
+            if (this.state.RefCount == 0 && !this.state.IsCurrent)
+            {
+                shouldDisposeResource = true;
+            }
+        }
+
+        if (shouldDisposeResource)
+        {
+            this.state.Resource.Dispose();
+        }
+
+        this.disposed = true;
     }
 }

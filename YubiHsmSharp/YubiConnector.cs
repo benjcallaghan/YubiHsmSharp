@@ -28,15 +28,27 @@ namespace YubiHsmSharp;
 /// </remarks>
 public sealed class YubiConnector : IDisposable
 {
+#if NET9_0_OR_GREATER
+    private static readonly Lock globalLock = new();
+#else
+    private static readonly object globalLock = new();
+#endif
     private static readonly SafeConnectorHandle NullConnectorHandle = new();
+    private static Arc<DebugFile>? globalDebugFile;
 
     private readonly YubiModule parent; // Prevents module from being GC'd while connector is in scope.
+    private Arc<DebugFile>? debugFile;
 
     internal YubiConnector(YubiModule parent, SafeConnectorHandle handle)
     {
         this.parent = parent;
         this.Handle = handle;
         this.Handle.SetParent(this.parent.Handle);
+
+        lock (globalLock)
+        {
+            this.debugFile = globalDebugFile?.Clone();
+        }
     }
 
     internal SafeConnectorHandle Handle { get; }
@@ -119,11 +131,22 @@ public sealed class YubiConnector : IDisposable
     /// <param name="output">A callback to execute for each line of debug messages.</param>
     public static void SetGlobalDebugOutput(Action<string> output)
     {
-        // Run in a background task as this will live for the entire lifetime.
+        SetDebugOutput(output, NullConnectorHandle);
+    }
+
+    private static void SetDebugOutput(Action<string> output, SafeConnectorHandle connectorHandle)
+    {
+        lock (globalLock)
+        {
+            globalDebugFile?.IsCurrent = false;
+            globalDebugFile?.Dispose();
+            globalDebugFile = new Arc<DebugFile>(new());
+        }
+
         _ = Task.Run(async () =>
         {
-            using DebugFile debug = new();
-            yh_set_debug_output(NullConnectorHandle, debug.WriteFile);
+            DebugFile debug = globalDebugFile.Value;
+            yh_set_debug_output(connectorHandle, debug.WriteFile);
 
             using StreamReader reader = new(debug.ReadStream, Encoding.UTF8);
             while (await reader.ReadLineAsync() is string line)
@@ -143,18 +166,9 @@ public sealed class YubiConnector : IDisposable
     /// <param name="output">A callback to execute for each line of debug messages.</param>
     public void SetDebugOutput(Action<string> output)
     {
-        // Run in a background task as this will live for the entire lifetime.
-        _ = Task.Run(async () =>
-        {
-            using DebugFile debug = new();
-            yh_set_debug_output(this.Handle, debug.WriteFile);
-
-            using StreamReader reader = new(debug.ReadStream, Encoding.UTF8);
-            while (await reader.ReadLineAsync() is string line)
-            {
-                output(line);
-            }
-        });
+        SetDebugOutput(output, this.Handle);
+        this.debugFile?.Dispose();
+        this.debugFile = globalDebugFile?.Clone();
     }
 
     /// <summary>
@@ -357,6 +371,7 @@ public sealed class YubiConnector : IDisposable
     /// </summary>
     public void Dispose()
     {
+        this.debugFile?.Dispose();
         this.Handle.Dispose();
     }
 }
@@ -376,7 +391,6 @@ internal class SafeConnectorHandle : SafeHandle
         {
             yh_rc err = yh_disconnect(this.handle);
             return err == yh_rc.YHR_SUCCESS;
-
         }
         finally
         {
