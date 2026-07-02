@@ -131,11 +131,11 @@ public sealed class YubiConnector : IDisposable
         Arc<DebugFile>? oldDebugFile = Interlocked.Exchange(ref globalDebugFile, newDebugFile);
         oldDebugFile?.Dispose();
 
+        DebugFile debug = newDebugFile.Value;
+        yh_set_debug_output(connectorHandle, debug.WriteFile);
+
         _ = Task.Run(async () =>
         {
-            DebugFile debug = newDebugFile.Value;
-            yh_set_debug_output(connectorHandle, debug.WriteFile);
-
             using StreamReader reader = new(debug.ReadStream, Encoding.UTF8);
             while (await reader.ReadLineAsync() is string line)
             {
