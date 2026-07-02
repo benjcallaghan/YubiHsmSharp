@@ -138,7 +138,6 @@ public sealed class YubiConnector : IDisposable
     {
         lock (globalLock)
         {
-            globalDebugFile?.IsCurrent = false;
             globalDebugFile?.Dispose();
             globalDebugFile = new Arc<DebugFile>(new());
         }

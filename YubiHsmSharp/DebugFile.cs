@@ -16,7 +16,6 @@
 
 using System.ComponentModel;
 using System.IO.Pipes;
-using System.Threading;
 
 namespace YubiHsmSharp;
 
@@ -125,19 +124,12 @@ internal class Arc<T> : IDisposable where T : IDisposable
 #endif
         public readonly T Resource = resource;
         public int RefCount = 1;
-        public bool IsCurrent = true;
     }
 
     private readonly SharedState state;
     private bool disposed = false;
 
     public T Value => this.state.Resource;
-
-    public bool IsCurrent
-    {
-        get { lock (this.state.Lock) return this.state.IsCurrent; }
-        set { lock (this.state.Lock) this.state.IsCurrent = value; }
-    }
 
     public Arc(T resource)
     {
@@ -174,7 +166,7 @@ internal class Arc<T> : IDisposable where T : IDisposable
         lock (this.state.Lock)
         {
             this.state.RefCount--;
-            if (this.state.RefCount == 0 && !this.state.IsCurrent)
+            if (this.state.RefCount == 0)
             {
                 shouldDisposeResource = true;
             }
