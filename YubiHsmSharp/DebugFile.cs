@@ -87,16 +87,16 @@ internal partial class DebugFile : IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        if (!this.disposed)
-        {
-            CloseFileStream(this.WriteFile);
+        if (disposed) return;
+        
+        CloseFileStream(this.WriteFile);
 
-            if (disposing)
-            {
-                this.server.Dispose();
-            }
-            this.disposed = true;
+        if (disposing)
+        {
+            this.server.Dispose();
         }
+
+        this.disposed = true;
     }
 
     ~DebugFile()
@@ -117,11 +117,6 @@ internal class Arc<T> : IDisposable where T : IDisposable
 {
     private class SharedState(T resource)
     {
-#if NET9_0_OR_GREATER
-        public readonly Lock Lock = new();
-#else
-        public readonly object Lock = new();
-#endif
         public readonly T Resource = resource;
         public int RefCount = 1;
     }
@@ -139,40 +134,20 @@ internal class Arc<T> : IDisposable where T : IDisposable
     private Arc(SharedState state)
     {
         this.state = state;
-        lock (this.state.Lock)
-        {
-            this.state.RefCount++;
-        }
+        Interlocked.Increment(ref this.state.RefCount);
     }
 
     public Arc<T> Clone()
     {
-        lock (this.state.Lock)
-        {
-            if (this.state.RefCount <= 0)
-            {
-                throw new ObjectDisposedException(nameof(Arc<T>));
-            }
-            return new Arc<T>(this.state);
-        }
+        ObjectDisposedException.ThrowIf(this.state.RefCount <= 0, nameof(Arc<T>));
+        return new Arc<T>(this.state);
     }
 
     public void Dispose()
     {
         if (this.disposed) return;
 
-        bool shouldDisposeResource = false;
-
-        lock (this.state.Lock)
-        {
-            this.state.RefCount--;
-            if (this.state.RefCount == 0)
-            {
-                shouldDisposeResource = true;
-            }
-        }
-
-        if (shouldDisposeResource)
+        if (Interlocked.Decrement(ref this.state.RefCount) <= 0)
         {
             this.state.Resource.Dispose();
         }

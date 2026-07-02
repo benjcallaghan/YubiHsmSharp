@@ -28,11 +28,6 @@ namespace YubiHsmSharp;
 /// </remarks>
 public sealed class YubiConnector : IDisposable
 {
-#if NET9_0_OR_GREATER
-    private static readonly Lock globalLock = new();
-#else
-    private static readonly object globalLock = new();
-#endif
     private static readonly SafeConnectorHandle NullConnectorHandle = new();
     private static Arc<DebugFile>? globalDebugFile;
 
@@ -44,11 +39,7 @@ public sealed class YubiConnector : IDisposable
         this.parent = parent;
         this.Handle = handle;
         this.Handle.SetParent(this.parent.Handle);
-
-        lock (globalLock)
-        {
-            this.debugFile = globalDebugFile?.Clone();
-        }
+        this.debugFile = globalDebugFile?.Clone();
     }
 
     internal SafeConnectorHandle Handle { get; }
@@ -136,15 +127,13 @@ public sealed class YubiConnector : IDisposable
 
     private static void SetDebugOutput(Action<string> output, SafeConnectorHandle connectorHandle)
     {
-        lock (globalLock)
-        {
-            globalDebugFile?.Dispose();
-            globalDebugFile = new Arc<DebugFile>(new());
-        }
+        Arc<DebugFile> newDebugFile = new(new DebugFile());
+        Arc<DebugFile>? oldDebugFile = Interlocked.Exchange(ref globalDebugFile, newDebugFile);
+        oldDebugFile?.Dispose();
 
         _ = Task.Run(async () =>
         {
-            DebugFile debug = globalDebugFile.Value;
+            DebugFile debug = newDebugFile.Value;
             yh_set_debug_output(connectorHandle, debug.WriteFile);
 
             using StreamReader reader = new(debug.ReadStream, Encoding.UTF8);
