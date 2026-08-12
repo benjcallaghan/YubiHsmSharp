@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace YubiHsmSharp;
@@ -78,11 +79,8 @@ public readonly struct LogEntry
     /// <summary>
     /// Truncated sha256 digest of this last digest + this entry
     /// </summary>
-    public readonly ReadOnlySpan<byte> Digest =>
-        MemoryMarshal.CreateReadOnlySpan(
-            ref Unsafe.As<LogDigest, byte>(ref Unsafe.AsRef(in this.digest)),
-            YH_LOG_DIGEST_SIZE
-        );
+    [UnscopedRef]
+    public readonly ReadOnlySpan<byte> Digest => this.digest;
     private readonly LogDigest digest;
 
     /// <summary>

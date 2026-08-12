@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace YubiHsmSharp;
@@ -63,10 +64,8 @@ public readonly struct DeviceInfo
     /// <summary>
     /// List of algorithms supported by the device
     /// </summary>
-    public readonly ReadOnlySpan<Algorithm> Algorithms =>
-        MemoryMarshal.CreateReadOnlySpan(
-            ref Unsafe.As<DeviceAlgorithms, Algorithm>(ref Unsafe.AsRef(in this.algorithms)),
-            (int)this.n_algorithms);
+    [UnscopedRef]
+    public readonly ReadOnlySpan<Algorithm> Algorithms => this.algorithms[..(int)this.n_algorithms];
     private readonly DeviceAlgorithms algorithms;
 
     /// <summary>
