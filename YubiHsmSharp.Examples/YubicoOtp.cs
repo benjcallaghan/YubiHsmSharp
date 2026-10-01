@@ -55,11 +55,7 @@ public class YubicoOtp(ITestOutputHelper output)
         output.WriteLine($"Put OTP key with ID {keyId}.");
 
         Span<byte> aead = stackalloc byte[512];
-#if NET9_0_OR_GREATER
         var indexed = TestVector.Values.Index();
-#else
-        var indexed = TestVector.Values.Select((v, i) => (i, v));
-#endif
         foreach (var (index, vector) in indexed)
         {
             output.WriteLine($"Checking test vector {index}...");

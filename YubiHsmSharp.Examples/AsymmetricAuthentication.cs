@@ -34,19 +34,7 @@ public class AsymmetricAuthentication(ITestOutputHelper output)
         connector.SetVerbosity(Verbosity.All);
 
         DeviceInfo device = connector.GetDeviceInfo();
-#if NET10_0_OR_GREATER
         bool asymmetricAuthSupported = device.Algorithms.Contains(Algorithm.ECP256YubicoAuthentication);
-#else
-        bool asymmetricAuthSupported = false;
-        foreach (Algorithm alg in device.Algorithms)
-        {
-            if (alg == Algorithm.ECP256YubicoAuthentication)
-            {
-                asymmetricAuthSupported = true;
-                break;
-            }
-        }
-#endif
 
         if (!asymmetricAuthSupported)
         {
