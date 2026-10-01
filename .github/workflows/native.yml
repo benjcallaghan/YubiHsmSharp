@@ -22,9 +22,9 @@ on:
 
 jobs:
   build_linux:
-    name: build on ubuntu:25.10 (clang)
+    name: build on ubuntu:26.04 (clang)
     runs-on: ubuntu-latest
-    container: ubuntu:25.10
+    container: ubuntu:26.04
 
     steps:
       - name: install dependencies from package management
