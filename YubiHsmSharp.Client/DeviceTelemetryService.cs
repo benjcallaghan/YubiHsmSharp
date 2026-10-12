@@ -136,7 +136,7 @@ internal partial class DeviceTelemetryService(
 
     private void ReadLogs(YubiSession session, in TagList deviceTags)
     {
-        if (!options.Get(serviceKey).DisableDeviceLogs)
+        if (options.Get(serviceKey).DisableDeviceLogs)
         {
             return;
         }
