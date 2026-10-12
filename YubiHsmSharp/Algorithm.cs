@@ -265,11 +265,11 @@ public static class AlgorithmExtensions
         /// <summary>
         /// Converts a string to an algorithm's numeric value.
         /// </summary>
-        /// <param name="utf8String">Algorithm as string, UTF-8 encoded and null-terminated.</param>
+        /// <param name="value">Algorithm as string.</param>
         /// <returns>The numeric value of the algorithm.</returns>
-        public static Algorithm From(ReadOnlySpan<byte> utf8String)
+        public static Algorithm From(string value)
         {
-            yh_rc err = yh_string_to_algo(utf8String, out Algorithm alg);
+            yh_rc err = yh_string_to_algo(value, out Algorithm alg);
             YubiHsmException.ThrowIfError(err);
             return alg;
         }

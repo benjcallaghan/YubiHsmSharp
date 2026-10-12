@@ -28,7 +28,7 @@ public class Logs(ITestOutputHelper output)
         ObjectId authKeyId = new(1);
 
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
         using YubiSession session = connector.CreateSession(authKeyId, password);
 

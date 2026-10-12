@@ -49,15 +49,15 @@ public sealed class YubiModule : IDisposable
     /// <summary>
     /// Initializes a connection to a YubiHSM device using the specified URL.
     /// </summary>
-    /// <param name="utf8Url">The URL associated with this connector, encoded as UTF-8 and null-terminated.</param>
+    /// <param name="url">The URL associated with this connector</param>
     /// <returns>A <see cref="YubiConnector"/> configured with the provided URL.</returns>
-    public YubiConnector InitConnector(ReadOnlySpan<byte> utf8Url)
+    public YubiConnector InitConnector(string url)
     {
         bool added = false;
         try
         {
             this.Handle.DangerousAddRef(ref added);
-            yh_rc err = yh_init_connector(utf8Url, out SafeConnectorHandle handle);
+            yh_rc err = yh_init_connector(url, out SafeConnectorHandle handle);
             YubiHsmException.ThrowIfError(err);
             return new YubiConnector(this, handle);
         }

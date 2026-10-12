@@ -33,7 +33,7 @@ public class YubiConnectorTests
         // Arrange
         using YubiModule module = YubiModule.Instance;
         YubiConnector.Verbosity = Verbosity.Quiet;
-        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
 
         Span<byte> requestData = stackalloc byte[length];

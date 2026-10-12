@@ -56,7 +56,7 @@ public class Ssh(ITestOutputHelper output)
             m2HWLeo2pjD9W9KaMzZWQ5jxpGliC2TtpWuP44/ihZODFrQZc8DytPo=
             -----END RSA PRIVATE KEY-----
             """u8;
-        ReadOnlySpan<byte> keyLabel = "label"u8;
+        string keyLabel = "label";
         ReadOnlySpan<byte> password = "password"u8;
         ReadOnlySpan<byte> templateData = [
             // Timestamp key algorithm RSA2048
@@ -274,7 +274,7 @@ public class Ssh(ITestOutputHelper output)
         ObjectId authKeyId = new(1);
 
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
         using YubiSession session = connector.CreateSession(authKeyId, password);
 
@@ -300,8 +300,8 @@ public class Ssh(ITestOutputHelper output)
             // Ignoring "not found" error; ensures key 5 does not exist.
         }
 
-        Capabilities capabilities = Capabilities.From("sign-ssh-certificate"u8);
-        Domains domainFive = Domains.From("5"u8);
+        Capabilities capabilities = Capabilities.From("sign-ssh-certificate");
+        Domains domainFive = Domains.From("5");
         caKeyId = session.ImportRsaKey(keyLabel, domainFive, in capabilities, Algorithm.Rsa2048, p, q, caKeyId);
         output.WriteLine($"Key imported with ID {caKeyId}.");
 

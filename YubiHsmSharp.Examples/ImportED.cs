@@ -31,7 +31,7 @@ public class ImportED(ITestOutputHelper output)
             MC4CAQAwBQYDK2VwBCIEIEzNCJso/5banbbDRuwRTg9bijGfNaumJNqM9u1PuKb7
             -----END PRIVATE KEY-----
             """u8;
-        ReadOnlySpan<byte> keyLabel = "label"u8;
+        string keyLabel = "label";
         ReadOnlySpan<byte> password = "password"u8;
         ReadOnlySpan<byte> data = [0x72];
         ReadOnlySpan<byte> expectedSignature = [
@@ -51,7 +51,7 @@ public class ImportED(ITestOutputHelper output)
         ObjectId authKeyId = new(1);
 
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
         using YubiSession session = connector.CreateSession(authKeyId, password);
 
@@ -64,8 +64,8 @@ public class ImportED(ITestOutputHelper output)
         Span<byte> privateKeyData = stackalloc byte[32];
         privateKey.Encode(privateKeyData);
 
-        Capabilities capabilities = Capabilities.From("sign-eddsa"u8);
-        Domains domainFive = Domains.From("5"u8);
+        Capabilities capabilities = Capabilities.From("sign-eddsa");
+        Domains domainFive = Domains.From("5");
         ObjectId keyId = session.ImportEDKey(keyLabel, domainFive, in capabilities, Algorithm.Ed25519, privateKeyData);
         output.WriteLine($"Key imported with ID {keyId}.");
 

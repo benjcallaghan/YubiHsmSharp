@@ -24,13 +24,13 @@ public class ImportAuthenticationKey(ITestOutputHelper output)
     [Fact]
     public void Main()
     {
-        ReadOnlySpan<byte> keyLabel = "label"u8;
+        string keyLabel = "label";
         ReadOnlySpan<byte> password1 = "password"u8;
         ReadOnlySpan<byte> password2 = "letmein!"u8;
         ObjectId authKeyId = new(1);
 
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
 
         byte sessionId;
@@ -40,8 +40,8 @@ public class ImportAuthenticationKey(ITestOutputHelper output)
             sessionId = session.SessionId;
             output.WriteLine($"Successfully established session {sessionId} using Authentication Key {authKeyId}.");
 
-            Capabilities capabilities = Capabilities.From("get-log-entries"u8);
-            Domains domainFive = Domains.From("5"u8);
+            Capabilities capabilities = Capabilities.From("get-log-entries");
+            Domains domainFive = Domains.From("5");
             keyId = session.ImportAuthenticationKey(keyLabel, domainFive, in capabilities, in capabilities, password2);
             output.WriteLine($"Imported Authentication Key with ID {keyId}.");
         }

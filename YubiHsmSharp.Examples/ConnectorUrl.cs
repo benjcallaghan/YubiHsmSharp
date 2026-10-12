@@ -4,7 +4,7 @@ namespace YubiHsmSharp.Examples;
 
 internal class ConnectorUrl
 {
-    public static ReadOnlySpan<byte> Utf8Value => Encoding.UTF8.GetBytes(
+    public static string Value =>
         Environment.GetEnvironmentVariable("DEFAULT_CONNECTOR_URL")
-        ?? "http://localhost:12345");
+        ?? "http://localhost:12345";
 }

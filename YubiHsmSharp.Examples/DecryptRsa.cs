@@ -58,7 +58,7 @@ public class DecryptRsa(ITestOutputHelper output)
             V5rUvEN+bLOUGLGA4qd66j5DC0QwP1gaAHlpnMoipNvgXmEcriSu
             -----END RSA PRIVATE KEY-----
             """u8.ToArray();
-        ReadOnlySpan<byte> keyLabel = "label"u8;
+        string keyLabel = "label";
         ReadOnlySpan<byte> password = "password"u8;
         ReadOnlySpan<byte> data = "sudo make me a sandwich"u8;
         ReadOnlySpan<byte> sha1EmptyString = [0xda, 0x39, 0xa3, 0xee, 0x5e, 0x6b, 0x4b,
@@ -67,7 +67,7 @@ public class DecryptRsa(ITestOutputHelper output)
         ObjectId authKeyId = new(1);
 
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
         using YubiSession session = connector.CreateSession(authKeyId, password);
 
@@ -79,8 +79,8 @@ public class DecryptRsa(ITestOutputHelper output)
         RsaPrivateCrtKeyParameters rsaPrivateKey = (RsaPrivateCrtKeyParameters)rsaKey.Private;
         Assert.Equal(2048, rsaPrivateKey.Modulus.BitLength);
 
-        Capabilities capabilities = Capabilities.From("decrypt-pkcs,decrypt-oaep"u8);
-        Domains domainFive = Domains.From("5"u8);
+        Capabilities capabilities = Capabilities.From("decrypt-pkcs,decrypt-oaep");
+        Domains domainFive = Domains.From("5");
         ObjectId keyId = session.ImportRsaKey(keyLabel, domainFive, in capabilities, Algorithm.Rsa2048,
             rsaPrivateKey.P.ToByteArray(), rsaPrivateKey.Q.ToByteArray());
         output.WriteLine($"Key imported with ID {keyId}.");

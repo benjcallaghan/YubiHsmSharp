@@ -59,13 +59,13 @@ public class ImportRsa(ITestOutputHelper output)
             V5rUvEN+bLOUGLGA4qd66j5DC0QwP1gaAHlpnMoipNvgXmEcriSu
             -----END RSA PRIVATE KEY-----
             """u8;
-        ReadOnlySpan<byte> keyLabel = "label"u8;
+        string keyLabel = "label";
         ReadOnlySpan<byte> password = "password"u8;
         ReadOnlySpan<byte> data = "sudo make me a sandwich"u8;
         ObjectId authKeyId = new(1);
 
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
         using YubiSession session = connector.CreateSession(authKeyId, password);
 
@@ -81,8 +81,8 @@ public class ImportRsa(ITestOutputHelper output)
         Span<byte> q = stackalloc byte[privateKey.Q.GetLengthofByteArray()];
         privateKey.Q.ToByteArray(q);
 
-        Capabilities capabilities = Capabilities.From("sign-pss"u8);
-        Domains domainFive = Domains.From("5"u8);
+        Capabilities capabilities = Capabilities.From("sign-pss");
+        Domains domainFive = Domains.From("5");
         ObjectId keyId = session.ImportRsaKey(keyLabel, domainFive, in capabilities, Algorithm.Rsa2048, p, q);
         output.WriteLine($"Key imported with ID {keyId}.");
 

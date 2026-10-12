@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-using System.Text;
-
 namespace YubiHsmSharp.Tests;
 
 [Trait("Requires", "YubiSDK")]
@@ -26,17 +24,10 @@ public class ObjectTypeTests
     [InlineData("something")]
     public void From_WithInvalidString_ThrowsYubiHsmException(string input)
     {
-        Action act = () =>
-        {
-            // Arrange
-            Span<byte> utf8Input = stackalloc byte[input.Length + 1];
-            int inputLength = Encoding.UTF8.GetBytes(input, utf8Input);
-            utf8Input[^1] = 0; // Null-terminated
-            Assert.Equal(input.Length, inputLength); // All values fit within ASCII.
+        // Arrange
 
-            // Act
-            ObjectType.From(utf8Input);
-        };
+        // Act
+        Action act = () => ObjectType.From(input);
 
         // Assert
         Assert.Throws<YubiHsmException>(act);
@@ -53,13 +44,9 @@ public class ObjectTypeTests
     public void From_WithValidString_ProducesValidObjectType(string input, ObjectType output)
     {
         // Arrange
-        Span<byte> utf8Input = stackalloc byte[input.Length + 1];
-        int inputLength = Encoding.UTF8.GetBytes(input, utf8Input);
-        utf8Input[^1] = 0; // Null-terminated
-        Assert.Equal(input.Length, inputLength); // All values fit within ASCII.
 
         // Act
-        ObjectType type = ObjectType.From(utf8Input);
+        ObjectType type = ObjectType.From(input);
 
         // Assert
         Assert.Equal(output, type);

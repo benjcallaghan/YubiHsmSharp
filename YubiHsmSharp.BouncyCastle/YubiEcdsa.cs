@@ -138,13 +138,8 @@ public class YubiEcdsaKeyGenerator(YubiSession session) : IAsymmetricCipherKeyPa
             throw new InvalidOperationException("Generator not initialized with parameters.");
         }
 
-        Span<byte> utf8Label = stackalloc byte[this.parameters.Label.Length + 1];
-        int bytesWritten = Encoding.UTF8.GetBytes(this.parameters.Label, utf8Label);
-        utf8Label = utf8Label[..(bytesWritten + 1)];
-        utf8Label[^1] = 0;
-
         ObjectId keyId = session.GenerateECKey(
-            utf8Label,
+            this.parameters.Label,
             this.parameters.Domains,
             this.parameters.Capabilities,
             this.parameters.Algorithm,

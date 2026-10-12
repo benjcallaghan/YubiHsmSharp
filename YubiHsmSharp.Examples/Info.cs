@@ -26,7 +26,7 @@ public class Info(ITestOutputHelper output)
     public void Main()
     {
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
 
         ReadOnlySpan<byte> receivedUrl = connector.Utf8Address;

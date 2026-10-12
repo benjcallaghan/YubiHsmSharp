@@ -32,21 +32,21 @@ public class GenerateEC(ITestOutputHelper output)
     [Fact]
     public void Main()
     {
-        ReadOnlySpan<byte> keyLabel = "label"u8;
+        string keyLabel = "label";
         ReadOnlySpan<byte> password = "password"u8;
         ReadOnlySpan<byte> data = "sudo make me a sandwich"u8;
         ObjectId authKeyId = new(1);
 
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
         using YubiSession session = connector.CreateSession(authKeyId, password);
 
         byte sessionId = session.SessionId;
         output.WriteLine($"Successfully established session {sessionId}.");
 
-        Capabilities capabilities = Capabilities.From("sign-ecdsa"u8);
-        Domains domainFive = Domains.From("5"u8);
+        Capabilities capabilities = Capabilities.From("sign-ecdsa");
+        Domains domainFive = Domains.From("5");
         ObjectId keyId = session.GenerateECKey(keyLabel, domainFive, in capabilities, Algorithm.Ecp256);
         output.WriteLine($"Generated key with ID {keyId}.");
 

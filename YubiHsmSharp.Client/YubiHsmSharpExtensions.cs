@@ -134,13 +134,7 @@ public static partial class YubiHsmSharpExtensions
     {
         var module = serviceProvider.GetRequiredService<YubiModule>();
         var options = serviceProvider.GetRequiredService<IOptionsSnapshot<YubiHsmOptions>>().Get((string?)serviceKey);
-
-        Span<byte> utf8Url = stackalloc byte[options.Url.Length + 1]; // Null-terminated
-        int written = Encoding.UTF8.GetBytes(options.Url, utf8Url);
-        utf8Url = utf8Url[..(written + 1)]; // Null-terminated
-        utf8Url[^1] = 0;
-
-        return module.InitConnector(utf8Url);
+        return module.InitConnector(options.Url);
     }
 
     private static YubiSession CreateYubiSession(IServiceProvider serviceProvider, object? serviceKey)

@@ -29,7 +29,7 @@ public class Attestation(ITestOutputHelper output)
     public void Main()
     {
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
 
         ObjectId authKeyId = new(1);
@@ -37,9 +37,9 @@ public class Attestation(ITestOutputHelper output)
         byte sessionId = session.SessionId;
         output.WriteLine($"Successfully established session {sessionId}.");
 
-        ReadOnlySpan<byte> keyLabel = "label"u8;
-        Capabilities capabilities = Capabilities.From("sign-attestation-certificate"u8);
-        Domains domainFive = Domains.From("5"u8);
+        string keyLabel = "label";
+        Capabilities capabilities = Capabilities.From("sign-attestation-certificate");
+        Domains domainFive = Domains.From("5");
         ObjectId attestingKeyId = session.GenerateECKey(keyLabel, domainFive, in capabilities, Algorithm.Ecp256);
         output.WriteLine($"Generated attesting key with ID {attestingKeyId}.");
 
@@ -107,7 +107,7 @@ public class Attestation(ITestOutputHelper output)
         Assert.Equal(attestationTemplateDer, buffer);
 
         // Only keys generated within the YubiHSM 2 can be attested.
-        capabilities = Capabilities.From("sign-ecdsa"u8);
+        capabilities = Capabilities.From("sign-ecdsa");
         ObjectId attestedKeyId = session.GenerateECKey(keyLabel, domainFive, capabilities, Algorithm.Ecp256);
         output.WriteLine($"Generated attested key with ID {attestedKeyId}");
 

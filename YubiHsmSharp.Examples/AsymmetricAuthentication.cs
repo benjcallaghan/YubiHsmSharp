@@ -26,7 +26,7 @@ public class AsymmetricAuthentication(ITestOutputHelper output)
     public void Main()
     {
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
 
         var receivedUrl = connector.Utf8Address;
@@ -67,10 +67,10 @@ public class AsymmetricAuthentication(ITestOutputHelper output)
 
             module.GenerateECP256Key(clientPrivateKey, clientPublicKey);
 
-            Capabilities caps = Capabilities.From("change-authentication-key,get-pseudo-random"u8);
+            Capabilities caps = Capabilities.From("change-authentication-key,get-pseudo-random");
 
             // The first byte of an EC public key is the "uncompressed" marker 0x04, which should not be included during import.
-            authKeyId = session.ImportAuthenticationKey("EC Auth Key"u8, new Domains(0xffff), in caps, in caps,
+            authKeyId = session.ImportAuthenticationKey("EC Auth Key", new Domains(0xffff), in caps, in caps,
                 clientPublicKey[1..], [], authKeyId);
         }
 

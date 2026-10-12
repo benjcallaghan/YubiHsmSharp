@@ -83,11 +83,11 @@ public static class ObjectTypeExtensions
         /// <summary>
         /// Converts a string to a type's numeric value.
         /// </summary>
-        /// <param name="utf8String">Type as a string, UTF-8 encoded and null-terminated.</param>
+        /// <param name="value">Type as a string.</param>
         /// <returns>The numeric value of the object type.</returns>
-        public static ObjectType From(ReadOnlySpan<byte> utf8String)
+        public static ObjectType From(string value)
         {
-            yh_rc err = yh_string_to_type(utf8String, out ObjectType result);
+            yh_rc err = yh_string_to_type(value, out ObjectType result);
             YubiHsmException.ThrowIfError(err);
             return result;
         }

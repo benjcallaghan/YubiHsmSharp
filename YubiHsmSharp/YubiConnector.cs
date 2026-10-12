@@ -288,12 +288,12 @@ public sealed class YubiConnector : IDisposable
     /// Creates a new session using encryption keys from a platform-specific key store.
     /// </summary>
     /// <param name="authKeyId">Object ID of the Authentication Key used to authentication the session</param>
-    /// <param name="utf8EncryptionKeyName">The name of the encryption key in the key store, UTF-8 encoded and null-terminated</param>
-    /// <param name="utf8MacKeyName">The name of the MAC key in the key store, UTF-8 encoded and null-terminated</param>
+    /// <param name="encryptionKeyName">The name of the encryption key in the key store</param>
+    /// <param name="macKeyName">The name of the MAC key in the key store</param>
     /// <returns>The created session</returns>
-    public YubiSession CreateSession(ObjectId authKeyId, ReadOnlySpan<byte> utf8EncryptionKeyName, ReadOnlySpan<byte> utf8MacKeyName)
+    public YubiSession CreateSession(ObjectId authKeyId, string encryptionKeyName, string macKeyName)
     {
-        yh_rc err = yh_create_session_ex(this.Handle, authKeyId, utf8EncryptionKeyName, utf8MacKeyName, out SafeSessionHandle sessionHandle);
+        yh_rc err = yh_create_session_ex(this.Handle, authKeyId, encryptionKeyName, macKeyName, out SafeSessionHandle sessionHandle);
         YubiHsmException.ThrowIfError(err);
         return new YubiSession(this, sessionHandle);
     }

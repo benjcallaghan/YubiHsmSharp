@@ -37,15 +37,15 @@ public static class YubiSessionExtensions
         /// The authentication key used to open the session requires the following delegated-capabilities:
         /// encrypt-ecb, decrypt-ecb.
         /// </remarks>
-        /// <param name="utf8Label">The label of the symmetric key, UTF-8 encoded and null-terminated.</param>
+        /// <param name="label">The label of the symmetric key.</param>
         /// <param name="domains">The domains where the symmetric key will be operating within.</param>
         /// <param name="zoneMasterKey">The key to import.</param>
         /// <param name="keyId">The ID of the ZMK. 0 if the ID should be assigned by the device.</param>
         /// <returns>The ID of the imported key.</returns>
         /// <exception cref="ArgumentException">Thrown if the ZMK is not a valid AES-128, AES-192, or AES-256 key.</exception>
-        public ObjectId ImportZoneMasterAesKey(ReadOnlySpan<byte> utf8Label, Domains domains, ReadOnlySpan<byte> zoneMasterKey, ObjectId keyId = default)
+        public ObjectId ImportZoneMasterAesKey(string label, Domains domains, ReadOnlySpan<byte> zoneMasterKey, ObjectId keyId = default)
         {
-            Capabilities capabilities = Capabilities.From("encrypt-ecb,decrypt-ecb"u8);
+            Capabilities capabilities = Capabilities.From("encrypt-ecb,decrypt-ecb");
             Algorithm algorithm = zoneMasterKey.Length switch
             {
                 16 => Algorithm.Aes128,
@@ -53,7 +53,7 @@ public static class YubiSessionExtensions
                 32 => Algorithm.Aes256,
                 _ => throw new ArgumentException("The provided key has an invalid length.", nameof(zoneMasterKey)),
             };
-            return session.ImportAesKey(utf8Label, domains, in capabilities, algorithm, zoneMasterKey, keyId);
+            return session.ImportAesKey(label, domains, in capabilities, algorithm, zoneMasterKey, keyId);
         }
 
         /// <summary>
@@ -64,15 +64,15 @@ public static class YubiSessionExtensions
         /// The authentication key used to open the session requires the following delegated-capabilities:
         /// encrypt-ecb, decrypt-ecb.
         /// </remarks>
-        /// <param name="utf8Label">The label of the symmetric key, UTF-8 encoded and null-terminated.</param>
+        /// <param name="label">The label of the symmetric key.</param>
         /// <param name="domains">The domains where the symmetric key will be operating within.</param>
         /// <param name="zoneMasterKey">The key to import.</param>
         /// <param name="keyId">The ID of the ZMK. 0 if the ID should be assigned by the device.</param>
         /// <returns>The ID of the imported key.</returns>
-        public ObjectId ImportZoneMasterDesKey(ReadOnlySpan<byte> utf8Label, Domains domains, ReadOnlySpan<byte> zoneMasterKey, ObjectId keyId = default)
+        public ObjectId ImportZoneMasterDesKey(string label, Domains domains, ReadOnlySpan<byte> zoneMasterKey, ObjectId keyId = default)
         {
-            Capabilities capabilities = Capabilities.From("encrypt-ecb,decrypt-ecb"u8);
-            return session.ImportOpaque(utf8Label, domains, in capabilities, Algorithm.OpaqueData, zoneMasterKey, keyId);
+            Capabilities capabilities = Capabilities.From("encrypt-ecb,decrypt-ecb");
+            return session.ImportOpaque(label, domains, in capabilities, Algorithm.OpaqueData, zoneMasterKey, keyId);
         }
 
         /// <summary>
@@ -88,12 +88,12 @@ public static class YubiSessionExtensions
         /// </remarks>
         /// <param name="keyBlock">The key block to decrypt and import.</param>
         /// <param name="zoneMasterKeyId">The ID of the symmetric Zone Master Key (ZMK).</param>
-        /// <param name="utf8Label">The label of the symmetrtic key, UTF-8 encoded and null-terminated.</param>
+        /// <param name="label">The label of the symmetrtic key.</param>
         /// <param name="domains">The domains where the symmetric key will be operating within.</param>
         /// <param name="keyId">The ID of the imported key. 0 if the ID should be assigned by the device.</param>
         /// <returns>A tuple containing the <see cref="ObjectType"/> and <see cref="ObjectId"/> of the imported key.</returns>
         /// <exception cref="ArgumentException">Thrown if the key block cannot be mapped to YubiHSM 2 metadata.</exception>
-        public (ObjectType, ObjectId) ImportKeyBlock(TR31KeyBlock keyBlock, ObjectId zoneMasterKeyId, ReadOnlySpan<byte> utf8Label,
+        public (ObjectType, ObjectId) ImportKeyBlock(TR31KeyBlock keyBlock, ObjectId zoneMasterKeyId, string label,
             Domains domains, ObjectId keyId = default)
         {
             ObjectType objectType = (keyBlock.Algorithm, keyBlock.Usage) switch
@@ -111,34 +111,34 @@ public static class YubiSessionExtensions
             };
             Capabilities modeOfUse = (keyBlock.ModeOfUse, keyBlock.Usage) switch
             {
-                (KeyUse.EncryptDecrypt, _) => Capabilities.From("encrypt-ecb,decrypt-ecb"u8),
-                (KeyUse.Encrypt, _) => Capabilities.From("encrypt-ecb"u8),
-                (KeyUse.Decrypt, _) => Capabilities.From("decrypt-ecb"u8),
-                (KeyUse.GenerateVerify, _) => Capabilities.From("sign-hmac,verify-hmac"u8),
-                (KeyUse.Generate, _) => Capabilities.From("sign-hmac"u8),
-                (KeyUse.Verify, _) => Capabilities.From("verify-hmac"u8),
+                (KeyUse.EncryptDecrypt, _) => Capabilities.From("encrypt-ecb,decrypt-ecb"),
+                (KeyUse.Encrypt, _) => Capabilities.From("encrypt-ecb"),
+                (KeyUse.Decrypt, _) => Capabilities.From("decrypt-ecb"),
+                (KeyUse.GenerateVerify, _) => Capabilities.From("sign-hmac,verify-hmac"),
+                (KeyUse.Generate, _) => Capabilities.From("sign-hmac"),
+                (KeyUse.Verify, _) => Capabilities.From("verify-hmac"),
                 (KeyUse.NoRestriction, KeyUsage.KeyEncryptionKey
                 or KeyUsage.KeyBlockProtectionKeyTr31 or KeyUsage.KeyBlockProtectionKeyIso20038)
-                    => Capabilities.From("export-wrapped,import-wrapped"u8),
+                    => Capabilities.From("export-wrapped,import-wrapped"),
                 (KeyUse.NoRestriction, KeyUsage.PinEncryptionKey)
-                    => Capabilities.From("encrypt-ecb,decrypt-ecb"u8),
+                    => Capabilities.From("encrypt-ecb,decrypt-ecb"),
                 (KeyUse.NoRestriction, KeyUsage.HmacKey or KeyUsage.Iso16609Mac1Key
                 or KeyUsage.Iso9797Mac1Key or KeyUsage.Iso9797Mac3Key or KeyUsage.Iso9797Mac5Key)
-                    => Capabilities.From("sign-hmac,verify-hmac"u8),
+                    => Capabilities.From("sign-hmac,verify-hmac"),
                 (KeyUse.NoRestriction, KeyUsage.SensitiveDataEncryptionKey or KeyUsage.SymmetricDataEncryptionKey)
-                    => Capabilities.From("wrap-data,unwrap-data"u8),
+                    => Capabilities.From("wrap-data,unwrap-data"),
                 _ => throw new NotSupportedException($"The mode of use '{keyBlock.ModeOfUse}' is not supported."),
             };
             Capabilities exportability = keyBlock.Exportability switch
             {
                 // Assuming the caller has a wrap key that is "extra sensitive" compatible.
-                KeyExportability.ExtraSensitive => Capabilities.From("exportable-under-wrap"u8),
+                KeyExportability.ExtraSensitive => Capabilities.From("exportable-under-wrap"),
                 KeyExportability.NonExportable => default,
-                KeyExportability.Sensitive => Capabilities.From("exportable-under-wrap"u8),
+                KeyExportability.Sensitive => Capabilities.From("exportable-under-wrap"),
                 _ => throw new ArgumentException($"The exportablity '{keyBlock.Exportability}' is not supported.", nameof(keyBlock)),
             };
             Capabilities capabilities = modeOfUse.Merge(in exportability);
-            Capabilities delegated = Capabilities.From("encrypt-ecb,decrypt-ecb,sign-hmac,verify-hmac,export-wrapped,import-wrapped,wrap-data,unwrap-data,exportable-under-wrap"u8);
+            Capabilities delegated = Capabilities.From("encrypt-ecb,decrypt-ecb,sign-hmac,verify-hmac,export-wrapped,import-wrapped,wrap-data,unwrap-data,exportable-under-wrap");
             KeyParameter keyParameter = keyBlock.VersionId switch
             {
                 KeyBlockVersion.Derivation2017 => session.GetSymmetricKeyParameter(zoneMasterKeyId),
@@ -171,10 +171,10 @@ public static class YubiSessionExtensions
             };
             ObjectId objectId = objectType switch
             {
-                ObjectType.SymmetricKey => session.ImportAesKey(utf8Label, domains, in capabilities, algorithm, clearKey, keyId),
-                ObjectType.Opaque => session.ImportOpaque(utf8Label, domains, in capabilities, algorithm, clearKey, keyId),
-                ObjectType.HmacKey => session.ImportHmacKey(utf8Label, domains, in capabilities, algorithm, clearKey, keyId),
-                ObjectType.WrapKey => session.ImportWrapKey(utf8Label, domains, in capabilities, algorithm, in delegated, clearKey, keyId),
+                ObjectType.SymmetricKey => session.ImportAesKey(label, domains, in capabilities, algorithm, clearKey, keyId),
+                ObjectType.Opaque => session.ImportOpaque(label, domains, in capabilities, algorithm, clearKey, keyId),
+                ObjectType.HmacKey => session.ImportHmacKey(label, domains, in capabilities, algorithm, clearKey, keyId),
+                ObjectType.WrapKey => session.ImportWrapKey(label, domains, in capabilities, algorithm, in delegated, clearKey, keyId),
                 _ => throw new NotSupportedException($"The object type '{objectType}' is not supported."),
             };
 

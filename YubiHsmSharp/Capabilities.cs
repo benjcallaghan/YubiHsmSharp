@@ -30,11 +30,11 @@ public struct Capabilities
     /// <summary>
     /// Converts a string representation of capabilities to a <see cref="Capabilities"/> struct.
     /// </summary>
-    /// <param name="utf8String">String of capabilities separated by ',', ':', or '|', UTF-8 encoded and null-terminated.</param>
+    /// <param name="value">String of capabilities separated by ',', ':', or '|'.</param>
     /// <returns>The parsed capabilities.</returns>
-    public static Capabilities From(ReadOnlySpan<byte> utf8String)
+    public static Capabilities From(string value)
     {
-        yh_rc err = yh_string_to_capabilities(utf8String, out Capabilities caps);
+        yh_rc err = yh_string_to_capabilities(value, out Capabilities caps);
         YubiHsmException.ThrowIfError(err);
         return caps;
     }
@@ -66,11 +66,11 @@ public struct Capabilities
     /// <summary>
     /// Checks if a capability is set.
     /// </summary>
-    /// <param name="utf8Capability">Capability to check, UTF-8 encoded and null-terminated.</param>
+    /// <param name="capability">Capability to check.</param>
     /// <returns>True if the capability is in this capabilities set. False otherwise.</returns>
-    public readonly bool CheckCapability(ReadOnlySpan<byte> utf8Capability)
+    public readonly bool CheckCapability(string capability)
     {
-        return yh_check_capability(in this, utf8Capability);
+        return yh_check_capability(in this, capability);
     }
 
     /// <summary>

@@ -25,14 +25,14 @@ public class ChangeAuthKey(ITestOutputHelper output)
     [Fact]
     public void Main()
     {
-        ReadOnlySpan<byte> keyLabel = "label"u8;
+        string keyLabel = "label";
         ReadOnlySpan<byte> password1 = "password"u8;
         ReadOnlySpan<byte> password2 = "letmein!"u8;
         ReadOnlySpan<byte> password3 = "PASSWORD"u8;
         ObjectId authKey = new(1);
 
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
 
         byte sessionId;
@@ -42,8 +42,8 @@ public class ChangeAuthKey(ITestOutputHelper output)
             sessionId = session.SessionId;
             output.WriteLine($"Successfully established session {sessionId} using Authentication Key {authKey}");
 
-            Capabilities capabilities = Capabilities.From("change-authentication-key"u8);
-            Domains domainFive = Domains.From("5"u8);
+            Capabilities capabilities = Capabilities.From("change-authentication-key");
+            Domains domainFive = Domains.From("5");
             keyId = session.ImportAuthenticationKey(keyLabel, domainFive, in capabilities, in capabilities, password2);
             output.WriteLine($"Imported Authentication Key with ID {keyId} and password {Encoding.UTF8.GetString(password2)}");
 

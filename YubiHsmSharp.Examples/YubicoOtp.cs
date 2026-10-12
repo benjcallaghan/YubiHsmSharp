@@ -28,7 +28,7 @@ public class YubicoOtp(ITestOutputHelper output)
     [Fact]
     public void Main()
     {
-        ReadOnlySpan<byte> keylabel = "label"u8;
+        string keylabel = "label";
         ReadOnlySpan<byte> password = "password"u8;
         ReadOnlySpan<byte> otpKey = [
             0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87,
@@ -37,15 +37,15 @@ public class YubicoOtp(ITestOutputHelper output)
         ObjectId authKeyId = new(1);
 
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
         using YubiSession session = connector.CreateSession(authKeyId, password);
 
         byte sessionId = session.SessionId;
         output.WriteLine($"Successfully established session {sessionId}.");
 
-        Capabilities capabilities = Capabilities.From("create-otp-aead:decrypt-otp:randomize-otp-aead"u8);
-        Domains domainFive = Domains.From("5"u8);
+        Capabilities capabilities = Capabilities.From("create-otp-aead:decrypt-otp:randomize-otp-aead");
+        Domains domainFive = Domains.From("5");
         uint nonceId = 0x12345678;
         ObjectId keyId = session.GenerateOtpAeadKey(keylabel, domainFive, in capabilities, Algorithm.Aes128YubicoOtp, nonceId);
         output.WriteLine($"Generated OTP key with ID {keyId}.");

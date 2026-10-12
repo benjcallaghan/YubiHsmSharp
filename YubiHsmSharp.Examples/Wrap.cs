@@ -31,22 +31,22 @@ public class Wrap(ITestOutputHelper output)
     [Fact]
     public void Main()
     {
-        ReadOnlySpan<byte> keyLabel = "label"u8;
+        string keyLabel = "label";
         ReadOnlySpan<byte> password = "password"u8;
         ObjectId authKeyId = new(1);
 
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
         using YubiSession session = connector.CreateSession(authKeyId, password);
 
         byte sessionId = session.SessionId;
         output.WriteLine($"Successfully established session {sessionId}.");
 
-        Capabilities capabilities = Capabilities.From("export-wrapped:import-wrapped"u8);
+        Capabilities capabilities = Capabilities.From("export-wrapped:import-wrapped");
         // Delegated capabilities has to match the capabilities of the object we want to export.
-        Capabilities delegatedCapabilites = Capabilities.From("sign-ecdsa:sign-eddsa:sign-pkcs:sign-pss:exportable-under-wrap"u8);
-        Domains domainFive = Domains.From("5"u8);
+        Capabilities delegatedCapabilites = Capabilities.From("sign-ecdsa:sign-eddsa:sign-pkcs:sign-pss:exportable-under-wrap");
+        Domains domainFive = Domains.From("5");
 
         ReadOnlySpan<byte> data = "This is the data to sign"u8;
         Span<byte> hashedData = stackalloc byte[32];

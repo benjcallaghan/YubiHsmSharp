@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-using System.Text;
-
 namespace YubiHsmSharp.Tests;
 
 [Trait("Requires", "YubiSDK")]
@@ -30,13 +28,9 @@ public class CapabilitiesTests
     public void From_WithValidString_ProducesValidNumeric(string input, string hexOutput)
     {
         // Arrange
-        Span<byte> utf8Input = stackalloc byte[input.Length + 1];
-        int inputLength = Encoding.UTF8.GetBytes(input, utf8Input);
-        utf8Input[^1] = 0; // Null-terminated
-        Assert.Equal(input.Length, inputLength); // All values fit within ASCII.
 
         // Act
-        Capabilities capabilities = Capabilities.From(utf8Input);
+        Capabilities capabilities = Capabilities.From(input);
 
         // Assert
         byte[] output = Convert.FromHexString(hexOutput);
@@ -47,21 +41,21 @@ public class CapabilitiesTests
     public void CanParseCheckAndPrintCapabilities()
     {
         // Parse
-        ReadOnlySpan<byte> utf8Input = "sign-pkcs:decrypt-pkcs:export-wrapped:set-option:get-pseudo-random:sign-hmac:verify-hmac:get-log-entries"u8;
-        Capabilities capabilities = Capabilities.From(utf8Input);
+        string input = "sign-pkcs:decrypt-pkcs:export-wrapped:set-option:get-pseudo-random:sign-hmac:verify-hmac:get-log-entries";
+        Capabilities capabilities = Capabilities.From(input);
 
         // Check
-        Assert.False(capabilities.CheckCapability("something"u8));
-        Assert.False(capabilities.CheckCapability("sign-pss"u8));
-        Assert.True(capabilities.CheckCapability("sign-pkcs"u8));
-        Assert.True(capabilities.CheckCapability("decrypt-pkcs"u8));
-        Assert.True(capabilities.CheckCapability("export-wrapped"u8));
-        Assert.True(capabilities.CheckCapability("set-option"u8));
-        Assert.True(capabilities.CheckCapability("get-pseudo-random"u8));
-        Assert.True(capabilities.CheckCapability("sign-hmac"u8));
-        Assert.True(capabilities.CheckCapability("verify-hmac"u8));
-        Assert.True(capabilities.CheckCapability("get-log-entries"u8));
-        Assert.True(capabilities.CheckCapability("verify-hmac:get-log-entries"u8));
+        Assert.False(capabilities.CheckCapability("something"));
+        Assert.False(capabilities.CheckCapability("sign-pss"));
+        Assert.True(capabilities.CheckCapability("sign-pkcs"));
+        Assert.True(capabilities.CheckCapability("decrypt-pkcs"));
+        Assert.True(capabilities.CheckCapability("export-wrapped"));
+        Assert.True(capabilities.CheckCapability("set-option"));
+        Assert.True(capabilities.CheckCapability("get-pseudo-random"));
+        Assert.True(capabilities.CheckCapability("sign-hmac"));
+        Assert.True(capabilities.CheckCapability("verify-hmac"));
+        Assert.True(capabilities.CheckCapability("get-log-entries"));
+        Assert.True(capabilities.CheckCapability("verify-hmac:get-log-entries"));
 
         // Print
         string output = capabilities.ToString();
@@ -79,24 +73,24 @@ public class CapabilitiesTests
     public void CanMergeAndFilter()
     {
         // Arrange
-        Capabilities c1 = Capabilities.From("sign-pkcs,sign-pss"u8);
-        Capabilities c2 = Capabilities.From("decrypt-pkcs,decrypt-oaep"u8);
-        Capabilities c3 = Capabilities.From("sign-pss,decrypt-oaep"u8);
+        Capabilities c1 = Capabilities.From("sign-pkcs,sign-pss");
+        Capabilities c2 = Capabilities.From("decrypt-pkcs,decrypt-oaep");
+        Capabilities c3 = Capabilities.From("sign-pss,decrypt-oaep");
 
         // Merge
         Capabilities res = c1.Merge(in c2);
-        Assert.True(res.CheckCapability("sign-pkcs"u8));
-        Assert.True(res.CheckCapability("sign-pss"u8));
-        Assert.True(res.CheckCapability("decrypt-pkcs"u8));
-        Assert.True(res.CheckCapability("decrypt-oaep"u8));
-        Assert.False(res.CheckCapability("sign-hmac"u8));
+        Assert.True(res.CheckCapability("sign-pkcs"));
+        Assert.True(res.CheckCapability("sign-pss"));
+        Assert.True(res.CheckCapability("decrypt-pkcs"));
+        Assert.True(res.CheckCapability("decrypt-oaep"));
+        Assert.False(res.CheckCapability("sign-hmac"));
 
         // Filter
         res = res.Filter(in c3);
-        Assert.False(res.CheckCapability("sign-pkcs"u8));
-        Assert.True(res.CheckCapability("sign-pss"u8));
-        Assert.False(res.CheckCapability("decrypt-pkcs"u8));
-        Assert.True(res.CheckCapability("decrypt-oaep"u8));
-        Assert.False(res.CheckCapability("sign-hmac"u8));
+        Assert.False(res.CheckCapability("sign-pkcs"));
+        Assert.True(res.CheckCapability("sign-pss"));
+        Assert.False(res.CheckCapability("decrypt-pkcs"));
+        Assert.True(res.CheckCapability("decrypt-oaep"));
+        Assert.False(res.CheckCapability("sign-hmac"));
     }
 }

@@ -24,13 +24,13 @@ public class EncryptAes(ITestOutputHelper output)
     [Fact]
     public void Main()
     {
-        ReadOnlySpan<byte> keyLabel = "label"u8;
+        string keyLabel = "label";
         ReadOnlySpan<byte> password = "password"u8;
         ReadOnlySpan<byte> plaintext = "singleblock msg\0"u8;
         ObjectId authKeyId = new(1);
 
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
         using YubiSession session = connector.CreateSession(authKeyId, password);
 
@@ -46,8 +46,8 @@ public class EncryptAes(ITestOutputHelper output)
             return;
         }
 
-        Capabilities capabilities = Capabilities.From("encrypt-ecb,decrypt-ecb,encrypt-cbc,decrypt-cbc"u8);
-        Domains domainFive = Domains.From("5"u8);
+        Capabilities capabilities = Capabilities.From("encrypt-ecb,decrypt-ecb,encrypt-cbc,decrypt-cbc");
+        Domains domainFive = Domains.From("5");
         ObjectId aesKeyId = session.GenerateAesKey(keyLabel, domainFive, in capabilities, Algorithm.Aes256);
         output.WriteLine($"Generated AES key with ID {aesKeyId}.");
 

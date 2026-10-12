@@ -43,13 +43,13 @@ public class ImportEC(ITestOutputHelper output)
             f/TdJE466eFZ9MIaZNmRsrkwxWbZ1w7yWQ==
             -----END EC PRIVATE KEY-----
             """u8;
-        ReadOnlySpan<byte> keyLabel = "label"u8;
+        string keyLabel = "label";
         ReadOnlySpan<byte> password = "password"u8;
         ReadOnlySpan<byte> data = "sudo make me a sandwich"u8;
         ObjectId authKeyId = new(1);
 
         using YubiModule module = YubiModule.Instance;
-        using YubiConnector connector = module.InitConnector(ConnectorUrl.Utf8Value);
+        using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
         using YubiSession session = connector.CreateSession(authKeyId, password);
 
@@ -63,8 +63,8 @@ public class ImportEC(ITestOutputHelper output)
         Span<byte> privateKeyData = stackalloc byte[privateKey.D.GetLengthofByteArray()];
         privateKey.D.ToByteArray(privateKeyData);
 
-        Capabilities capabilities = Capabilities.From("sign-ecdsa"u8);
-        Domains domainFive = Domains.From("5"u8);
+        Capabilities capabilities = Capabilities.From("sign-ecdsa");
+        Domains domainFive = Domains.From("5");
         ObjectId keyId = session.ImportECKey(keyLabel, domainFive, in capabilities, Algorithm.Ecp256, privateKeyData);
         output.WriteLine($"Key imported with ID {keyId}.");
 

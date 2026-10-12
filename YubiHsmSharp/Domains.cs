@@ -47,11 +47,11 @@ public readonly struct Domains
     /// The domains string can contain one or several domains separated by ',', ':', or '|'.
     /// Each domain can be written in decimal or hex format.
     /// </remarks>
-    /// <param name="utf8String">String of domains, UTF-8 encoded and null-terminated.</param>
+    /// <param name="value">String of domains.</param>
     /// <returns>The parsed domains as an unsigned int.</returns>
-    public static Domains From(ReadOnlySpan<byte> utf8String)
+    public static Domains From(string value)
     {
-        yh_rc err = yh_string_to_domains(utf8String, out Domains result);
+        yh_rc err = yh_string_to_domains(value, out Domains result);
         YubiHsmException.ThrowIfError(err);
         return result;
     }
