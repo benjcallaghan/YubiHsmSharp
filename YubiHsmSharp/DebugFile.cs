@@ -19,37 +19,37 @@ using System.IO.Pipes;
 
 namespace YubiHsmSharp;
 
-internal partial class DebugFile : IDisposable
+internal unsafe partial class DebugFile : IDisposable
 {
     [LibraryImport("ucrtbase.dll", EntryPoint = "_open_osfhandle", SetLastError = false)]
-    private static partial int win_open_osfhandle(nint osfhandle, int flags);
+    private static partial int win_open_osfhandle(void* osfhandle, int flags);
 
     [LibraryImport("ucrtbase.dll", EntryPoint = "_fdopen", SetLastError = true)]
-    private static partial nint win_fdopen(int fd, ReadOnlySpan<byte> mode);
+    private static partial void* win_fdopen(int fd, ReadOnlySpan<byte> mode);
 
     [LibraryImport("ucrtbase.dll", EntryPoint = "_fclose_nolock", SetLastError = true)]
-    private static partial int win_fclose(nint stream);
+    private static partial int win_fclose(void* stream);
 
     [LibraryImport("libc", EntryPoint = "fdopen", SetLastError = true)]
-    private static partial nint posix_fdopen(int filedes, ReadOnlySpan<byte> mode);
+    private static partial void* posix_fdopen(int filedes, ReadOnlySpan<byte> mode);
 
     [LibraryImport("libc", EntryPoint = "fclose", SetLastError = true)]
-    private static partial int posix_fclose(nint stream);
+    private static partial int posix_fclose(void* stream);
 
     private readonly AnonymousPipeServerStream server;
     private bool disposed;
 
-    public nint WriteFile { get; }
+    public void* WriteFile { get; }
     public Stream ReadStream => this.server;
 
     public DebugFile()
     {
         this.server = new(PipeDirection.In, HandleInheritability.None, 4096);
-        nint clientHandle = this.server.ClientSafePipeHandle.DangerousGetHandle();
+        void* clientHandle = (void*)this.server.ClientSafePipeHandle.DangerousGetHandle();
 
         this.WriteFile = OpenFileStream(clientHandle);
 
-        if (this.WriteFile is 0)
+        if (this.WriteFile == null)
         {
             this.server.Dispose();
             throw new Win32Exception(); // Automatically captures LastError from fdopen.
@@ -58,13 +58,13 @@ internal partial class DebugFile : IDisposable
         this.server.DisposeLocalCopyOfClientHandle();
     }
 
-    private static nint OpenFileStream(nint clientHandle)
+    private static void* OpenFileStream(void* clientHandle)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             // Convert handle to a file descriptor, then convert that to a FILE* stream.
-            int fd = win_open_osfhandle((int)clientHandle, 0);
-            return fd is -1 ? 0 : win_fdopen(fd, "w"u8);
+            int fd = win_open_osfhandle(clientHandle, 0);
+            return fd is -1 ? null : win_fdopen(fd, "w"u8);
         }
         else
         {
@@ -73,7 +73,7 @@ internal partial class DebugFile : IDisposable
         }
     }
 
-    private static void CloseFileStream(nint stream)
+    private static void CloseFileStream(void* stream)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {

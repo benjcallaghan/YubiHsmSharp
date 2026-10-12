@@ -509,7 +509,7 @@ internal static partial class @yubihsm
     /// <param name="output">The destination of the debug messages</param>
     [LibraryImport(nameof(yubihsm))]
     // FIXME: Add a stronger handle-like type for FILE *output.
-    public static partial void yh_set_debug_output(SafeConnectorHandle connector, nint output);
+    public static unsafe partial void yh_set_debug_output(SafeConnectorHandle connector, void* output);
 
     /// <summary>
     /// Global library initialization
@@ -577,7 +577,7 @@ internal static partial class @yubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if the connector is NULL
     /// </returns>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_disconnect(nint connector);
+    public static unsafe partial yh_rc yh_disconnect(void* connector);
 
     /// <summary>
     /// Send a plain (unencrypted) message to the device through a connector
@@ -832,7 +832,7 @@ internal static partial class @yubihsm
     /// </returns>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_destroy_session(ref nint session);
+    public static unsafe partial yh_rc yh_destroy_session(ref void* session);
 
     /// <summary>
     /// Deprecated - use yh_begin_create_session instead
@@ -1008,7 +1008,7 @@ internal static partial class @yubihsm
     /// </returns>
     /// <seealso cref="yh_rc"/>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_util_close_session(nint session);
+    public static unsafe partial yh_rc yh_util_close_session(void* session);
 
     /// <summary>
     /// Sign data using RSA-PKCS#1v1.5

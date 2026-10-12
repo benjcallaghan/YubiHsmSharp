@@ -133,7 +133,10 @@ public sealed class YubiConnector : IDisposable
         oldDebugFile?.Dispose();
 
         DebugFile debug = newDebugFile.Value;
-        yh_set_debug_output(connectorHandle, debug.WriteFile);
+        unsafe
+        {
+            yh_set_debug_output(connectorHandle, (void*)debug.WriteFile);
+        }
 
         _ = Task.Run(async () =>
         {
@@ -370,15 +373,15 @@ internal class SafeConnectorHandle : SafeHandle
     private SafeModuleHandle? parent;
     private bool parentAdded;
 
-    public SafeConnectorHandle() : base(IntPtr.Zero, true) { }
+    public SafeConnectorHandle() : base(0, true) { }
 
-    public override bool IsInvalid => this.handle == IntPtr.Zero;
+    public override bool IsInvalid => this.handle == 0;
 
-    protected override bool ReleaseHandle()
+    protected unsafe override bool ReleaseHandle()
     {
         try
         {
-            yh_rc err = yh_disconnect(this.handle);
+            yh_rc err = yh_disconnect((void*)this.handle);
             return err == yh_rc.YHR_SUCCESS;
         }
         finally

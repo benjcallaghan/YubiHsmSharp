@@ -208,7 +208,7 @@ public sealed class YubiModule : IDisposable
 // Because this handle is never passed to P/Invoke methods, reference counting is handled manually.
 internal class SafeModuleHandle : SafeHandle
 {
-    public SafeModuleHandle() : base(IntPtr.Zero, true) { }
+    public SafeModuleHandle() : base(0, true) { }
 
     public override bool IsInvalid => false;
 

@@ -1286,21 +1286,23 @@ internal class SafeSessionHandle : SafeHandle
     private SafeConnectorHandle? parent;
     private bool parentAdded = false;
 
-    public SafeSessionHandle() : base(IntPtr.Zero, true) { }
+    public SafeSessionHandle() : base(0, true) { }
 
-    public override bool IsInvalid => this.handle == IntPtr.Zero;
+    public override bool IsInvalid => this.handle == 0;
 
-    protected override bool ReleaseHandle()
+    protected unsafe override bool ReleaseHandle()
     {
         try
         {
-            yh_rc err = yh_util_close_session(this.handle);
+            void* handle = (void*)this.handle;
+
+            yh_rc err = yh_util_close_session(handle);
             if (err != yh_rc.YHR_SUCCESS)
             {
                 return false;
             }
 
-            err = yh_destroy_session(ref this.handle);
+            err = yh_destroy_session(ref handle);
             return err == yh_rc.YHR_SUCCESS;
         }
         finally
