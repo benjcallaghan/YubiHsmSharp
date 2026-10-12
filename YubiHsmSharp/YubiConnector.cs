@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Text;
 
@@ -86,15 +87,15 @@ public sealed class YubiConnector : IDisposable
     }
 
     /// <summary>
-    /// Gets the connector address, UTF-8 encoded.
+    /// Gets the connector address.
     /// </summary>
-    public unsafe ReadOnlySpan<byte> Utf8Address
+    public unsafe string Address
     {
         get
         {
-            yh_rc err = yh_get_connector_address(this.Handle, out nint utf8Address);
+            yh_rc err = yh_get_connector_address(this.Handle, out char* utf8Address);
             YubiHsmException.ThrowIfError(err);
-            return MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)utf8Address);
+            return Marshal.PtrToStringUTF8((nint)utf8Address) ?? String.Empty;
         }
     }
 

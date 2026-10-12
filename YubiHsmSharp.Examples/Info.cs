@@ -29,7 +29,7 @@ public class Info(ITestOutputHelper output)
         using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
 
-        ReadOnlySpan<byte> receivedUrl = connector.Utf8Address;
+        ReadOnlySpan<byte> receivedUrl = connector.Address;
         Assert.True(connector.HasDevice);
         output.WriteLine($"Successfully connected to {Encoding.UTF8.GetString(receivedUrl)}, device is present.");
 

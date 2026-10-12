@@ -73,11 +73,11 @@ public static class ObjectTypeExtensions
         /// Converts the object type to its string representation.
         /// </summary>
         /// <returns>The string representation of the type.</returns>
-        public string ToYubiString()
+        public unsafe string ToYubiString()
         {
-            yh_rc err = yh_type_to_string(type, out nint result);
+            yh_rc err = yh_type_to_string(type, out char* result);
             YubiHsmException.ThrowIfError(err);
-            return Marshal.PtrToStringUTF8(result) ?? String.Empty;
+            return Marshal.PtrToStringUTF8((nint)result) ?? String.Empty;
         }
 
         /// <summary>

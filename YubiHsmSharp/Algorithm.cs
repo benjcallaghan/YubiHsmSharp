@@ -255,11 +255,11 @@ public static class AlgorithmExtensions
         /// Converts an algorithm to its string representation.
         /// </summary>
         /// <returns>The string representation of the algorithm.</returns>
-        public string ToYubiString()
+        public unsafe string ToYubiString()
         {
-            yh_rc err = yh_algo_to_string(algorithm, out nint result);
+            yh_rc err = yh_algo_to_string(algorithm, out char* result);
             YubiHsmException.ThrowIfError(err);
-            return Marshal.PtrToStringUTF8(result) ?? String.Empty;
+            return Marshal.PtrToStringUTF8((nint)result) ?? String.Empty;
         }
 
         /// <summary>

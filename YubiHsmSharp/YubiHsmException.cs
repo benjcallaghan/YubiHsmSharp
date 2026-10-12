@@ -25,10 +25,10 @@ public class YubiHsmException : Exception
     {
     }
 
-    private static string GetErrorMessage(yh_rc err)
+    private static unsafe string GetErrorMessage(yh_rc err)
     {
-        nint message = yh_strerror(err);
-        return Marshal.PtrToStringUTF8(message) ?? String.Empty;
+        char* message = yh_strerror(err);
+        return Marshal.PtrToStringUTF8((nint)message) ?? String.Empty;
     }
 
     internal static void ThrowIfError(yh_rc err)

@@ -476,7 +476,7 @@ internal static partial class @yubihsm
     /// <param name="err"><see cref="yh_rc"/> error code</param>
     /// <returns>String with descriptive error</returns>
     [LibraryImport(nameof(yubihsm))]
-    public static partial nint yh_strerror(yh_rc err);
+    public static unsafe partial char* yh_strerror(yh_rc err);
 
     /// <summary>
     /// Set verbosity level when executing commands.
@@ -709,8 +709,8 @@ internal static partial class @yubihsm
     /// <seealso cref="yh_rc"/>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Session.html">Session</seealso>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_begin_create_session(SafeConnectorHandle connector, ObjectId authkey_id,
-        out nint context, Span<byte> host_challenge, out nuint host_challenge_len,
+    public static unsafe partial yh_rc yh_begin_create_session(SafeConnectorHandle connector, ObjectId authkey_id,
+        out byte* context, Span<byte> host_challenge, out nuint host_challenge_len,
         Span<byte> card_cryptogram, out nuint card_cryptogram_len, out SafeSessionHandle session);
 
     /// <summary>
@@ -839,8 +839,8 @@ internal static partial class @yubihsm
     /// </summary>
     [LibraryImport(nameof(yubihsm))]
     [Obsolete("Use yh_begin_create_session instead")]
-    public static partial yh_rc yh_begin_create_session_ext(SafeConnectorHandle connector, ObjectId authkey_id,
-        out nint context, Span<byte> card_cryptogram, nuint card_cryptogram_len, out SafeSessionHandle session);
+    public static unsafe partial yh_rc yh_begin_create_session_ext(SafeConnectorHandle connector, ObjectId authkey_id,
+        out byte* context, Span<byte> card_cryptogram, nuint card_cryptogram_len, out SafeSessionHandle session);
 
     /// <summary>
     /// Deprecated - use yh_finish_create_session instead
@@ -2325,7 +2325,7 @@ internal static partial class @yubihsm
     /// <see cref="yh_rc.YHR_INVALID_PARAMETERS"/> if input parameters are NULL.
     /// </returns>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_get_connector_address(SafeConnectorHandle connector, out nint address);
+    public static unsafe partial yh_rc yh_get_connector_address(SafeConnectorHandle connector, out char* address);
 
     /// <summary>
     /// Convert capability string to byte array
@@ -2505,7 +2505,7 @@ internal static partial class @yubihsm
     /// </returns>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Algorithms.html">Algorithms</seealso>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_algo_to_string(Algorithm algo, out nint result);
+    public static unsafe partial yh_rc yh_algo_to_string(Algorithm algo, out char* result);
 
     /// <summary>
     /// Convert a string to an algorithm's numeric value
@@ -2541,14 +2541,14 @@ internal static partial class @yubihsm
     /// <example>
     /// <code>
     /// yh_type_to_string(0, NULL) => YHR_INVALID_PARAMETERS
-    /// yh_type_to_string(99, out nint @string) => @string="Unknown"
-    /// yh_type_to_string(YH_OPAQUE, out nint @string) => @string="opaque"
-    /// yh_type_to_string(YH_AUTHENTICATION_KEY, out nint @string) => @string="authentication-key"
+    /// yh_type_to_string(99, out char* @string) => @string="Unknown"
+    /// yh_type_to_string(YH_OPAQUE, out char* @string) => @string="opaque"
+    /// yh_type_to_string(YH_AUTHENTICATION_KEY, out char* @string) => @string="authentication-key"
     /// </code>
     /// </example>
     /// <seealso href="https://developers.yubico.com/YubiHSM2/Concepts/Object.html">Object</seealso>
     [LibraryImport(nameof(yubihsm))]
-    public static partial yh_rc yh_type_to_string(ObjectType type, out nint result);
+    public static unsafe partial yh_rc yh_type_to_string(ObjectType type, out char* result);
 
     /// <summary>
     /// Convert a string to a type's numeric value

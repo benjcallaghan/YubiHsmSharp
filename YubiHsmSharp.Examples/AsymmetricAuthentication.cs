@@ -29,7 +29,7 @@ public class AsymmetricAuthentication(ITestOutputHelper output)
         using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
 
-        var receivedUrl = connector.Utf8Address;
+        var receivedUrl = connector.Address;
 
         connector.SetVerbosity(Verbosity.All);
 
