@@ -29,9 +29,9 @@ public class Info(ITestOutputHelper output)
         using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
 
-        ReadOnlySpan<byte> receivedUrl = connector.Address;
+        string receivedUrl = connector.Address;
         Assert.True(connector.HasDevice);
-        output.WriteLine($"Successfully connected to {Encoding.UTF8.GetString(receivedUrl)}, device is present.");
+        output.WriteLine($"Successfully connected to {receivedUrl}, device is present.");
 
         (byte major, byte minor, byte patch) = connector.Version;
         output.WriteLine($"Connector Version: {major}.{minor}.{patch}");

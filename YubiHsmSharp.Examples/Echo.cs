@@ -32,7 +32,7 @@ public class Echo(ITestOutputHelper output)
         using YubiConnector connector = module.InitConnector(ConnectorUrl.Value);
         connector.Connect();
 
-        ReadOnlySpan<byte> receivedUrl = connector.Address;
+        string receivedUrl = connector.Address;
         connector.SetVerbosity(Verbosity.All);
 
         output.WriteLine("Send a plain (unencrypted, unauthenticated) echo command.");
