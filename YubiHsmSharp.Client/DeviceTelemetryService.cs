@@ -153,6 +153,9 @@ internal partial class DeviceTelemetryService(
             LogDeviceEntry(log);
         }
 
-        session.SetLogIndex(logs[^1].Number);
+        if (logs.Length > 0)
+        {
+            session.SetLogIndex(logs[^1].Number);
+        }
     }
 }
