@@ -87,7 +87,7 @@ internal partial class DeviceTelemetryService(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        PeriodicTimer timer = new(options.Get(serviceKey).TelemetryPollInterval);
+        using PeriodicTimer timer = new(options.Get(serviceKey).TelemetryPollInterval);
         do
         {
             try
