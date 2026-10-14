@@ -57,6 +57,7 @@ public class YubiHsmOptions
     /// <remarks>
     /// This value is ignored if both <see cref="DisableMetrics"/> and <see cref="DisableDeviceLogs"/> are true.
     /// </remarks>
+    [Range(typeof(TimeSpan), "00:00:01", "1.00:00:00")]
     public TimeSpan TelemetryPollInterval { get; set; } = TimeSpan.FromMinutes(5);
 
     /// <summary>
