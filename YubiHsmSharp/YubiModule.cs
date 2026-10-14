@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-using System.Diagnostics.CodeAnalysis;
-
 namespace YubiHsmSharp;
 
 /// <summary>
@@ -24,6 +22,9 @@ namespace YubiHsmSharp;
 /// </summary>
 public sealed class YubiModule : IDisposable
 {
+    private static readonly Lock instanceLock = new();
+    private static YubiModule? instance;
+
     /// <summary>
     /// Initializes the YubiHSM module.
     /// </summary>
@@ -37,11 +38,15 @@ public sealed class YubiModule : IDisposable
     /// <summary>
     /// Retrieves the singleton <see cref="YubiModule"/>.
     /// </summary>
-    [AllowNull]
     public static YubiModule Instance
     {
-        get => field ??= new YubiModule();
-        private set;
+        get
+        {
+            lock (instanceLock)
+            {
+                return instance ??= new YubiModule();
+            }
+        }
     }
 
     internal SafeModuleHandle Handle { get; }
@@ -199,8 +204,14 @@ public sealed class YubiModule : IDisposable
     /// </summary>
     public void Dispose()
     {
-        this.Handle.Dispose();
-        Instance = null; // Reset the singleton if someone disposes the instance.
+        lock (instanceLock)
+        {
+            this.Handle.Dispose();
+            if (ReferenceEquals(instance, this))
+            {
+                instance = null;
+            }
+        }
     }
 }
 
