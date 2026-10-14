@@ -79,8 +79,8 @@ internal partial class DeviceTelemetryService(
         description: "The size of a page in the device"
     );
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Received log entry from device: {LogEntry}.")]
-    private partial void LogDeviceEntry(LogEntry logEntry);
+    [LoggerMessage(Level = LogLevel.Information, Message = "Received log entry from device.")]
+    private partial void LogDeviceEntry([LogProperties] LogEntry logEntry);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Failed to read telemetry from YubiHSM 2 device.")]
     private partial void LogPollException(Exception ex);
